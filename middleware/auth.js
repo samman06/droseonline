@@ -16,29 +16,20 @@ const getJwtSecret = () => {
 
 const generateToken = (payload) => {
   const secret = getJwtSecret();
-  console.log('Generating token with secret:', secret ? 'SECRET_SET' : 'NO_SECRET');
-  console.log('Token payload:', payload);
-  
   const token = jwt.sign(payload, secret, {
     expiresIn: process.env.JWT_EXPIRE || '30d',
   });
   
-  console.log('Generated token:', token ? token.substring(0, 20) + '...' : 'NO_TOKEN');
   return token;
 };
 
 const verifyToken = (token) => {
   try {
     const secret = getJwtSecret();
-    console.log('Verifying token with secret:', secret ? 'SECRET_SET' : 'NO_SECRET');
-    console.log('Token to verify:', token ? token.substring(0, 20) + '...' : 'NO_TOKEN');
-    
     const decoded = jwt.verify(token, secret);
-    console.log('Token verified successfully:', decoded);
     return decoded;
   } catch (err) {
-    console.error('Token verification error:', err.message);
-    console.error('Error name:', err.name);
+    console.error('Token verification failed:', err.message);
     return null;
   }
 };

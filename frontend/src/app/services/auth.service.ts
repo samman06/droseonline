@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, of } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, BehaviorSubject, tap, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { catchError } from 'rxjs/operators';
 import { MockAuthService, User, LoginRequest, RegisterRequest, AuthResponse } from './mock-auth.service';
 
 // Export types properly for isolated modules
@@ -12,7 +13,7 @@ export type { User, LoginRequest, RegisterRequest, AuthResponse } from './mock-a
 })
 export class AuthService {
   private readonly API_URL = 'http://localhost:5000/api';
-  private readonly USE_MOCK = true; // Set to false when real backend is available
+  private readonly USE_MOCK = false; // Using real backend API
   
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenSubject = new BehaviorSubject<string | null>(null);
@@ -70,12 +71,19 @@ export class AuthService {
       );
     }
 
+    console.log('Attempting login with credentials:', { email: credentials.email });
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         tap(response => {
+          console.log('Login response:', response);
           if (response.success) {
             this.setAuthData(response.data.user, response.data.token);
+            console.log('Auth data set successfully');
           }
+        }),
+        catchError((error: HttpErrorResponse) => {
+          console.error('Login error:', error);
+          return throwError(() => error);
         })
       );
   }
@@ -242,8 +250,16 @@ export class AuthService {
 
   getAuthHeaders(): HttpHeaders {
     const token = this.token;
+    if (!token) {
+      console.warn('No authentication token available');
+      return new HttpHeaders({
+        'Content-Type': 'application/json'
+      });
+    }
+    
+    console.log('Creating auth headers with token:', token.substring(0, 20) + '...');
     return new HttpHeaders({
-      'Authorization': token ? `Bearer ${token}` : '',
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
   }
