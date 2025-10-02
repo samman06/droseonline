@@ -94,7 +94,24 @@ export const routes: Routes = [
         path: 'teachers',
         canActivate: [RoleGuard],
         data: { roles: ['admin'] },
-        loadComponent: () => import('./teachers/teacher-list/teacher-list.component').then(m => m.TeacherListComponent)
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./teachers/teacher-list/teacher-list.component').then(m => m.TeacherListComponent)
+          },
+          {
+            path: 'new',
+            loadComponent: () => import('./teachers/teacher-create/teacher-create.component').then(m => m.TeacherCreateComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./teachers/teacher-detail/teacher-detail.component').then(m => m.TeacherDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./teachers/teacher-edit/teacher-edit.component').then(m => m.TeacherEditComponent)
+          }
+        ]
       },
       {
         path: 'courses',
