@@ -1,33 +1,60 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Generate JWT Token
+
+
+
+const getJwtSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET must be set in production');
+    }
+    return 'droseonline_default_secret_key_2024_development';
+  }
+  return process.env.JWT_SECRET;
+};
+
 const generateToken = (payload) => {
-  const secret = process.env.JWT_SECRET || 'droseonline_default_secret_key_2024_development';
-  return jwt.sign(payload, secret, {
-    expiresIn: process.env.JWT_EXPIRE || '30d'
+  const secret = getJwtSecret();
+  console.log('Generating token with secret:', secret ? 'SECRET_SET' : 'NO_SECRET');
+  console.log('Token payload:', payload);
+  
+  const token = jwt.sign(payload, secret, {
+    expiresIn: process.env.JWT_EXPIRE || '30d',
   });
+  
+  console.log('Generated token:', token ? token.substring(0, 20) + '...' : 'NO_TOKEN');
+  return token;
 };
 
-// Verify JWT Token
 const verifyToken = (token) => {
-  const secret = process.env.JWT_SECRET || 'droseonline_default_secret_key_2024_development';
-  return jwt.verify(token, secret);
+  try {
+    const secret = getJwtSecret();
+    console.log('Verifying token with secret:', secret ? 'SECRET_SET' : 'NO_SECRET');
+    console.log('Token to verify:', token ? token.substring(0, 20) + '...' : 'NO_TOKEN');
+    
+    const decoded = jwt.verify(token, secret);
+    console.log('Token verified successfully:', decoded);
+    return decoded;
+  } catch (err) {
+    console.error('Token verification error:', err.message);
+    console.error('Error name:', err.name);
+    return null;
+  }
 };
-
 // Authentication Middleware
 const authenticate = async (req, res, next) => {
   try {
     let token;
 
-    // Check for token in header
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    // Extract token from header or cookies
+    if (req.headers.authorization && req.headers.authorization.toLowerCase().startsWith('bearer ')) {
       token = req.headers.authorization.split(' ')[1];
-    }
-    // Check for token in cookies (if using cookie-based auth)
-    else if (req.cookies && req.cookies.token) {
+    } else if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
     }
+
+    console.log({ token });
 
     if (!token) {
       return res.status(401).json({
@@ -36,12 +63,19 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Verify token
     const decoded = verifyToken(token);
-    
-    // Get user from database
+    console.log({ decoded });
+
+    if (!decoded || !decoded.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Access denied. Invalid token payload.'
+      });
+    }
+
     const user = await User.findById(decoded.id).select('-password');
-    
+    console.log(user);
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -56,9 +90,9 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Add user to request object
     req.user = user;
     next();
+
   } catch (error) {
     console.error('Authentication error:', error);
     return res.status(401).json({

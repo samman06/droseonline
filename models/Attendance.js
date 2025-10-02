@@ -222,8 +222,8 @@ attendanceSchema.statics.calculateCourseAttendance = async function(studentId, c
   const pipeline = [
     {
       $match: {
-        student: mongoose.Types.ObjectId(studentId),
-        course: mongoose.Types.ObjectId(courseId),
+        student: new mongoose.Types.ObjectId(studentId),
+        course: new mongoose.Types.ObjectId(courseId),
         ...(startDate && endDate && {
           classDate: {
             $gte: new Date(startDate),
