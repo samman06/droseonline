@@ -22,6 +22,42 @@ export const routes: Routes = [
       }
     ]
   },
+  // Redirect direct module access to dashboard
+  {
+    path: 'students',
+    redirectTo: '/dashboard/students',
+    pathMatch: 'full'
+  },
+  {
+    path: 'teachers',
+    redirectTo: '/dashboard/teachers',
+    pathMatch: 'full'
+  },
+  {
+    path: 'courses',
+    redirectTo: '/dashboard/courses',
+    pathMatch: 'full'
+  },
+  {
+    path: 'assignments',
+    redirectTo: '/dashboard/assignments',
+    pathMatch: 'full'
+  },
+  {
+    path: 'subjects',
+    redirectTo: '/dashboard/subjects',
+    pathMatch: 'full'
+  },
+  {
+    path: 'groups',
+    redirectTo: '/dashboard/groups',
+    pathMatch: 'full'
+  },
+  {
+    path: 'attendance',
+    redirectTo: '/dashboard/attendance',
+    pathMatch: 'full'
+  },
   {
     path: 'dashboard',
     canActivate: [AuthGuard],
