@@ -1,51 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Observable, BehaviorSubject, tap, of } from 'rxjs';
 import { Router } from '@angular/router';
+import { MockAuthService, User, LoginRequest, RegisterRequest, AuthResponse } from './mock-auth.service';
 
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'admin' | 'teacher' | 'student';
-  fullName: string;
-  avatar?: string;
-  isActive: boolean;
-  lastLogin?: Date;
-  academicInfo?: any;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  role: 'admin' | 'teacher' | 'student';
-  phoneNumber?: string;
-  dateOfBirth?: Date;
-  academicInfo?: any;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: User;
-    token: string;
-  };
-}
+// Export types properly for isolated modules
+export type { User, LoginRequest, RegisterRequest, AuthResponse } from './mock-auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly API_URL = 'http://localhost:5000/api';
+  private readonly USE_MOCK = true; // Set to false when real backend is available
+  
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenSubject = new BehaviorSubject<string | null>(null);
 
@@ -54,7 +22,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private mockAuthService: MockAuthService
   ) {
     // Load user and token from localStorage on service initialization
     const token = localStorage.getItem('token');
@@ -91,6 +60,16 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
+    if (this.USE_MOCK) {
+      return this.mockAuthService.login(credentials).pipe(
+        tap(response => {
+          if (response.success) {
+            this.setAuthData(response.data.user, response.data.token);
+          }
+        })
+      );
+    }
+
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials)
       .pipe(
         tap(response => {
@@ -102,6 +81,16 @@ export class AuthService {
   }
 
   register(userData: RegisterRequest): Observable<AuthResponse> {
+    if (this.USE_MOCK) {
+      return this.mockAuthService.register(userData).pipe(
+        tap(response => {
+          if (response.success) {
+            this.setAuthData(response.data.user, response.data.token);
+          }
+        })
+      );
+    }
+
     return this.http.post<AuthResponse>(`${this.API_URL}/auth/register`, userData)
       .pipe(
         tap(response => {
@@ -112,9 +101,51 @@ export class AuthService {
       );
   }
 
+  createUser(userData: RegisterRequest): Observable<AuthResponse> {
+    if (this.USE_MOCK) {
+      return this.mockAuthService.createUser(userData);
+    }
+
+    return this.http.post<AuthResponse>(`${this.API_URL}/users`, userData, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  getAllUsers(): Observable<User[]> {
+    if (this.USE_MOCK) {
+      return this.mockAuthService.getAllUsers();
+    }
+
+    return this.http.get<User[]>(`${this.API_URL}/users`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  updateUser(userId: string, updateData: Partial<User>): Observable<any> {
+    if (this.USE_MOCK) {
+      return this.mockAuthService.updateUser(userId, updateData);
+    }
+
+    return this.http.put<any>(`${this.API_URL}/users/${userId}`, updateData, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  deleteUser(userId: string): Observable<any> {
+    if (this.USE_MOCK) {
+      return this.mockAuthService.deleteUser(userId);
+    }
+
+    return this.http.delete<any>(`${this.API_URL}/users/${userId}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   logout(): void {
-    // Call backend logout endpoint
-    this.http.post(`${this.API_URL}/auth/logout`, {}).subscribe();
+    if (!this.USE_MOCK) {
+      // Call backend logout endpoint
+      this.http.post(`${this.API_URL}/auth/logout`, {}).subscribe();
+    }
     
     // Clear local data
     localStorage.removeItem('token');
@@ -126,7 +157,26 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
+  changePassword(passwordData: { currentPassword: string; newPassword: string }): Observable<any> {
+    if (this.USE_MOCK && this.currentUser) {
+      return this.mockAuthService.changePassword(
+        this.currentUser.id, 
+        passwordData.currentPassword, 
+        passwordData.newPassword
+      );
+    }
+
+    return this.http.put<any>(`${this.API_URL}/auth/change-password`, passwordData, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   refreshToken(): Observable<any> {
+    if (this.USE_MOCK) {
+      // For mock service, just return current token
+      return of({ success: true, data: { token: this.token } });
+    }
+
     return this.http.post<any>(`${this.API_URL}/auth/refresh-token`, {})
       .pipe(
         tap(response => {
@@ -139,15 +189,35 @@ export class AuthService {
   }
 
   verifyToken(): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}/auth/verify-token`);
+    if (this.USE_MOCK) {
+      // For mock service, always return valid
+      return of({ success: true, valid: true });
+    }
+
+    return this.http.get<any>(`${this.API_URL}/auth/verify-token`, {
+      headers: this.getAuthHeaders()
+    });
   }
 
   validateToken(): Observable<any> {
-    return this.http.get<any>(`${this.API_URL}/auth/verify-token`);
+    return this.verifyToken();
   }
 
   updateProfile(profileData: Partial<User>): Observable<any> {
-    return this.http.put<any>(`${this.API_URL}/auth/profile`, profileData)
+    if (this.USE_MOCK && this.currentUser) {
+      return this.mockAuthService.updateUser(this.currentUser.id, profileData).pipe(
+        tap(response => {
+          if (response.success && response.user) {
+            this.currentUserSubject.next(response.user);
+            localStorage.setItem('user', JSON.stringify(response.user));
+          }
+        })
+      );
+    }
+
+    return this.http.put<any>(`${this.API_URL}/auth/profile`, profileData, {
+      headers: this.getAuthHeaders()
+    })
       .pipe(
         tap(response => {
           if (response.success) {
@@ -158,11 +228,15 @@ export class AuthService {
       );
   }
 
-  changePassword(passwordData: { currentPassword: string; newPassword: string }): Observable<any> {
-    return this.http.put<any>(`${this.API_URL}/auth/change-password`, passwordData);
-  }
-
   forgotPassword(email: string): Observable<any> {
+    if (this.USE_MOCK) {
+      // Mock forgot password - always return success
+      return of({ 
+        success: true, 
+        message: 'Password reset instructions sent to your email' 
+      });
+    }
+
     return this.http.post<any>(`${this.API_URL}/auth/forgot-password`, { email });
   }
 
