@@ -15,7 +15,7 @@ const router = express.Router();
 // @access  Private (Admin/Teacher)
 router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, currentYear, isActive, groupId } = req.query;
+    const { page = 1, limit = 10, search, year, major, currentYear, isActive, groupId } = req.query;
     
     // Build query for students only
     const query = { role: 'student' };
@@ -29,7 +29,10 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
       ];
     }
     
+    // Support both 'year' and 'currentYear' for backward compatibility
+    if (year) query['academicInfo.year'] = year;
     if (currentYear) query['academicInfo.currentYear'] = parseInt(currentYear);
+    if (major) query['academicInfo.major'] = major;
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (groupId) query['academicInfo.groups'] = groupId;
 
@@ -676,5 +679,189 @@ async function getStudentStatistics(studentId) {
     };
   }
 }
+
+// @route   POST /api/students
+// @desc    Create new student
+// @access  Private (Admin only)
+router.post('/', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      dateOfBirth,
+      address,
+      academicInfo,
+      isActive = true
+    } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
+    // Create new student
+    const student = new User({
+      firstName,
+      lastName,
+      email,
+      password: password || 'student123', // Default password
+      role: 'student',
+      phoneNumber,
+      dateOfBirth,
+      address,
+      academicInfo: {
+        ...academicInfo,
+        groups: [],
+        subjects: []
+      },
+      isActive
+    });
+
+    await student.save();
+
+    // Remove password from response
+    const studentResponse = student.toObject();
+    delete studentResponse.password;
+
+    res.status(201).json({
+      success: true,
+      message: 'Student created successfully',
+      data: { student: studentResponse }
+    });
+  } catch (error) {
+    console.error('Create student error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error while creating student'
+    });
+  }
+});
+
+// @route   DELETE /api/students/:id
+// @desc    Delete student
+// @access  Private (Admin only)
+router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const student = await User.findOne({ _id: req.params.id, role: 'student' });
+    
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // Remove student from all groups (updated to match Group schema structure)
+    await Group.updateMany(
+      { 'students.student': req.params.id },
+      { $pull: { students: { student: req.params.id } } }
+    );
+
+    // Also remove from assignments, attendance, and submissions
+    await Assignment.deleteMany({ student: req.params.id });
+    await Attendance.deleteMany({ student: req.params.id });
+    await Submission.deleteMany({ student: req.params.id });
+
+    // Delete the student
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Student deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete student error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting student'
+    });
+  }
+});
+
+// @route   POST /api/students/bulk-action
+// @desc    Perform bulk actions on students
+// @access  Private (Admin only)
+router.post('/bulk-action', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { action, studentIds } = req.body;
+
+    if (!action || !studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Action and student IDs are required'
+      });
+    }
+
+    let result;
+    let message;
+
+    switch (action) {
+      case 'activate':
+        result = await User.updateMany(
+          { _id: { $in: studentIds }, role: 'student' },
+          { isActive: true }
+        );
+        message = `${result.modifiedCount} students activated successfully`;
+        break;
+
+      case 'deactivate':
+        result = await User.updateMany(
+          { _id: { $in: studentIds }, role: 'student' },
+          { isActive: false }
+        );
+        message = `${result.modifiedCount} students deactivated successfully`;
+        break;
+
+      case 'delete':
+        // Remove students from all groups first (updated to match Group schema structure)
+        await Group.updateMany(
+          { 'students.student': { $in: studentIds } },
+          { $pull: { students: { student: { $in: studentIds } } } }
+        );
+        
+        // Also remove from assignments, attendance, and submissions
+        await Assignment.deleteMany({ student: { $in: studentIds } });
+        await Attendance.deleteMany({ student: { $in: studentIds } });
+        await Submission.deleteMany({ student: { $in: studentIds } });
+        
+        // Delete students
+        result = await User.deleteMany({
+          _id: { $in: studentIds },
+          role: 'student'
+        });
+        message = `${result.deletedCount} students deleted successfully`;
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action. Supported actions: activate, deactivate, delete'
+        });
+    }
+
+    res.json({
+      success: true,
+      message,
+      data: {
+        action,
+        affected: result.modifiedCount || result.deletedCount,
+        requested: studentIds.length
+      }
+    });
+  } catch (error) {
+    console.error('Bulk action error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while performing bulk action'
+    });
+  }
+});
 
 module.exports = router;

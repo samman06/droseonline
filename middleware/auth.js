@@ -45,8 +45,6 @@ const authenticate = async (req, res, next) => {
       token = req.cookies.token;
     }
 
-    console.log({ token });
-
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -55,7 +53,6 @@ const authenticate = async (req, res, next) => {
     }
 
     const decoded = verifyToken(token);
-    console.log({ decoded });
 
     if (!decoded || !decoded.id) {
       return res.status(401).json({

@@ -26,7 +26,7 @@ export const routes: Routes = [
   {
     path: 'students',
     redirectTo: '/dashboard/students',
-    pathMatch: 'full'
+    pathMatch: 'prefix'
   },
   {
     path: 'teachers',
@@ -71,7 +71,24 @@ export const routes: Routes = [
         path: 'students',
         canActivate: [RoleGuard],
         data: { roles: ['admin', 'teacher'] },
-        loadComponent: () => import('./students/student-list/student-list.component').then(m => m.StudentListComponent)
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./students/student-list/student-list.component').then(m => m.StudentListComponent)
+          },
+          {
+            path: 'new',
+            loadComponent: () => import('./students/student-create/student-create.component').then(m => m.StudentCreateComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./students/student-detail/student-detail.component').then(m => m.StudentDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./students/student-edit/student-edit.component').then(m => m.StudentEditComponent)
+          }
+        ]
       },
       {
         path: 'teachers',
@@ -104,6 +121,17 @@ export const routes: Routes = [
         canActivate: [RoleGuard],
         data: { roles: ['admin', 'teacher'] },
         loadComponent: () => import('./attendance/attendance-list/attendance-list.component').then(m => m.AttendanceListComponent)
+      },
+      {
+        path: 'admin',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin'] },
+        children: [
+          {
+            path: 'users',
+            loadComponent: () => import('./admin/user-management/user-management.component').then(m => m.UserManagementComponent)
+          }
+        ]
       }
     ]
   },

@@ -9,6 +9,7 @@ import { ApiService, QueryParams, ApiResponse } from './api.service';
 })
 export class StudentService {
   private readonly API_URL = 'http://localhost:5000/api';
+  private readonly STUDENTS_ENDPOINT = 'students';
 
   constructor(
     private http: HttpClient,
@@ -21,34 +22,35 @@ export class StudentService {
   }
 
   getStudent(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.getById('students', id);
+    return this.apiService.getById(this.STUDENTS_ENDPOINT, id);
   }
 
   createStudent(studentData: any): Observable<ApiResponse<any>> {
-    return this.apiService.post('auth/register', studentData);
+    return this.apiService.post(this.STUDENTS_ENDPOINT, studentData);
   }
 
   updateStudent(id: string, studentData: any): Observable<ApiResponse<any>> {
-    return this.apiService.put('students', id, studentData);
+    return this.apiService.put(this.STUDENTS_ENDPOINT, id, studentData);
   }
 
-  deleteStudent(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.delete('students', id);
+  deleteStudent(id: string): Observable<any> {
+    return this.apiService.delete(this.STUDENTS_ENDPOINT, id);
+  }
+
+  // Bulk operations
+  bulkAction(action: 'activate' | 'deactivate' | 'delete', studentIds: string[]): Observable<ApiResponse<any>> {
+    return this.apiService.post(`${this.STUDENTS_ENDPOINT}/bulk-action`, { action, studentIds });
   }
 
   getStudentCourses(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.get(`students/${id}/courses`);
-  }
-
-  getStudentAssignments(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.get(`students/${id}/assignments`);
+    return this.apiService.get(`${this.STUDENTS_ENDPOINT}/${id}/courses`);
   }
 
   getStudentGrades(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.get(`students/${id}/grades`);
+    return this.apiService.get(`${this.STUDENTS_ENDPOINT}/${id}/grades`);
   }
 
   getStudentAttendance(id: string): Observable<ApiResponse<any>> {
-    return this.apiService.get(`students/${id}/attendance`);
+    return this.apiService.get(`${this.STUDENTS_ENDPOINT}/${id}/attendance`);
   }
 }
