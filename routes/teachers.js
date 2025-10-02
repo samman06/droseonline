@@ -4,6 +4,8 @@ const Course = require('../models/Course');
 const Assignment = require('../models/Assignment');
 const Submission = require('../models/Submission');
 const Attendance = require('../models/Attendance');
+const Subject = require('../models/Subject');
+const Group = require('../models/Group');
 const { authenticate, authorize, checkTeacherAccess } = require('../middleware/auth');
 const { validateQuery, paginationSchema } = require('../middleware/validation');
 
@@ -56,6 +58,425 @@ router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema
     res.status(500).json({
       success: false,
       message: 'Server error while fetching teachers'
+    });
+  }
+});
+
+// @route   POST /api/teachers
+// @desc    Create new teacher
+// @access  Private (Admin)
+router.post('/', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneNumber,
+      dateOfBirth,
+      address,
+      academicInfo,
+      isActive = true
+    } = req.body;
+
+    // Check if user with this email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
+    // Validate subjects if provided
+    if (academicInfo?.subjects && academicInfo.subjects.length > 0) {
+      const subjectCount = await Subject.countDocuments({
+        _id: { $in: academicInfo.subjects }
+      });
+      if (subjectCount !== academicInfo.subjects.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'One or more subjects are invalid'
+        });
+      }
+    }
+
+    // Create teacher
+    const teacher = new User({
+      firstName,
+      lastName,
+      email,
+      password: password || 'teacher123', // Default password
+      role: 'teacher',
+      phoneNumber,
+      dateOfBirth,
+      address,
+      academicInfo: {
+        employeeId: academicInfo?.employeeId,
+        hireDate: academicInfo?.hireDate || new Date(),
+        department: academicInfo?.department,
+        specialization: academicInfo?.specialization || [],
+        subjects: academicInfo?.subjects || []
+      },
+      isActive
+    });
+
+    await teacher.save();
+
+    const teacherResponse = teacher.toObject();
+    delete teacherResponse.password;
+
+    res.status(201).json({
+      success: true,
+      message: 'Teacher created successfully',
+      data: { teacher: teacherResponse }
+    });
+  } catch (error) {
+    console.error('Create teacher error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error while creating teacher'
+    });
+  }
+});
+
+// @route   PUT /api/teachers/:id
+// @desc    Update teacher information
+// @access  Private (Admin)
+router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      dateOfBirth,
+      address,
+      academicInfo,
+      isActive
+    } = req.body;
+
+    // Check if teacher exists
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Check if email is being changed and if it's already taken
+    if (email && email !== teacher.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use'
+        });
+      }
+    }
+
+    // Validate subjects if provided
+    if (academicInfo?.subjects && academicInfo.subjects.length > 0) {
+      const subjectCount = await Subject.countDocuments({
+        _id: { $in: academicInfo.subjects }
+      });
+      if (subjectCount !== academicInfo.subjects.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'One or more subjects are invalid'
+        });
+      }
+    }
+
+    // Update teacher information
+    if (firstName) teacher.firstName = firstName;
+    if (lastName) teacher.lastName = lastName;
+    if (email) teacher.email = email;
+    if (phoneNumber !== undefined) teacher.phoneNumber = phoneNumber;
+    if (dateOfBirth) teacher.dateOfBirth = dateOfBirth;
+    if (address) teacher.address = address;
+    if (isActive !== undefined) teacher.isActive = isActive;
+
+    // Update academic info
+    if (academicInfo) {
+      if (academicInfo.employeeId) teacher.academicInfo.employeeId = academicInfo.employeeId;
+      if (academicInfo.hireDate) teacher.academicInfo.hireDate = academicInfo.hireDate;
+      if (academicInfo.department) teacher.academicInfo.department = academicInfo.department;
+      if (academicInfo.specialization) teacher.academicInfo.specialization = academicInfo.specialization;
+      if (academicInfo.subjects) teacher.academicInfo.subjects = academicInfo.subjects;
+    }
+
+    await teacher.save();
+
+    const updatedTeacher = await User.findById(teacher._id)
+      .select('-password')
+      .populate('academicInfo.subjects', 'name code credits type');
+
+    res.json({
+      success: true,
+      message: 'Teacher updated successfully',
+      data: { teacher: updatedTeacher }
+    });
+  } catch (error) {
+    console.error('Update teacher error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating teacher'
+    });
+  }
+});
+
+// @route   DELETE /api/teachers/:id
+// @desc    Delete teacher
+// @access  Private (Admin)
+router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Check if teacher has active courses
+    const activeCourses = await Course.countDocuments({ 
+      teacher: req.params.id, 
+      isActive: true 
+    });
+
+    if (activeCourses > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete teacher. They have ${activeCourses} active course(s). Please reassign or deactivate courses first.`
+      });
+    }
+
+    // Soft delete: update courses to remove teacher reference
+    await Course.updateMany(
+      { teacher: req.params.id },
+      { $unset: { teacher: 1 }, isActive: false }
+    );
+
+    // Update assignments to remove teacher reference
+    await Assignment.updateMany(
+      { teacher: req.params.id },
+      { $unset: { teacher: 1 } }
+    );
+
+    // Delete the teacher
+    await User.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Teacher deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete teacher error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting teacher'
+    });
+  }
+});
+
+// @route   POST /api/teachers/bulk-action
+// @desc    Perform bulk actions on teachers
+// @access  Private (Admin)
+router.post('/bulk-action', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { action, teacherIds } = req.body;
+
+    if (!action || !teacherIds || !Array.isArray(teacherIds) || teacherIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Action and teacher IDs are required'
+      });
+    }
+
+    let result;
+    let message;
+
+    switch (action) {
+      case 'activate':
+        result = await User.updateMany(
+          { _id: { $in: teacherIds }, role: 'teacher' },
+          { isActive: true }
+        );
+        message = `${result.modifiedCount} teachers activated successfully`;
+        break;
+
+      case 'deactivate':
+        result = await User.updateMany(
+          { _id: { $in: teacherIds }, role: 'teacher' },
+          { isActive: false }
+        );
+        message = `${result.modifiedCount} teachers deactivated successfully`;
+        break;
+
+      case 'delete':
+        // Check for active courses
+        const teachersWithCourses = await Course.find({
+          teacher: { $in: teacherIds },
+          isActive: true
+        }).distinct('teacher');
+
+        if (teachersWithCourses.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Cannot delete ${teachersWithCourses.length} teacher(s) with active courses. Please reassign or deactivate courses first.`
+          });
+        }
+
+        // Clean up courses and assignments
+        await Course.updateMany(
+          { teacher: { $in: teacherIds } },
+          { $unset: { teacher: 1 }, isActive: false }
+        );
+
+        await Assignment.updateMany(
+          { teacher: { $in: teacherIds } },
+          { $unset: { teacher: 1 } }
+        );
+
+        // Delete teachers
+        result = await User.deleteMany({
+          _id: { $in: teacherIds },
+          role: 'teacher'
+        });
+        message = `${result.deletedCount} teachers deleted successfully`;
+        break;
+
+      default:
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action. Supported actions: activate, deactivate, delete'
+        });
+    }
+
+    res.json({
+      success: true,
+      message,
+      data: {
+        action,
+        affected: result.modifiedCount || result.deletedCount,
+        requested: teacherIds.length
+      }
+    });
+  } catch (error) {
+    console.error('Bulk action error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while performing bulk action'
+    });
+  }
+});
+
+// @route   POST /api/teachers/:id/subjects
+// @desc    Add subjects to teacher
+// @access  Private (Admin)
+router.post('/:id/subjects', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { subjectIds } = req.body;
+
+    if (!subjectIds || !Array.isArray(subjectIds) || subjectIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject IDs are required'
+      });
+    }
+
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Validate subjects
+    const subjects = await Subject.find({ _id: { $in: subjectIds } });
+    if (subjects.length !== subjectIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'One or more subjects are invalid'
+      });
+    }
+
+    // Add subjects (avoiding duplicates)
+    const currentSubjects = teacher.academicInfo.subjects.map(s => s.toString());
+    const newSubjects = subjectIds.filter(id => !currentSubjects.includes(id.toString()));
+    
+    teacher.academicInfo.subjects = [...teacher.academicInfo.subjects, ...newSubjects];
+    await teacher.save();
+
+    const updatedTeacher = await User.findById(teacher._id)
+      .select('-password')
+      .populate('academicInfo.subjects', 'name code credits type');
+
+    res.json({
+      success: true,
+      message: `${newSubjects.length} subject(s) added successfully`,
+      data: { teacher: updatedTeacher }
+    });
+  } catch (error) {
+    console.error('Add subjects error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while adding subjects'
+    });
+  }
+});
+
+// @route   DELETE /api/teachers/:id/subjects/:subjectId
+// @desc    Remove subject from teacher
+// @access  Private (Admin)
+router.delete('/:id/subjects/:subjectId', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Check if teacher teaches any active courses with this subject
+    const activeCourses = await Course.countDocuments({
+      teacher: req.params.id,
+      subject: req.params.subjectId,
+      isActive: true
+    });
+
+    if (activeCourses > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot remove subject. Teacher has ${activeCourses} active course(s) teaching this subject.`
+      });
+    }
+
+    // Remove subject
+    teacher.academicInfo.subjects = teacher.academicInfo.subjects.filter(
+      s => s.toString() !== req.params.subjectId
+    );
+    await teacher.save();
+
+    const updatedTeacher = await User.findById(teacher._id)
+      .select('-password')
+      .populate('academicInfo.subjects', 'name code credits type');
+
+    res.json({
+      success: true,
+      message: 'Subject removed successfully',
+      data: { teacher: updatedTeacher }
+    });
+  } catch (error) {
+    console.error('Remove subject error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while removing subject'
     });
   }
 });
