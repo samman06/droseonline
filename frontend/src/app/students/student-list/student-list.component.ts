@@ -271,22 +271,38 @@ export class StudentListComponent implements OnInit {
     this.isLoading = true;
     
     const params = {
-      page: this.pagination.page.toString(),
-      limit: this.pagination.limit.toString(),
+      page: this.pagination.page,
+      limit: this.pagination.limit,
       ...this.filters
     };
 
+    console.log('Loading students with params:', params);
+
     this.studentService.getStudents(params).subscribe({
       next: (response) => {
+        console.log('Students API response:', response);
         if (response.success) {
-          this.students = response.data.students;
-          this.pagination = response.data.pagination;
+          // Handle the response structure from our backend
+          if (response.data && response.data.students) {
+            this.students = response.data.students;
+            this.pagination = response.data.pagination || this.pagination;
+          } else if (Array.isArray(response.data)) {
+            // Fallback if data is directly an array
+            this.students = response.data;
+          } else {
+            console.warn('Unexpected response structure:', response);
+            this.students = [];
+          }
+        } else {
+          console.error('API returned success: false', response);
+          this.students = [];
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading students:', error);
         this.isLoading = false;
+        // You might want to show a toast notification here
       }
     });
   }
