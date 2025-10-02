@@ -1,0 +1,111 @@
+// Login Component Styles
+.login-container {
+  min-height: 100vh;
+  
+  @apply bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50;
+}
+
+.form-card {
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.demo-card {
+  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+// Custom animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+// Custom hover effects
+.demo-credential-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Input focus styles
+.form-input {
+  transition: all 0.2s ease-in-out;
+  
+  &:focus {
+    ring-width: 2px;
+    ring-color: theme('colors.blue.500');
+    border-color: theme('colors.blue.500');
+    transform: scale(1.02);
+  }
+}
+
+// Button loading state
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: inherit;
+  }
+}
+
+// Custom scrollbar for demo credentials
+.demo-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: theme('colors.gray.100');
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: theme('colors.gray.300');
+    border-radius: 3px;
+    
+    &:hover {
+      background: theme('colors.gray.400');
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .login-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+// Dark mode support (if needed in future)
+@media (prefers-color-scheme: dark) {
+  .dark-mode {
+    .form-card,
+    .demo-card {
+      background-color: rgba(17, 24, 39, 0.95);
+      color: theme('colors.gray.100');
+    }
+  }
+}

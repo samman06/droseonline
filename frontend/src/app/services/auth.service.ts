@@ -142,6 +142,10 @@ export class AuthService {
     return this.http.get<any>(`${this.API_URL}/auth/verify-token`);
   }
 
+  validateToken(): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/auth/verify-token`);
+  }
+
   updateProfile(profileData: Partial<User>): Observable<any> {
     return this.http.put<any>(`${this.API_URL}/auth/profile`, profileData)
       .pipe(

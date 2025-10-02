@@ -1,169 +1,109 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet],
-  template: `
-    <div class="min-h-screen bg-gray-50">
-      <!-- Navigation -->
-      <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <!-- Logo and Navigation -->
-            <div class="flex">
-              <div class="flex-shrink-0 flex items-center">
-                <div class="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                  </svg>
-                </div>
-                <span class="ml-2 text-xl font-bold text-gray-900">Drose Online</span>
-              </div>
-              
-              <!-- Desktop Navigation -->
-              <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <a routerLink="/dashboard" 
-                   routerLinkActive="border-primary-500 text-gray-900" 
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Dashboard
-                </a>
-                
-                <a *ngIf="currentUser?.role === 'admin'" 
-                   routerLink="/students" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Students
-                </a>
-                
-                <a *ngIf="currentUser?.role === 'admin'" 
-                   routerLink="/teachers" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Teachers
-                </a>
-                
-                <a routerLink="/courses" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Courses
-                </a>
-                
-                <a routerLink="/assignments" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Assignments
-                </a>
-                
-                <a *ngIf="currentUser?.role !== 'student'" 
-                   routerLink="/attendance" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Attendance
-                </a>
-                
-                <a *ngIf="currentUser?.role === 'admin'" 
-                   routerLink="/subjects" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Subjects
-                </a>
-                
-                <a *ngIf="currentUser?.role === 'admin'" 
-                   routerLink="/groups" 
-                   routerLinkActive="border-primary-500 text-gray-900"
-                   class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
-                  Groups
-                </a>
-              </div>
-            </div>
-
-            <!-- User Menu -->
-            <div class="flex items-center">
-              <!-- Notifications -->
-              <button class="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 mr-3">
-                <span class="sr-only">View notifications</span>
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                </svg>
-              </button>
-
-              <!-- Profile dropdown -->
-              <div class="relative">
-                <div>
-                  <button 
-                    (click)="toggleUserMenu()" 
-                    class="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all"
-                    id="user-menu-button">
-                    <span class="sr-only">Open user menu</span>
-                    <div class="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center">
-                      <span class="text-sm font-medium text-white">
-                        {{ currentUser?.firstName?.charAt(0) || 'U' }}{{ currentUser?.lastName?.charAt(0) || '' }}
-                      </span>
-                    </div>
-                    <div class="ml-3 flex flex-col items-start">
-                      <span class="text-sm font-medium text-gray-700">{{ currentUser?.fullName }}</span>
-                      <span class="text-xs text-gray-500 capitalize">{{ currentUser?.role }}</span>
-                    </div>
-                  </button>
-                </div>
-
-                <!-- User Menu Dropdown -->
-                <div *ngIf="showUserMenu" 
-                     class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
-                     (click)="closeUserMenu()">
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    Your Profile
-                  </a>
-                  <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    Settings
-                  </a>
-                  <button 
-                    (click)="logout()" 
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Main Content -->
-      <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <router-outlet></router-outlet>
-      </main>
-    </div>
-  `
+  imports: [CommonModule, RouterModule],
+  templateUrl: './dashboard-layout.component.html',
+  styleUrls: ['./dashboard-layout.component.scss']
 })
 export class DashboardLayoutComponent implements OnInit {
   currentUser: User | null = null;
-  showUserMenu = false;
+  sidebarOpen = false;
+  notifications = 3;
+
+  navigationItems = [
+    {
+      name: 'Dashboard',
+      icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2zm0 0V9a2 2 0 012-2h14a2 2 0 012 2v2M7 7V5a2 2 0 012-2h6a2 2 0 012 2v2',
+      route: '/dashboard',
+      roles: ['admin', 'teacher', 'student']
+    },
+    {
+      name: 'Students',
+      icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z',
+      route: '/students',
+      roles: ['admin', 'teacher']
+    },
+    {
+      name: 'Teachers',
+      icon: 'M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5',
+      route: '/teachers',
+      roles: ['admin']
+    },
+    {
+      name: 'Subjects',
+      icon: 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25',
+      route: '/subjects',
+      roles: ['admin', 'teacher']
+    },
+    {
+      name: 'Groups',
+      icon: 'M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z',
+      route: '/groups',
+      roles: ['admin', 'teacher']
+    },
+    {
+      name: 'Courses',
+      icon: 'M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 007.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5',
+      route: '/courses',
+      roles: ['admin', 'teacher', 'student']
+    },
+    {
+      name: 'Assignments',
+      icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z',
+      route: '/assignments',
+      roles: ['admin', 'teacher', 'student']
+    },
+    {
+      name: 'Attendance',
+      icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+      route: '/attendance',
+      roles: ['admin', 'teacher', 'student']
+    }
+  ];
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
   }
 
-  toggleUserMenu(): void {
-    this.showUserMenu = !this.showUserMenu;
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
-  closeUserMenu(): void {
-    this.showUserMenu = false;
+  closeSidebar() {
+    this.sidebarOpen = false;
   }
 
-  logout(): void {
+  hasRole(requiredRoles: string[]): boolean {
+    if (!this.currentUser) return false;
+    return requiredRoles.includes(this.currentUser.role);
+  }
+
+  logout() {
     this.authService.logout();
+  }
+
+  navigateToProfile() {
+    this.router.navigate(['/profile']);
+  }
+
+  getRoleColor(role: string): string {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'teacher': return 'bg-blue-100 text-blue-800';
+      case 'student': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   }
 }

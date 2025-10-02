@@ -1,0 +1,232 @@
+// Dashboard Layout Styles
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: theme('colors.gray.50');
+}
+
+// Sidebar styles
+.sidebar {
+  width: 16rem; // 64 * 0.25rem = 16rem
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid theme('colors.gray.200');
+  
+  @media (max-width: 1024px) {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    
+    &.open {
+      transform: translateX(0);
+    }
+  }
+}
+
+// Sidebar header gradient
+.sidebar-header {
+  background: linear-gradient(135deg, theme('colors.blue.600') 0%, theme('colors.purple.600') 100%);
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  }
+}
+
+// Navigation item styles
+.nav-item {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateX(4px);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 60%;
+      background: linear-gradient(180deg, theme('colors.blue.500'), theme('colors.purple.500'));
+      border-radius: 0 2px 2px 0;
+    }
+  }
+  
+  &.active {
+    background: linear-gradient(90deg, theme('colors.blue.50'), transparent);
+    border-right: 4px solid theme('colors.blue.600');
+    color: theme('colors.blue.700');
+    
+    svg {
+      color: theme('colors.blue.600');
+    }
+  }
+}
+
+// Main content area
+.main-content {
+  flex: 1;
+  margin-left: 16rem; // Same as sidebar width
+  
+  @media (max-width: 1024px) {
+    margin-left: 0;
+  }
+}
+
+// Top navigation bar
+.top-nav {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid theme('colors.gray.200');
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+// User avatar styles
+.user-avatar {
+  background: linear-gradient(135deg, theme('colors.blue.500') 0%, theme('colors.purple.500') 100%);
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, theme('colors.blue.500'), theme('colors.purple.500'));
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover::after {
+    opacity: 0.3;
+  }
+}
+
+// Notification badge
+.notification-badge {
+  background: linear-gradient(135deg, theme('colors.red.500') 0%, theme('colors.pink.500') 100%);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+// Mobile overlay
+.mobile-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  
+  @media (min-width: 1024px) {
+    display: none;
+  }
+}
+
+// Role badge styles
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  
+  &.admin {
+    background-color: theme('colors.red.100');
+    color: theme('colors.red.800');
+  }
+  
+  &.teacher {
+    background-color: theme('colors.blue.100');
+    color: theme('colors.blue.800');
+  }
+  
+  &.student {
+    background-color: theme('colors.green.100');
+    color: theme('colors.green.800');
+  }
+}
+
+// Custom scrollbar for sidebar
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.gray.300') transparent;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: theme('colors.gray.300');
+    border-radius: 2px;
+    
+    &:hover {
+      background: theme('colors.gray.400');
+    }
+  }
+}
+
+// Responsive breakpoints
+@media (max-width: 640px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .top-nav {
+    padding: 0 1rem;
+  }
+}
+
+// Dark mode support (future enhancement)
+@media (prefers-color-scheme: dark) {
+  .dark-mode {
+    .sidebar {
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+      border-right-color: theme('colors.gray.700');
+    }
+    
+    .top-nav {
+      background: rgba(17, 24, 39, 0.95);
+      border-bottom-color: theme('colors.gray.700');
+    }
+    
+    .nav-item {
+      color: theme('colors.gray.300');
+      
+      &:hover {
+        color: theme('colors.gray.100');
+      }
+      
+      &.active {
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);
+        color: theme('colors.blue.400');
+      }
+    }
+  }
+}
+
+// Smooth transitions
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
