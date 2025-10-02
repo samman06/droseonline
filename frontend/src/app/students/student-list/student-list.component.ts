@@ -12,9 +12,8 @@ interface Student {
   email: string;
   academicInfo: {
     studentId: string;
+    currentGrade: string;
     year: string;
-    major: string;
-    gpa?: number;
     enrollmentDate: Date;
     groups: any[];
   };
@@ -89,35 +88,53 @@ interface Student {
                 class="form-select"
               >
                 <option value="">All Years</option>
-                <option value="Freshman">Freshman</option>
-                <option value="Sophomore">Sophomore</option>
-                <option value="Junior">Junior</option>
-                <option value="Senior">Senior</option>
-                <option value="Graduate">Graduate</option>
+                <optgroup label="Primary School">
+                  <option value="Grade 1">Grade 1</option>
+                  <option value="Grade 2">Grade 2</option>
+                  <option value="Grade 3">Grade 3</option>
+                  <option value="Grade 4">Grade 4</option>
+                  <option value="Grade 5">Grade 5</option>
+                  <option value="Grade 6">Grade 6</option>
+                </optgroup>
+                <optgroup label="Preparatory School">
+                  <option value="Grade 7">Grade 7</option>
+                  <option value="Grade 8">Grade 8</option>
+                  <option value="Grade 9">Grade 9</option>
+                </optgroup>
+                <optgroup label="Secondary School">
+                  <option value="Grade 10">Grade 10</option>
+                  <option value="Grade 11">Grade 11</option>
+                  <option value="Grade 12">Grade 12</option>
+                </optgroup>
               </select>
             </div>
             
             <div>
-              <label class="form-label">Major</label>
+              <label class="form-label">Grade</label>
               <select 
-                [(ngModel)]="filters.major"
+                [(ngModel)]="filters.grade"
                 (ngModelChange)="onFiltersChange()"
                 class="form-select"
               >
-                <option value="">All Majors</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="Physics">Physics</option>
-                <option value="Chemistry">Chemistry</option>
-                <option value="Biology">Biology</option>
-                <option value="English">English</option>
-                <option value="History">History</option>
-                <option value="Psychology">Psychology</option>
-                <option value="Business">Business</option>
-                <option value="Art">Art</option>
-                <option value="Music">Music</option>
-                <option value="Philosophy">Philosophy</option>
-                <option value="Economics">Economics</option>
+                <option value="">All Grades</option>
+                <optgroup label="Primary School">
+                  <option value="Grade 1">Grade 1</option>
+                  <option value="Grade 2">Grade 2</option>
+                  <option value="Grade 3">Grade 3</option>
+                  <option value="Grade 4">Grade 4</option>
+                  <option value="Grade 5">Grade 5</option>
+                  <option value="Grade 6">Grade 6</option>
+                </optgroup>
+                <optgroup label="Preparatory School">
+                  <option value="Grade 7">Grade 7</option>
+                  <option value="Grade 8">Grade 8</option>
+                  <option value="Grade 9">Grade 9</option>
+                </optgroup>
+                <optgroup label="Secondary School">
+                  <option value="Grade 10">Grade 10</option>
+                  <option value="Grade 11">Grade 11</option>
+                  <option value="Grade 12">Grade 12</option>
+                </optgroup>
               </select>
             </div>
             
@@ -276,10 +293,7 @@ interface Student {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">{{ student.academicInfo.studentId }}</div>
-                    <div class="text-sm text-gray-500">{{ student.academicInfo.year }} • {{ student.academicInfo.major }}</div>
-                    <div *ngIf="student.academicInfo.gpa" class="text-sm" [class]="getGpaColor(student.academicInfo.gpa)">
-                      GPA: {{ student.academicInfo.gpa | number:'1.2-2' }}
-                    </div>
+                    <div class="text-sm text-gray-500">{{ student.academicInfo.currentGrade || student.academicInfo.year }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span 
@@ -448,7 +462,7 @@ export class StudentListComponent implements OnInit {
   filters = {
     search: '',
     year: '',
-    major: '',
+    grade: '',
     isActive: ''
   };
   
@@ -532,7 +546,7 @@ export class StudentListComponent implements OnInit {
     this.filters = {
       search: '',
       year: '',
-      major: '',
+      grade: '',
       isActive: ''
     };
     this.pagination.page = 1;
@@ -707,28 +721,19 @@ export class StudentListComponent implements OnInit {
     return student.id;
   }
 
-  getGpaColor(gpa: number): string {
-    if (gpa >= 3.5) return 'text-green-600 font-semibold';
-    if (gpa >= 3.0) return 'text-blue-600 font-semibold';
-    if (gpa >= 2.5) return 'text-yellow-600 font-semibold';
-    return 'text-red-600 font-semibold';
-  }
-
   // Export/Import methods
   exportStudents(): void {
     if (this.students.length === 0) return;
     
     // Create CSV content
-    const headers = ['Student ID', 'Name', 'Email', 'Year', 'Major', 'GPA', 'Status', 'Enrollment Date'];
+    const headers = ['Student ID', 'Name', 'Email', 'Grade', 'Status', 'Enrollment Date'];
     const csvContent = [
       headers.join(','),
       ...this.students.map(student => [
         student.academicInfo.studentId,
         `"${student.fullName}"`,
         student.email,
-        student.academicInfo.year,
-        `"${student.academicInfo.major}"`,
-        student.academicInfo.gpa || '',
+        student.academicInfo.currentGrade || student.academicInfo.year,
         student.isActive ? 'Active' : 'Inactive',
         new Date(student.academicInfo.enrollmentDate).toLocaleDateString()
       ].join(','))

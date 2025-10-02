@@ -12,17 +12,16 @@ interface Student {
   phoneNumber?: string;
   dateOfBirth?: Date;
   address?: {
-    street?: string;
     city?: string;
-    state?: string;
-    zipCode?: string;
-    country?: string;
+  };
+  parentContact?: {
+    primaryPhone: string;
+    secondaryPhone?: string;
   };
   academicInfo: {
     studentId: string;
+    currentGrade: string;
     year: string;
-    major: string;
-    gpa?: number;
     enrollmentDate: Date;
     groups?: string[];
     subjects?: string[];

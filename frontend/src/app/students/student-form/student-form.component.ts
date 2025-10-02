@@ -13,17 +13,16 @@ interface Student {
   phoneNumber?: string;
   dateOfBirth?: Date;
   address?: {
-    street?: string;
     city?: string;
-    state?: string;
-    zipCode?: string;
-    country?: string;
+  };
+  parentContact?: {
+    primaryPhone: string;
+    secondaryPhone?: string;
   };
   academicInfo: {
     studentId: string;
+    currentGrade: string;
     year: string;
-    major: string;
-    gpa?: number;
     enrollmentDate: Date;
     groups?: string[];
     subjects?: string[];
@@ -158,54 +157,44 @@ interface Student {
           <!-- Address Section -->
           <div class="bg-gray-50 p-4 rounded-lg" formGroupName="address">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="md:col-span-2">
-                <label class="form-label">Street Address</label>
-                <input 
-                  type="text" 
-                  formControlName="street"
-                  class="form-input"
-                  placeholder="123 Main Street"
-                >
-              </div>
-              
+            <div class="grid grid-cols-1 gap-4">
               <div>
                 <label class="form-label">City</label>
                 <input 
                   type="text" 
                   formControlName="city"
                   class="form-input"
-                  placeholder="New York"
+                  placeholder="Cairo, Alexandria, Giza..."
                 >
+              </div>
+            </div>
+          </div>
+
+          <!-- Parent Contact Section -->
+          <div class="bg-gray-50 p-4 rounded-lg" formGroupName="parentContact">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Parent Contact Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="form-label">Primary Parent Phone *</label>
+                <input 
+                  type="tel" 
+                  formControlName="primaryPhone"
+                  class="form-input"
+                  [class.border-red-300]="isFieldInvalid('parentContact.primaryPhone')"
+                  placeholder="01XXXXXXXXX"
+                >
+                <div *ngIf="isFieldInvalid('parentContact.primaryPhone')" class="form-error">
+                  Primary parent phone is required
+                </div>
               </div>
               
               <div>
-                <label class="form-label">State</label>
+                <label class="form-label">Secondary Parent Phone</label>
                 <input 
-                  type="text" 
-                  formControlName="state"
+                  type="tel" 
+                  formControlName="secondaryPhone"
                   class="form-input"
-                  placeholder="NY"
-                >
-              </div>
-              
-              <div>
-                <label class="form-label">ZIP Code</label>
-                <input 
-                  type="text" 
-                  formControlName="zipCode"
-                  class="form-input"
-                  placeholder="10001"
-                >
-              </div>
-              
-              <div>
-                <label class="form-label">Country</label>
-                <input 
-                  type="text" 
-                  formControlName="country"
-                  class="form-input"
-                  placeholder="United States"
+                  placeholder="01XXXXXXXXX (Optional)"
                 >
               </div>
             </div>
@@ -230,62 +219,67 @@ interface Student {
               </div>
               
               <div>
+                <label class="form-label">Current Grade *</label>
+                <select 
+                  formControlName="currentGrade"
+                  class="form-select"
+                  [class.border-red-300]="isFieldInvalid('academicInfo.currentGrade')"
+                >
+                  <option value="">Select Grade</option>
+                  <optgroup label="Primary School">
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                  </optgroup>
+                  <optgroup label="Preparatory School">
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                  </optgroup>
+                  <optgroup label="Secondary School">
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                  </optgroup>
+                </select>
+                <div *ngIf="isFieldInvalid('academicInfo.currentGrade')" class="form-error">
+                  Current grade is required
+                </div>
+              </div>
+              
+              <div>
                 <label class="form-label">Academic Year *</label>
                 <select 
                   formControlName="year"
                   class="form-select"
                   [class.border-red-300]="isFieldInvalid('academicInfo.year')"
                 >
-                  <option value="">Select Year</option>
-                  <option value="Freshman">Freshman</option>
-                  <option value="Sophomore">Sophomore</option>
-                  <option value="Junior">Junior</option>
-                  <option value="Senior">Senior</option>
-                  <option value="Graduate">Graduate</option>
+                  <option value="">Select Academic Year</option>
+                  <optgroup label="Primary School">
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                  </optgroup>
+                  <optgroup label="Preparatory School">
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                  </optgroup>
+                  <optgroup label="Secondary School">
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                  </optgroup>
                 </select>
                 <div *ngIf="isFieldInvalid('academicInfo.year')" class="form-error">
                   Academic year is required
                 </div>
-              </div>
-              
-              <div>
-                <label class="form-label">Major *</label>
-                <select 
-                  formControlName="major"
-                  class="form-select"
-                  [class.border-red-300]="isFieldInvalid('academicInfo.major')"
-                >
-                  <option value="">Select Major</option>
-                  <option value="Computer Science">Computer Science</option>
-                  <option value="Mathematics">Mathematics</option>
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Biology">Biology</option>
-                  <option value="English">English</option>
-                  <option value="History">History</option>
-                  <option value="Psychology">Psychology</option>
-                  <option value="Business">Business</option>
-                  <option value="Art">Art</option>
-                  <option value="Music">Music</option>
-                  <option value="Philosophy">Philosophy</option>
-                  <option value="Economics">Economics</option>
-                </select>
-                <div *ngIf="isFieldInvalid('academicInfo.major')" class="form-error">
-                  Major is required
-                </div>
-              </div>
-              
-              <div>
-                <label class="form-label">GPA</label>
-                <input 
-                  type="number" 
-                  formControlName="gpa"
-                  class="form-input"
-                  min="0" 
-                  max="4" 
-                  step="0.01"
-                  placeholder="3.50"
-                >
               </div>
               
               <div>
@@ -405,17 +399,16 @@ export class StudentFormComponent implements OnInit {
       dateOfBirth: [''],
       isActive: [true],
       address: this.fb.group({
-        street: [''],
-        city: [''],
-        state: [''],
-        zipCode: [''],
-        country: ['United States']
+        city: ['']
+      }),
+      parentContact: this.fb.group({
+        primaryPhone: ['', Validators.required],
+        secondaryPhone: ['']
       }),
       academicInfo: this.fb.group({
         studentId: ['', Validators.required],
+        currentGrade: ['', Validators.required],
         year: ['', Validators.required],
-        major: ['', Validators.required],
-        gpa: ['', [Validators.min(0), Validators.max(4)]],
         enrollmentDate: ['', Validators.required],
         groups: [[]],
         subjects: [[]]
@@ -432,17 +425,16 @@ export class StudentFormComponent implements OnInit {
       dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().split('T')[0] : '',
       isActive: student.isActive,
       address: {
-        street: student.address?.street || '',
-        city: student.address?.city || '',
-        state: student.address?.state || '',
-        zipCode: student.address?.zipCode || '',
-        country: student.address?.country || 'United States'
+        city: student.address?.city || ''
+      },
+      parentContact: {
+        primaryPhone: student.parentContact?.primaryPhone || '',
+        secondaryPhone: student.parentContact?.secondaryPhone || ''
       },
       academicInfo: {
         studentId: student.academicInfo.studentId,
+        currentGrade: student.academicInfo.currentGrade,
         year: student.academicInfo.year,
-        major: student.academicInfo.major,
-        gpa: student.academicInfo.gpa || '',
         enrollmentDate: student.academicInfo.enrollmentDate ? 
           new Date(student.academicInfo.enrollmentDate).toISOString().split('T')[0] : '',
         groups: student.academicInfo.groups || [],
@@ -467,8 +459,7 @@ export class StudentFormComponent implements OnInit {
         dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
         academicInfo: {
           ...formData.academicInfo,
-          enrollmentDate: new Date(formData.academicInfo.enrollmentDate),
-          gpa: formData.academicInfo.gpa ? parseFloat(formData.academicInfo.gpa) : undefined
+          enrollmentDate: new Date(formData.academicInfo.enrollmentDate)
         }
       };
 

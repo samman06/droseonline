@@ -41,11 +41,19 @@ const userSchema = new mongoose.Schema({
     type: Date
   },
   address: {
-    street: String,
-    city: String,
-    state: String,
-    zipCode: String,
-    country: { type: String, default: 'Egypt' }
+    city: String
+  },
+  
+  // Parent Contact Information (for students)
+  parentContact: {
+    primaryPhone: {
+      type: String,
+      trim: true
+    },
+    secondaryPhone: {
+      type: String,
+      trim: true
+    }
   },
   
   // System Information
@@ -67,7 +75,22 @@ const userSchema = new mongoose.Schema({
     // For Students
     studentId: String,
     enrollmentDate: Date,
-    currentYear: Number,
+    currentGrade: {
+      type: String,
+      enum: [
+        'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', // Primary
+        'Grade 7', 'Grade 8', 'Grade 9', // Preparatory
+        'Grade 10', 'Grade 11', 'Grade 12' // Secondary
+      ]
+    },
+    year: {
+      type: String,
+      enum: [
+        'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', // Primary
+        'Grade 7', 'Grade 8', 'Grade 9', // Preparatory
+        'Grade 10', 'Grade 11', 'Grade 12' // Secondary
+      ]
+    },
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
     
     // For Teachers

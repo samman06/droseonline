@@ -12,17 +12,16 @@ interface Student {
   phoneNumber?: string;
   dateOfBirth?: Date;
   address?: {
-    street?: string;
     city?: string;
-    state?: string;
-    zipCode?: string;
-    country?: string;
+  };
+  parentContact?: {
+    primaryPhone: string;
+    secondaryPhone?: string;
   };
   academicInfo: {
     studentId: string;
+    currentGrade: string;
     year: string;
-    major: string;
-    gpa?: number;
     enrollmentDate: Date;
     groups?: any[];
     subjects?: any[];
@@ -101,7 +100,7 @@ interface Student {
                 </div>
                 <div>
                   <h1 class="text-2xl font-bold text-gray-900">{{ student.fullName }}</h1>
-                  <p class="text-gray-600">{{ student.academicInfo.studentId }} • {{ student.academicInfo.major }}</p>
+                  <p class="text-gray-600">{{ student.academicInfo.studentId }} • {{ student.academicInfo.currentGrade || student.academicInfo.year }}</p>
                   <div class="flex items-center mt-1">
                     <span 
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -171,14 +170,24 @@ interface Student {
                     <dt class="text-sm font-medium text-gray-500">Date of Birth</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ student.dateOfBirth | date:'mediumDate' }}</dd>
                   </div>
-                  <div *ngIf="student.address && hasAddress()">
-                    <dt class="text-sm font-medium text-gray-500">Address</dt>
+                  <div *ngIf="student.address && student.address.city">
+                    <dt class="text-sm font-medium text-gray-500">City</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ student.address.city }}</dd>
+                  </div>
+                  <div *ngIf="student.parentContact && student.parentContact.primaryPhone">
+                    <dt class="text-sm font-medium text-gray-500">Primary Parent Phone</dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                      <div>{{ student.address.street }}</div>
-                      <div *ngIf="student.address.city || student.address.state || student.address.zipCode">
-                        {{ student.address.city }}<span *ngIf="student.address.city && student.address.state">, </span>{{ student.address.state }} {{ student.address.zipCode }}
-                      </div>
-                      <div *ngIf="student.address.country">{{ student.address.country }}</div>
+                      <a [href]="'tel:' + student.parentContact.primaryPhone" class="text-blue-600 hover:text-blue-800">
+                        {{ student.parentContact.primaryPhone }}
+                      </a>
+                    </dd>
+                  </div>
+                  <div *ngIf="student.parentContact && student.parentContact.secondaryPhone">
+                    <dt class="text-sm font-medium text-gray-500">Secondary Parent Phone</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                      <a [href]="'tel:' + student.parentContact.secondaryPhone" class="text-blue-600 hover:text-blue-800">
+                        {{ student.parentContact.secondaryPhone }}
+                      </a>
                     </dd>
                   </div>
                 </dl>
@@ -197,21 +206,12 @@ interface Student {
                     <dd class="mt-1 text-sm text-gray-900 font-mono">{{ student.academicInfo.studentId }}</dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500">Academic Year</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ student.academicInfo.year }}</dd>
+                    <dt class="text-sm font-medium text-gray-500">Current Grade</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ student.academicInfo.currentGrade }}</dd>
                   </div>
                   <div>
-                    <dt class="text-sm font-medium text-gray-500">Major</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ student.academicInfo.major }}</dd>
-                  </div>
-                  <div *ngIf="student.academicInfo.gpa">
-                    <dt class="text-sm font-medium text-gray-500">GPA</dt>
-                    <dd class="mt-1 text-sm text-gray-900">
-                      <span class="font-semibold" [class]="getGpaColor(student.academicInfo.gpa)">
-                        {{ student.academicInfo.gpa | number:'1.2-2' }}
-                      </span>
-                      <span class="text-gray-500">/4.0</span>
-                    </dd>
+                    <dt class="text-sm font-medium text-gray-500">Academic Year</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{{ student.academicInfo.year }}</dd>
                   </div>
                   <div>
                     <dt class="text-sm font-medium text-gray-500">Enrollment Date</dt>
@@ -265,12 +265,6 @@ interface Student {
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-600">Total Credits</span>
                   <span class="text-lg font-semibold text-gray-900">{{ getTotalCredits() }}</span>
-                </div>
-                <div *ngIf="student.academicInfo.gpa" class="flex items-center justify-between">
-                  <span class="text-sm text-gray-600">Current GPA</span>
-                  <span class="text-lg font-semibold" [class]="getGpaColor(student.academicInfo.gpa)">
-                    {{ student.academicInfo.gpa | number:'1.2-2' }}
-                  </span>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-600">Status</span>
@@ -413,14 +407,7 @@ export class StudentDetailComponent implements OnInit {
 
   hasAddress(): boolean {
     const address = this.student?.address;
-    return !!(address && (address.street || address.city || address.state || address.zipCode || address.country));
-  }
-
-  getGpaColor(gpa: number): string {
-    if (gpa >= 3.5) return 'text-green-600';
-    if (gpa >= 3.0) return 'text-blue-600';
-    if (gpa >= 2.5) return 'text-yellow-600';
-    return 'text-red-600';
+    return !!(address && address.city);
   }
 
   getTotalCredits(): number {

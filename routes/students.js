@@ -15,7 +15,7 @@ const router = express.Router();
 // @access  Private (Admin/Teacher)
 router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, year, major, currentYear, isActive, groupId } = req.query;
+    const { page = 1, limit = 10, search, year, grade, currentYear, isActive, groupId } = req.query;
     
     // Build query for students only
     const query = { role: 'student' };
@@ -29,10 +29,10 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
       ];
     }
     
-    // Support both 'year' and 'currentYear' for backward compatibility
+    // Support both 'year' and 'currentYear' for backward compatibility, and new 'grade' filter
     if (year) query['academicInfo.year'] = year;
+    if (grade) query['academicInfo.currentGrade'] = grade;
     if (currentYear) query['academicInfo.currentYear'] = parseInt(currentYear);
-    if (major) query['academicInfo.major'] = major;
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (groupId) query['academicInfo.groups'] = groupId;
 
