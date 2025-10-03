@@ -18,6 +18,9 @@ router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema
   try {
     const { page = 1, limit = 10, search, department, isActive } = req.query;
     
+    console.log('GET /api/teachers - Query params:', req.query);
+    console.log('isActive param:', isActive, 'type:', typeof isActive);
+    
     const query = { role: 'teacher' };
     
     if (search) {
@@ -30,7 +33,12 @@ router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema
     }
     
     if (department) query['academicInfo.department'] = department;
-    if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (isActive !== undefined && isActive !== '') {
+      query.isActive = isActive === 'true';
+      console.log('Applied isActive filter:', query.isActive);
+    }
+
+    console.log('Final MongoDB query:', JSON.stringify(query, null, 2));
 
     const teachers = await User.find(query)
       .select('-password')

@@ -91,7 +91,7 @@ interface Student {
 
       <!-- Simple Filters Section -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- Search by Name -->
           <div>
             <input 
@@ -129,6 +129,19 @@ interface Student {
                 <option value="Grade 11">Grade 11</option>
                 <option value="Grade 12">Grade 12</option>
               </optgroup>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div>
+            <select 
+              [(ngModel)]="filters.isActive"
+              (ngModelChange)="onFiltersChange()"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">All Status</option>
+              <option value="true">✓ Active</option>
+              <option value="false">✗ Inactive</option>
             </select>
           </div>
         </div>

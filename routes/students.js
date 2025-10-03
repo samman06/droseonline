@@ -17,6 +17,9 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
   try {
     const { page = 1, limit = 10, search, year, grade, currentYear, isActive, groupId } = req.query;
     
+    console.log('GET /api/students - Query params:', req.query);
+    console.log('isActive param:', isActive, 'type:', typeof isActive);
+    
     // Build query for students only
     const query = { role: 'student' };
     
@@ -33,8 +36,13 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
     if (year) query['academicInfo.year'] = year;
     if (grade) query['academicInfo.currentGrade'] = grade;
     if (currentYear) query['academicInfo.currentYear'] = parseInt(currentYear);
-    if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (isActive !== undefined && isActive !== '') {
+      query.isActive = isActive === 'true';
+      console.log('Applied isActive filter:', query.isActive);
+    }
     if (groupId) query['academicInfo.groups'] = groupId;
+
+    console.log('Final MongoDB query:', JSON.stringify(query, null, 2));
 
     const students = await User.find(query)
       .select('-password')
