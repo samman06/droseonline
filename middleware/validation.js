@@ -241,7 +241,14 @@ const paginationSchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
   sort: Joi.string().optional(),
-  search: Joi.string().max(100).optional()
+  search: Joi.string().max(100).optional(),
+  // Additional filter parameters for students and teachers
+  isActive: Joi.string().valid('true', 'false', '').optional().allow(''),
+  grade: Joi.string().max(50).optional().allow(''),
+  currentYear: Joi.number().integer().min(1).max(6).optional(),
+  groupId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
+  department: Joi.string().max(100).optional().allow(''),
+  subjectId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow('')
 });
 
 const objectIdSchema = Joi.object({

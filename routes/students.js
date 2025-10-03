@@ -16,6 +16,7 @@ const router = express.Router();
 router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, year, grade, currentYear, isActive, groupId } = req.query;
+    console.log("--------------------------------------------");
     
     console.log('GET /api/students - Query params:', req.query);
     console.log('isActive param:', isActive, 'type:', typeof isActive);

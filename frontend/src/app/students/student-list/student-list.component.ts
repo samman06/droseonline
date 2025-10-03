@@ -548,6 +548,8 @@ export class StudentListComponent implements OnInit {
   }
 
   onFiltersChange(): void {
+    console.log('Filter changed! Current filters:', this.filters);
+    console.log('isActive value:', this.filters.isActive, 'type:', typeof this.filters.isActive);
     this.pagination.page = 1;
     this.loadStudents();
   }
