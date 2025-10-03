@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from './services/auth.service';
+import { ConfirmationModalComponent } from './shared/confirmation-modal/confirmation-modal.component';
 
 interface Toast {
   id: string;
@@ -16,7 +17,7 @@ interface Toast {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, HttpClientModule],
+  imports: [CommonModule, RouterOutlet, HttpClientModule, ConfirmationModalComponent],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })

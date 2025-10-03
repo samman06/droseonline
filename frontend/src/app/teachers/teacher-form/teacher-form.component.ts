@@ -26,76 +26,127 @@ interface Teacher {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
-    <div class="max-w-4xl mx-auto">
-      <div class="flex items-center justify-between mb-6">
-        <button (click)="goBack()" class="btn-secondary">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-          </svg>
-          Back
-        </button>
-        <h2 class="text-xl font-bold">{{ isEditMode ? 'Edit Teacher' : 'Add Teacher' }}</h2>
+    <div class="max-w-5xl mx-auto p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+      <!-- Header -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <button (click)="goBack()" class="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-all">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+            </button>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                {{ isEditMode ? 'Edit Teacher' : 'Add New Teacher' }}
+              </h1>
+              <p class="text-gray-600 mt-1">{{ isEditMode ? 'Update teacher information' : 'Create a new teacher profile' }}</p>
+            </div>
+          </div>
+          <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+        </div>
       </div>
 
-      <div class="card">
-        <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()" class="card-body space-y-6">
-          <!-- Personal Info -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium mb-4">Personal Information</h3>
-            <div class="grid grid-cols-2 gap-4">
+      <!-- Form -->
+      <form [formGroup]="teacherForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Personal Info -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <h3 class="text-lg font-bold text-gray-900">Personal Information</h3>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="form-label">First Name *</label>
-                <input type="text" formControlName="firstName" class="form-input">
+                <input type="text" formControlName="firstName" class="form-input" placeholder="Enter first name">
               </div>
               <div>
                 <label class="form-label">Last Name *</label>
-                <input type="text" formControlName="lastName" class="form-input">
+                <input type="text" formControlName="lastName" class="form-input" placeholder="Enter last name">
               </div>
               <div>
                 <label class="form-label">Email *</label>
-                <input type="email" formControlName="email" class="form-input">
+                <input type="email" formControlName="email" class="form-input" placeholder="teacher@example.com">
               </div>
               <div>
-                <label class="form-label">Phone</label>
-                <input type="tel" formControlName="phoneNumber" class="form-input">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" formControlName="phoneNumber" class="form-input" placeholder="+20 123 456 7890">
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Academic Info -->
-          <div class="bg-gray-50 p-4 rounded-lg" formGroupName="academicInfo">
-            <h3 class="text-lg font-medium mb-4">Academic Information</h3>
-            <div class="grid grid-cols-2 gap-4">
+        <!-- Academic Info -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" formGroupName="academicInfo">
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 class="text-lg font-bold text-gray-900">Academic Information</h3>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="form-label">Employee ID *</label>
-                <input type="text" formControlName="employeeId" class="form-input">
+                <input type="text" formControlName="employeeId" class="form-input" placeholder="EMP-001">
               </div>
               <div>
                 <label class="form-label">Hire Date *</label>
                 <input type="date" formControlName="hireDate" class="form-input">
               </div>
             </div>
-            <p class="text-sm text-gray-500 mt-2">Subjects and groups will be assigned separately</p>
+            <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-sm text-blue-800">Subjects and groups can be assigned after creating the teacher profile.</p>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div class="flex justify-end space-x-4">
-            <button type="button" (click)="onCancel()" class="btn-secondary">Cancel</button>
-            <button type="submit" [disabled]="teacherForm.invalid || isSubmitting" class="btn-primary">
-              {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update' : 'Create') }}
-            </button>
-          </div>
-        </form>
-      </div>
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-4 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <button type="button" (click)="onCancel()" class="btn-secondary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Cancel
+          </button>
+          <button type="submit" [disabled]="teacherForm.invalid || isSubmitting" class="btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Teacher' : 'Create Teacher') }}
+          </button>
+        </div>
+      </form>
     </div>
   `,
   styles: [`
-    .form-label { @apply block text-sm font-medium text-gray-700 mb-1; }
-    .form-input { @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500; }
-    .form-select { @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500; }
-    .btn-primary { @apply inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50; }
-    .btn-secondary { @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50; }
-    .card { @apply bg-white shadow-sm rounded-lg border border-gray-200; }
-    .card-body { @apply px-6 py-4; }
+    .form-label { @apply block text-sm font-semibold text-gray-700 mb-2; }
+    .form-input { @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200; }
+    .btn-primary { 
+      @apply inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg text-white 
+      bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 
+      disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-200;
+    }
+    .btn-secondary { 
+      @apply inline-flex items-center px-6 py-3 border-2 border-gray-300 text-sm font-semibold 
+      rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200;
+    }
   `]
 })
 export class TeacherFormComponent implements OnInit {

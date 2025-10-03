@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from '../../services/teacher.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 interface Teacher {
   id: string;
@@ -25,148 +26,90 @@ interface Teacher {
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
-    <div class="space-y-6 p-6">
-      <!-- Header Section -->
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">Teachers</h1>
-          <p class="mt-2 text-gray-600">Manage teacher records, assignments, and professional information</p>
-          <div class="mt-2 text-sm text-gray-500">
-            Total: {{ pagination.total }} teachers
-          </div>
-        </div>
-        <div class="mt-4 lg:mt-0 flex space-x-3">
-          <button (click)="exportTeachers()" class="btn-outline inline-flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Export
-          </button>
-          <button (click)="addNewTeacher()" class="btn-primary inline-flex items-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add New Teacher
-          </button>
-        </div>
-      </div>
-
-      <!-- Statistics Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="card">
-          <div class="card-body">
-            <div class="flex items-center">
-              <div class="p-2 bg-blue-100 rounded-lg">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <p class="text-2xl font-bold text-gray-900">{{ getActiveTeachersCount() }}</p>
-                <p class="text-sm text-gray-500">Active Teachers</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-body">
-            <div class="flex items-center">
-              <div class="p-2 bg-green-100 rounded-lg">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                </svg>
-              </div>
-               <div class="ml-4">
-                 <p class="text-2xl font-bold text-gray-900">{{ getDepartmentCount() }}</p>
-                 <p class="text-sm text-gray-500">Subjects</p>
-               </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-body">
-            <div class="flex items-center">
-              <div class="p-2 bg-yellow-100 rounded-lg">
-                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <div class="ml-4">
-                <p class="text-2xl font-bold text-gray-900">{{ getNewTeachersThisMonth() }}</p>
-                <p class="text-sm text-gray-500">New This Month</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-body">
-            <div class="flex items-center">
-              <div class="p-2 bg-purple-100 rounded-lg">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                </svg>
-              </div>
-               <div class="ml-4">
-                 <p class="text-2xl font-bold text-gray-900">{{ getCertifiedTeachersCount() }}</p>
-                 <p class="text-sm text-gray-500">With Groups</p>
-               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filters Section -->
-      <div class="card">
-        <div class="card-body">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <label class="form-label">Search</label>
-              <input 
-                type="text" 
-                [(ngModel)]="filters.search" 
-                (ngModelChange)="onFiltersChange()" 
-                class="form-input" 
-                placeholder="Search by name, email, or ID..."
-              >
-            </div>
-            
-             <div>
-               <label class="form-label">Subject</label>
-               <input 
-                 type="text" 
-                 [(ngModel)]="filters.subject" 
-                 (ngModelChange)="onFiltersChange()" 
-                 class="form-input" 
-                 placeholder="Filter by subject..."
-               >
+     <div class="space-y-6 p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+       <!-- Header Section with Enhanced Design -->
+       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+           <div class="flex items-center space-x-4">
+             <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+               </svg>
              </div>
-            
-            <div>
-              <label class="form-label">Status</label>
-              <select [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()" class="form-select">
-                <option value="">All Status</option>
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
-              </select>
-            </div>
-            
-            <div class="flex items-end">
-              <button (click)="clearFilters()" class="btn-outline w-full">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-                Clear Filters
-              </button>
-            </div>
+             <div>
+               <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                 Teachers Management
+               </h1>
+               <p class="mt-1 text-gray-600">Manage teacher profiles, assignments, and performance</p>
+               <div class="mt-2 flex items-center space-x-4 text-sm">
+                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                   </svg>
+                   {{ pagination.total }} Total
+                 </span>
+                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                   <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                   {{ getActiveTeachersCount() }} Active
+                 </span>
+               </div>
+             </div>
+           </div>
+           <div class="mt-4 lg:mt-0 flex space-x-3">
+             <button (click)="exportTeachers()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+               </svg>
+               Export Data
+             </button>
+             <button (click)="addNewTeacher()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+               </svg>
+               Add New Teacher
+             </button>
+           </div>
+         </div>
+       </div>
+
+      <!-- Simple Filters Section -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Search -->
+          <div class="md:col-span-2">
+            <input 
+              type="text" 
+              [(ngModel)]="filters.search" 
+              (ngModelChange)="onFiltersChange()" 
+              class="form-input" 
+              placeholder="Search by name, email, or ID..."
+            >
+          </div>
+          
+          <!-- Subject Filter -->
+          <div>
+            <input 
+              type="text" 
+              [(ngModel)]="filters.subject" 
+              (ngModelChange)="onFiltersChange()" 
+              class="form-input" 
+              placeholder="Filter by subject..."
+            >
+          </div>
+          
+          <!-- Status Filter -->
+          <div>
+            <select [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()" class="form-select">
+              <option value="">All Status</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
           </div>
         </div>
       </div>
 
-      <!-- Bulk Actions -->
-      <div *ngIf="selectedTeachers.length > 0" class="card border-orange-200 bg-orange-50">
+      <!-- Enhanced Bulk Actions -->
+      <div *ngIf="selectedTeachers.length > 0" class="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl shadow-sm border-2 border-orange-200">
         <div class="card-body">
           <div class="flex items-center justify-between">
             <div class="flex items-center">
@@ -218,111 +161,153 @@ interface Teacher {
         </div>
       </div>
 
-      <!-- Teachers Table -->
-      <div *ngIf="!isLoading && teachers.length > 0" class="card overflow-hidden">
+      <!-- Enhanced Teachers Table -->
+      <div *ngIf="!isLoading && teachers.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>
-                <th class="px-6 py-3 text-left">
+                <th class="px-6 py-4 text-left">
                   <input 
                     type="checkbox" 
                     [checked]="allSelected" 
                     [indeterminate]="someSelected"
                     (change)="toggleAllSelection()"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 focus:ring-2 cursor-pointer"
                   >
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Teacher Information
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Academic Details
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  Assignments
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Status
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Hire Date
                 </th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let teacher of teachers; trackBy: trackByTeacherId" class="hover:bg-gray-50 transition-colors duration-200">
-                <td class="px-6 py-4 whitespace-nowrap">
+            <tbody class="bg-white divide-y divide-gray-100">
+              <tr *ngFor="let teacher of teachers; trackBy: trackByTeacherId" 
+                  class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 border-l-4 border-transparent hover:border-indigo-500">
+                <td class="px-6 py-5 whitespace-nowrap">
                   <input 
                     type="checkbox" 
                     [checked]="isSelected(teacher.id)"
                     (change)="toggleSelection(teacher.id)"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 focus:ring-2 cursor-pointer"
                   >
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-5">
                   <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                      <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                        <span class="text-sm font-medium text-gray-700">
+                    <div class="flex-shrink-0 h-12 w-12">
+                      <div class="h-12 w-12 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-lg ring-2 ring-white">
+                        <span class="text-base font-bold text-white">
                           {{ teacher.firstName.charAt(0) + teacher.lastName.charAt(0) }}
                         </span>
                       </div>
                     </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">{{ teacher.fullName }}</div>
-                      <div class="text-sm text-gray-500">{{ teacher.email }}</div>
-                      <div class="text-xs text-gray-400">ID: {{ teacher.academicInfo.employeeId }}</div>
+                      <div class="text-sm font-bold text-gray-900">{{ teacher.fullName }}</div>
+                      <div class="text-sm text-gray-600 flex items-center mt-0.5">
+                        <svg class="w-3 h-3 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        {{ teacher.email }}
+                      </div>
+                      <div class="text-xs text-gray-500 font-mono mt-0.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-700">
+                          ID: {{ teacher.academicInfo.employeeId }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </td>
-                 <td class="px-6 py-4 whitespace-nowrap">
-                   <div class="text-sm font-medium text-gray-900">
-                     {{ teacher.academicInfo.subjects?.length || 0 }} Subject(s)
-                   </div>
-                   <div class="text-sm text-gray-500">
-                     {{ teacher.academicInfo.groups?.length || 0 }} Group(s)
-                   </div>
-                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" 
-                        [class]="teacher.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                <td class="px-6 py-5">
+                  <div class="flex flex-col space-y-2">
+                    <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 text-xs font-semibold w-fit">
+                      <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                      </svg>
+                      <span>{{ teacher.academicInfo.subjects.length || 0 }} Subjects</span>
+                    </div>
+                    <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-100 text-purple-800 text-xs font-semibold w-fit">
+                      <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                      </svg>
+                      <span>{{ teacher.academicInfo.groups.length || 0 }} Groups</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-5 whitespace-nowrap">
+                  <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" 
+                        [class]="teacher.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
+                    <span class="w-2 h-2 rounded-full mr-2" 
+                          [class]="teacher.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
                     {{ teacher.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ teacher.academicInfo.hireDate | date:'MMM d, y' }}
+                <td class="px-6 py-5 whitespace-nowrap">
+                  <div class="flex items-center text-sm text-gray-600">
+                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="font-medium">{{ teacher.academicInfo.hireDate | date:'MMM d, y' }}</span>
+                  </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div class="flex justify-end space-x-2">
+                <td class="px-6 py-5 whitespace-nowrap">
+                  <div class="relative inline-block text-left">
                     <button 
-                      (click)="viewTeacher(teacher)"
-                      class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-                      title="View Details"
+                      (click)="toggleDropdown(teacher.id)"
+                      class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                       </svg>
                     </button>
-                    <button 
-                      (click)="editTeacher(teacher)"
-                      class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200"
-                      title="Edit Teacher"
+
+                    <div 
+                      *ngIf="openDropdownId === teacher.id"
+                      class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                     >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                      </svg>
-                    </button>
-                    <button 
-                      (click)="deleteTeacher(teacher)"
-                      class="text-red-600 hover:text-red-900 transition-colors duration-200"
-                      title="Delete Teacher"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </button>
+                      <div class="py-1">
+                        <button
+                          (click)="viewTeacher(teacher); closeDropdown()"
+                          class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150"
+                        >
+                          <svg class="mr-3 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                          View Details
+                        </button>
+                        <button
+                          (click)="editTeacher(teacher); closeDropdown()"
+                          class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150"
+                        >
+                          <svg class="mr-3 h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                          </svg>
+                          Edit Teacher
+                        </button>
+                        <div class="border-t border-gray-100"></div>
+                        <button
+                          (click)="deleteTeacher(teacher); closeDropdown()"
+                          class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150"
+                        >
+                          <svg class="mr-3 h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                          Delete Teacher
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -411,24 +396,54 @@ interface Teacher {
     </div>
   `,
   styles: [`
-    .btn-primary { @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200; }
-    .btn-outline { @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200; }
-    .card { @apply bg-white shadow-sm rounded-lg border border-gray-200; }
+    .btn-primary { 
+      @apply inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white 
+      bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 
+      transition-all duration-200;
+    }
+    .btn-secondary { 
+      @apply inline-flex items-center px-6 py-3 border border-gray-300 text-sm font-semibold rounded-lg text-gray-700 
+      bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 
+      transition-all duration-200;
+    }
+    .btn-outline { 
+      @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 
+      bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 
+      transition-all duration-200;
+    }
+    .stat-card { 
+      @apply bg-white rounded-xl shadow-md border overflow-hidden 
+      transition-all duration-300 cursor-pointer;
+    }
+    .stat-card-body { @apply p-5; }
+    .card { @apply bg-white shadow-sm rounded-xl border border-gray-200; }
     .card-body { @apply px-6 py-4; }
-    .form-input { @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200; }
-    .form-select { @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200; }
-    .form-label { @apply block text-sm font-medium text-gray-700 mb-1; }
+    .form-input { 
+      @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm 
+      focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+      transition-all duration-200 placeholder-gray-400;
+    }
+    .form-select { 
+      @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm 
+      focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+      transition-all duration-200 bg-white;
+    }
+    .form-label { @apply block text-sm font-semibold text-gray-700 mb-2; }
+    .action-btn {
+      @apply p-2 rounded-lg transition-all duration-200 hover:bg-gray-100;
+    }
   `]
 })
 export class TeacherListComponent implements OnInit {
   teachers: Teacher[] = [];
   selectedTeachers: string[] = [];
   isLoading = false;
+  openDropdownId: string | null = null;
   
   filters = {
     search: '',
     subject: '',
-    group: '',
     isActive: ''
   };
   
@@ -443,7 +458,8 @@ export class TeacherListComponent implements OnInit {
 
   constructor(
     private teacherService: TeacherService,
-    private router: Router
+    private router: Router,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -460,7 +476,6 @@ export class TeacherListComponent implements OnInit {
 
     if (this.filters.search) params.search = this.filters.search;
     if (this.filters.subject) params.subject = this.filters.subject;
-    if (this.filters.group) params.group = this.filters.group;
     if (this.filters.isActive) params.isActive = this.filters.isActive;
 
     this.teacherService.getTeachers(params).subscribe({
@@ -495,7 +510,6 @@ export class TeacherListComponent implements OnInit {
     this.filters = {
       search: '',
       subject: '',
-      group: '',
       isActive: ''
     };
     this.pagination.page = 1;
@@ -557,88 +571,96 @@ export class TeacherListComponent implements OnInit {
     this.selectedTeachers = [];
   }
 
-  bulkActivate(): void {
-    if (confirm(`Activate ${this.selectedTeachers.length} teacher(s)?`)) {
+  async bulkActivate(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Activate Teachers',
+      message: `Are you sure you want to activate ${this.selectedTeachers.length} teacher(s)? They will be able to access the system and perform their duties.`,
+      confirmText: 'Yes, Activate',
+      cancelText: 'Cancel',
+      type: 'info'
+    });
+
+    if (confirmed) {
       this.teacherService.bulkAction('activate', this.selectedTeachers).subscribe({
         next: (response) => {
           if (response.success) {
-            alert(`${this.selectedTeachers.length} teacher(s) activated successfully`);
             this.selectedTeachers = [];
             this.loadTeachers();
           }
         },
         error: (error) => {
           console.error('Bulk activate error:', error);
-          alert('Failed to activate teachers');
         }
       });
     }
   }
 
-  bulkDeactivate(): void {
-    if (confirm(`Deactivate ${this.selectedTeachers.length} teacher(s)?`)) {
+  async bulkDeactivate(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Deactivate Teachers',
+      message: `Are you sure you want to deactivate ${this.selectedTeachers.length} teacher(s)? They will lose access to the system temporarily.`,
+      confirmText: 'Yes, Deactivate',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+
+    if (confirmed) {
       this.teacherService.bulkAction('deactivate', this.selectedTeachers).subscribe({
         next: (response) => {
           if (response.success) {
-            alert(`${this.selectedTeachers.length} teacher(s) deactivated successfully`);
             this.selectedTeachers = [];
             this.loadTeachers();
           }
         },
         error: (error) => {
           console.error('Bulk deactivate error:', error);
-          alert('Failed to deactivate teachers');
         }
       });
     }
   }
 
-  bulkDelete(): void {
-    if (confirm(`Are you sure you want to delete ${this.selectedTeachers.length} teacher(s)? This action cannot be undone.`)) {
+  async bulkDelete(): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Teachers',
+      message: `Are you sure you want to delete ${this.selectedTeachers.length} teacher(s)? This action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (confirmed) {
       this.teacherService.bulkAction('delete', this.selectedTeachers).subscribe({
         next: (response) => {
           if (response.success) {
-            alert(response.message || `${this.selectedTeachers.length} teacher(s) deleted successfully`);
             this.selectedTeachers = [];
             this.loadTeachers();
           }
         },
         error: (error) => {
           console.error('Bulk delete error:', error);
-          let errorMessage = 'Failed to delete teachers';
-          if (error.error && error.error.message) {
-            errorMessage = error.error.message;
-          }
-          alert(errorMessage);
         }
       });
     }
   }
 
-  deleteTeacher(teacher: Teacher): void {
-    if (confirm(`Are you sure you want to delete ${teacher.fullName}? This action cannot be undone.`)) {
+  async deleteTeacher(teacher: Teacher): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Teacher',
+      message: `Are you sure you want to delete ${teacher.fullName}? This action cannot be undone.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (confirmed) {
       this.teacherService.deleteTeacher(teacher.id).subscribe({
         next: (response) => {
           if (response.success) {
-            alert(`${teacher.fullName} has been deleted successfully.`);
             this.loadTeachers();
-          } else {
-            alert('Failed to delete teacher: ' + (response.message || 'Unknown error'));
           }
         },
         error: (error) => {
           console.error('Error deleting teacher:', error);
-          let errorMessage = 'Failed to delete teacher';
-          if (error.status === 403) {
-            errorMessage = 'You do not have permission to delete teachers. Admin access required.';
-          } else if (error.status === 404) {
-            errorMessage = 'Teacher not found.';
-          } else if (error.status === 400 && error.error && error.error.message) {
-            errorMessage = error.error.message;
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-          alert(errorMessage);
         }
       });
     }
@@ -712,5 +734,14 @@ export class TeacherListComponent implements OnInit {
     return this.teachers.filter(teacher => 
       teacher.academicInfo.groups && teacher.academicInfo.groups.length > 0
     ).length;
+  }
+
+  // Dropdown management
+  toggleDropdown(teacherId: string): void {
+    this.openDropdownId = this.openDropdownId === teacherId ? null : teacherId;
+  }
+
+  closeDropdown(): void {
+    this.openDropdownId = null;
   }
 }
