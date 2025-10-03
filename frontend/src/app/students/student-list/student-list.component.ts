@@ -288,9 +288,11 @@ interface Student {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span 
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                      [class]="student.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm"
+                      [class]="student.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'"
                     >
+                      <span class="w-2 h-2 rounded-full mr-2" 
+                            [class]="student.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
                       {{ student.isActive ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
