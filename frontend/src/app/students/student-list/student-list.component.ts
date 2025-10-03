@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../services/student.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 interface Student {
   id: string;
@@ -27,174 +28,152 @@ interface Student {
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
     <div class="space-y-6">
-      <!-- Header -->
-      <div class="flex justify-between items-center">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-900">Students</h1>
-          <p class="text-gray-600">Manage student records and enrollments</p>
-        </div>
-        <div class="flex space-x-3">
-          <button 
-            (click)="exportStudents()"
-            class="btn-outline"
-            [disabled]="students.length === 0"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Export
-          </button>
-          <button 
-            (click)="importStudents()"
-            class="btn-outline"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
-            </svg>
-            Import
-          </button>
-          <button 
-            routerLink="/dashboard/students/new"
-            class="btn-primary"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add Student
-          </button>
+      <!-- Header Section with Enhanced Design -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Students Management
+              </h1>
+              <p class="mt-1 text-gray-600">Manage student records and enrollments</p>
+              <div class="mt-2 flex items-center space-x-4 text-sm">
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                  </svg>
+                  {{ pagination.total }} Total
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  {{ getActiveStudentsCount() }} Active
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 lg:mt-0 flex space-x-3">
+            <button 
+              (click)="exportStudents()" 
+              class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+              [disabled]="students.length === 0"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Export Data
+            </button>
+            <button 
+              (click)="importStudents()"
+              class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+              </svg>
+              Import
+            </button>
+            <button 
+              (click)="addNewStudent()" 
+              class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add New Student
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Filters -->
-      <div class="card">
-        <div class="card-body">
-          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <label class="form-label">Search</label>
-              <input 
-                type="text" 
-                [(ngModel)]="filters.search"
-                (ngModelChange)="onFiltersChange()"
-                class="form-input"
-                placeholder="Search by name, email, or ID..."
-              >
-            </div>
-            
-            <div>
-              <label class="form-label">Academic Year</label>
-              <select 
-                [(ngModel)]="filters.year"
-                (ngModelChange)="onFiltersChange()"
-                class="form-select"
-              >
-                <option value="">All Years</option>
-                <optgroup label="Primary School">
-                  <option value="Grade 1">Grade 1</option>
-                  <option value="Grade 2">Grade 2</option>
-                  <option value="Grade 3">Grade 3</option>
-                  <option value="Grade 4">Grade 4</option>
-                  <option value="Grade 5">Grade 5</option>
-                  <option value="Grade 6">Grade 6</option>
-                </optgroup>
-                <optgroup label="Preparatory School">
-                  <option value="Grade 7">Grade 7</option>
-                  <option value="Grade 8">Grade 8</option>
-                  <option value="Grade 9">Grade 9</option>
-                </optgroup>
-                <optgroup label="Secondary School">
-                  <option value="Grade 10">Grade 10</option>
-                  <option value="Grade 11">Grade 11</option>
-                  <option value="Grade 12">Grade 12</option>
-                </optgroup>
-              </select>
-            </div>
-            
-            <div>
-              <label class="form-label">Grade</label>
-              <select 
-                [(ngModel)]="filters.grade"
-                (ngModelChange)="onFiltersChange()"
-                class="form-select"
-              >
-                <option value="">All Grades</option>
-                <optgroup label="Primary School">
-                  <option value="Grade 1">Grade 1</option>
-                  <option value="Grade 2">Grade 2</option>
-                  <option value="Grade 3">Grade 3</option>
-                  <option value="Grade 4">Grade 4</option>
-                  <option value="Grade 5">Grade 5</option>
-                  <option value="Grade 6">Grade 6</option>
-                </optgroup>
-                <optgroup label="Preparatory School">
-                  <option value="Grade 7">Grade 7</option>
-                  <option value="Grade 8">Grade 8</option>
-                  <option value="Grade 9">Grade 9</option>
-                </optgroup>
-                <optgroup label="Secondary School">
-                  <option value="Grade 10">Grade 10</option>
-                  <option value="Grade 11">Grade 11</option>
-                  <option value="Grade 12">Grade 12</option>
-                </optgroup>
-              </select>
-            </div>
-            
-            <div>
-              <label class="form-label">Status</label>
-              <select 
-                [(ngModel)]="filters.isActive"
-                (ngModelChange)="onFiltersChange()"
-                class="form-select"
-              >
-                <option value="">All Status</option>
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
-              </select>
-            </div>
-            
-            <div class="flex items-end">
-              <button 
-                (click)="clearFilters()"
-                class="btn-outline w-full"
-              >
-                Clear Filters
-              </button>
-            </div>
+      <!-- Simple Filters Section -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Search by Name -->
+          <div>
+            <input 
+              type="text" 
+              [(ngModel)]="filters.search"
+              (ngModelChange)="onFiltersChange()"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="🔍 Search by name..."
+            >
+          </div>
+          
+          <!-- Grade Filter -->
+          <div>
+            <select 
+              [(ngModel)]="filters.year"
+              (ngModelChange)="onFiltersChange()"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">All Grades</option>
+              <optgroup label="Primary School">
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
+                <option value="Grade 4">Grade 4</option>
+                <option value="Grade 5">Grade 5</option>
+                <option value="Grade 6">Grade 6</option>
+              </optgroup>
+              <optgroup label="Preparatory School">
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+              </optgroup>
+              <optgroup label="Secondary School">
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="Grade 12">Grade 12</option>
+              </optgroup>
+            </select>
           </div>
         </div>
       </div>
 
       <!-- Bulk Actions -->
-      <div *ngIf="selectedStudents.length > 0" class="bg-blue-50 border border-blue-200 rounded-md p-4">
+      <div *ngIf="selectedStudents.length > 0" class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-5 shadow-sm">
         <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <span class="text-sm font-medium text-blue-900">
-              {{ selectedStudents.length }} student{{ selectedStudents.length === 1 ? '' : 's' }} selected
-            </span>
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center justify-center w-10 h-10 bg-indigo-600 rounded-lg">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <span class="text-base font-bold text-gray-900">
+                {{ selectedStudents.length }} student{{ selectedStudents.length === 1 ? '' : 's' }} selected
+              </span>
+              <p class="text-xs text-gray-600">Choose an action to apply</p>
+            </div>
           </div>
           <div class="flex space-x-2">
-            <button 
-              (click)="bulkActivate()"
-              class="btn-sm btn-outline"
-            >
+            <button (click)="bulkActivate()" class="btn-outline text-green-600 border-green-300 hover:bg-green-50">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
               Activate
             </button>
-            <button 
-              (click)="bulkDeactivate()"
-              class="btn-sm btn-outline"
-            >
+            <button (click)="bulkDeactivate()" class="btn-outline text-yellow-600 border-yellow-300 hover:bg-yellow-50">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
               Deactivate
             </button>
-            <button 
-              (click)="bulkDelete()"
-              class="btn-sm btn-danger"
-            >
+            <button (click)="bulkDelete()" class="btn-outline text-red-600 border-red-300 hover:bg-red-50">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
               Delete
             </button>
-            <button 
-              (click)="clearSelection()"
-              class="btn-sm btn-outline"
-            >
-              Clear Selection
+            <button (click)="clearSelection()" class="btn-outline text-gray-600 border-gray-300 hover:bg-gray-50">
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              Clear
             </button>
           </div>
         </div>
@@ -237,8 +216,7 @@ interface Student {
                     <input 
                       type="checkbox" 
                       [checked]="allSelected"
-                      [indeterminate]="someSelected"
-                      (change)="toggleAllSelection()"
+                      (click)="toggleAllSelection()"
                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     >
                   </th>
@@ -265,7 +243,7 @@ interface Student {
                     <input 
                       type="checkbox" 
                       [checked]="isSelected(student.id)"
-                      (change)="toggleSelection(student.id)"
+                      (click)="toggleSelection(student.id)"
                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     >
                   </td>
@@ -306,36 +284,53 @@ interface Student {
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {{ student.academicInfo.enrollmentDate | date:'mediumDate' }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div class="flex items-center justify-end space-x-2">
+                  <td class="px-6 py-5 whitespace-nowrap">
+                    <div class="relative inline-block text-left">
                       <button 
-                        [routerLink]="['/dashboard/students', student.id]"
-                        class="text-blue-600 hover:text-blue-900"
-                        title="View Details"
+                        (click)="toggleDropdown(student.id)"
+                        class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                       >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                         </svg>
                       </button>
-                      <button 
-                        [routerLink]="['/dashboard/students', student.id, 'edit']"
-                        class="text-indigo-600 hover:text-indigo-900"
-                        title="Edit Student"
+
+                      <div 
+                        *ngIf="openDropdownId === student.id"
+                        class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                       >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                      </button>
-                      <button 
-                        (click)="deleteStudent(student)"
-                        class="text-red-600 hover:text-red-900"
-                        title="Delete Student"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                      </button>
+                        <div class="py-1">
+                          <button
+                            (click)="viewStudent(student); closeDropdown()"
+                            class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150"
+                          >
+                            <svg class="mr-3 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            View Details
+                          </button>
+                          <button
+                            (click)="editStudent(student); closeDropdown()"
+                            class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150"
+                          >
+                            <svg class="mr-3 h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit Student
+                          </button>
+                          <div class="border-t border-gray-100"></div>
+                          <button
+                            (click)="deleteStudent(student); closeDropdown()"
+                            class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150"
+                          >
+                            <svg class="mr-3 h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Delete Student
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -474,10 +469,12 @@ export class StudentListComponent implements OnInit {
   };
 
   Math = Math; // Make Math available in template
+  openDropdownId: string | null = null;
 
   constructor(
     private studentService: StudentService,
-    private router: Router
+    private router: Router,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -608,112 +605,115 @@ export class StudentListComponent implements OnInit {
   }
 
   // Bulk operations
-  bulkActivate(): void {
+  async bulkActivate(): Promise<void> {
     if (this.selectedStudents.length === 0) return;
     
-    if (confirm(`Are you sure you want to activate ${this.selectedStudents.length} student(s)?`)) {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Activate Students',
+      message: `Are you sure you want to activate ${this.selectedStudents.length} student(s)? They will be able to access the system and enroll in courses.`,
+      confirmText: 'Yes, Activate',
+      cancelText: 'Cancel',
+      type: 'info'
+    });
+
+    if (confirmed) {
       this.studentService.bulkAction('activate', this.selectedStudents).subscribe({
         next: (response) => {
           if (response.success) {
-            this.loadStudents(); // Reload the list
+            this.loadStudents();
             this.clearSelection();
-            // TODO: Show success toast
-            console.log(response.message);
-          } else {
-            alert('Failed to activate students');
           }
         },
         error: (error) => {
           console.error('Error activating students:', error);
-          alert('Failed to activate students');
         }
       });
     }
   }
 
-  bulkDeactivate(): void {
+  async bulkDeactivate(): Promise<void> {
     if (this.selectedStudents.length === 0) return;
     
-    if (confirm(`Are you sure you want to deactivate ${this.selectedStudents.length} student(s)?`)) {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Deactivate Students',
+      message: `Are you sure you want to deactivate ${this.selectedStudents.length} student(s)? They will temporarily lose access to the system.`,
+      confirmText: 'Yes, Deactivate',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+
+    if (confirmed) {
       this.studentService.bulkAction('deactivate', this.selectedStudents).subscribe({
         next: (response) => {
           if (response.success) {
-            this.loadStudents(); // Reload the list
+            this.loadStudents();
             this.clearSelection();
-            // TODO: Show success toast
-            console.log(response.message);
-          } else {
-            alert('Failed to deactivate students');
           }
         },
         error: (error) => {
           console.error('Error deactivating students:', error);
-          alert('Failed to deactivate students');
         }
       });
     }
   }
 
-  bulkDelete(): void {
+  async bulkDelete(): Promise<void> {
     if (this.selectedStudents.length === 0) return;
     
-    if (confirm(`Are you sure you want to delete ${this.selectedStudents.length} student(s)? This action cannot be undone.`)) {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Students',
+      message: `Are you sure you want to delete ${this.selectedStudents.length} student(s)? This action cannot be undone and will remove all their records and enrollments.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (confirmed) {
       this.studentService.bulkAction('delete', this.selectedStudents).subscribe({
         next: (response) => {
           if (response.success) {
-            this.loadStudents(); // Reload the list
+            this.loadStudents();
             this.clearSelection();
-            // TODO: Show success toast
-            console.log(response.message);
-          } else {
-            alert('Failed to delete students');
           }
         },
         error: (error) => {
           console.error('Error deleting students:', error);
-          alert('Failed to delete students');
         }
       });
     }
   }
 
   // Individual operations
-  deleteStudent(student: Student): void {
-    if (confirm(`Are you sure you want to delete ${student.fullName}? This action cannot be undone.`)) {
-      console.log('Attempting to delete student:', student.id);
-      
+  async deleteStudent(student: Student): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Student',
+      message: `Are you sure you want to delete ${student.fullName}? This action cannot be undone and will remove all their records and enrollments.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (confirmed) {
       this.studentService.deleteStudent(student.id).subscribe({
         next: (response) => {
-          console.log('Delete student response:', response);
           if (response.success) {
-            console.log('Student deleted successfully');
-            this.loadStudents(); // Reload the list
-            // TODO: Show success toast
-            alert(`${student.fullName} has been deleted successfully.`);
-          } else {
-            console.error('Delete failed with message:', response.message);
-            alert('Failed to delete student: ' + (response.message || 'Unknown error'));
+            this.loadStudents();
           }
         },
         error: (error) => {
           console.error('Error deleting student:', error);
-          
-          // Provide more specific error messages
-          let errorMessage = 'Failed to delete student';
-          if (error.status === 403) {
-            errorMessage = 'You do not have permission to delete students. Admin access required.';
-          } else if (error.status === 404) {
-            errorMessage = 'Student not found.';
-          } else if (error.status === 500) {
-            errorMessage = 'Server error occurred while deleting student.';
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-          
-          alert(errorMessage);
         }
       });
     }
+  }
+
+  // Dropdown methods
+  toggleDropdown(studentId: string): void {
+    this.openDropdownId = this.openDropdownId === studentId ? null : studentId;
+  }
+
+  closeDropdown(): void {
+    this.openDropdownId = null;
   }
 
   // Utility methods
@@ -776,5 +776,10 @@ export class StudentListComponent implements OnInit {
     console.log('CSV Import - Lines:', lines.length - 1);
     
     alert(`CSV import functionality will be implemented. Found ${lines.length - 1} rows to process.`);
+  }
+
+  // Statistics methods
+  getActiveStudentsCount(): number {
+    return this.students.filter(student => student.isActive).length;
   }
 }

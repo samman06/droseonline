@@ -35,46 +35,43 @@ interface Student {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
-    <div class="max-w-4xl mx-auto">
-      <!-- Back Button and Breadcrumb -->
-      <div class="flex items-center justify-between mb-6">
+    <div class="max-w-4xl mx-auto p-6">
+      <!-- Modern Header with Gradient -->
+      <div class="mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white">
         <div class="flex items-center space-x-4">
-          <button 
-            (click)="goBack()"
-            class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          <div class="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
-            Back to Students
-          </button>
-          <nav class="flex" aria-label="Breadcrumb">
-            <ol class="flex items-center space-x-4">
-              <li>
-                <div class="flex">
-                  <a routerLink="/dashboard/students" class="text-sm font-medium text-gray-500 hover:text-gray-700">Students</a>
-                </div>
-              </li>
-              <li>
-                <div class="flex items-center">
-                  <svg class="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span class="ml-4 text-sm font-medium text-gray-900">
-                    {{ isEditMode ? 'Edit Student' : 'Add New Student' }}
-                  </span>
-                </div>
-              </li>
-            </ol>
-          </nav>
+          </div>
+          <div>
+            <h1 class="text-3xl font-bold mb-1">
+              {{ isEditMode ? 'Edit Student' : 'Add New Student' }}
+            </h1>
+            <p class="text-indigo-100">
+              {{ isEditMode ? 'Update student information and academic details' : 'Create a new student profile and enrollment' }}
+            </p>
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2 class="text-xl font-semibold text-gray-900">
-            {{ isEditMode ? 'Edit Student' : 'Add New Student' }}
-          </h2>
+      <!-- Back Button -->
+      <div class="mb-6">
+        <button 
+          (click)="goBack()"
+          class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-sm font-semibold rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to Students
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="px-8 py-6 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">Student Information</h2>
+          <p class="mt-1 text-sm text-gray-600">Fill in the required details below</p>
         </div>
         
         <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="card-body space-y-6">
@@ -298,18 +295,18 @@ interface Student {
           </div>
 
           <!-- Form Actions -->
-          <div class="flex justify-end space-x-4 pt-6 border-t">
+          <div class="flex justify-end space-x-3 px-8 py-6 bg-gray-50 border-t border-gray-200">
             <button 
               type="button" 
               (click)="onCancel()"
-              class="btn-secondary"
+              class="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-sm font-semibold rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               [disabled]="studentForm.invalid || isSubmitting"
-              class="btn-primary"
+              class="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-200"
             >
               <svg *ngIf="isSubmitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
