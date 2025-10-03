@@ -15,65 +15,24 @@ const subjectSchema = new mongoose.Schema({
     trim: true,
     maxlength: 10
   },
-  description: {
-    type: String,
-    maxlength: 500
-  },
   
-  // Academic Details
-  credits: {
+  // Grade levels this subject is taught in (Egyptian education system)
+  gradeLevels: [{
+    type: String,
+    enum: [
+      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', // Primary
+      'Grade 7', 'Grade 8', 'Grade 9', // Preparatory
+      'Grade 10', 'Grade 11', 'Grade 12' // Secondary
+    ]
+  }],
+  
+  // Total marks/points for this subject
+  totalMarks: {
     type: Number,
-    required: true,
-    min: 1,
-    max: 10
+    min: 10,
+    max: 200,
+    default: 100
   },
-  type: {
-    type: String,
-    enum: ['core', 'elective', 'practical', 'theory'],
-    required: true
-  },
-  level: {
-    type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
-    default: 'beginner'
-  },
-  
-  // Prerequisites
-  prerequisites: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject'
-  }],
-  
-  // Syllabus and Content
-  syllabus: {
-    objectives: [String],
-    topics: [{
-      title: String,
-      description: String,
-      duration: Number, // in hours
-      resources: [String]
-    }],
-    assessmentCriteria: [String]
-  },
-  
-  // Assignment Templates
-  assignmentTypes: [{
-    name: String,
-    description: String,
-    maxMarks: Number,
-    weightage: Number // percentage towards final grade
-  }],
-  
-  // Resources
-  resources: [{
-    title: String,
-    type: {
-      type: String,
-      enum: ['book', 'article', 'video', 'website', 'document']
-    },
-    url: String,
-    description: String
-  }],
   
   // Status and Management
   isActive: {
@@ -89,20 +48,12 @@ const subjectSchema = new mongoose.Schema({
   // Statistics
   stats: {
     totalStudents: { type: Number, default: 0 },
-    totalTeachers: { type: Number, default: 0 },
-    averageGrade: { type: Number, default: 0 },
-    passRate: { type: Number, default: 0 }
+    totalTeachers: { type: Number, default: 0 }
   }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
-});
-
-// Virtual for total syllabus duration
-subjectSchema.virtual('totalDuration').get(function() {
-  if (!this.syllabus || !this.syllabus.topics) return 0;
-  return this.syllabus.topics.reduce((total, topic) => total + (topic.duration || 0), 0);
 });
 
 // Virtual for active courses count
@@ -114,10 +65,17 @@ subjectSchema.virtual('activeCourses', {
   match: { isActive: true }
 });
 
+// Virtual for grade level range display
+subjectSchema.virtual('gradeLevelRange').get(function() {
+  if (!this.gradeLevels || this.gradeLevels.length === 0) return 'All Grades';
+  if (this.gradeLevels.length === 1) return this.gradeLevels[0];
+  return `${this.gradeLevels[0]} - ${this.gradeLevels[this.gradeLevels.length - 1]}`;
+});
+
 // Indexes
 subjectSchema.index({ code: 1 });
 subjectSchema.index({ name: 1 });
-subjectSchema.index({ type: 1 });
+subjectSchema.index({ gradeLevels: 1 });
 subjectSchema.index({ isActive: 1 });
 subjectSchema.index({ createdBy: 1 });
 

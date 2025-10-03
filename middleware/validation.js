@@ -44,25 +44,18 @@ const updateProfileSchema = Joi.object({
   }).optional()
 });
 
-// Subject validation schemas
+// Subject validation schemas (Simplified for Egyptian Education System)
 const subjectSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
   code: Joi.string().trim().max(10).required(),
-  description: Joi.string().max(500).optional(),
-  credits: Joi.number().min(1).max(10).required(),
-  type: Joi.string().valid('core', 'elective', 'practical', 'theory').required(),
-  level: Joi.string().valid('beginner', 'intermediate', 'advanced').optional(),
-  prerequisites: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).optional(),
-  syllabus: Joi.object({
-    objectives: Joi.array().items(Joi.string().max(200)).optional(),
-    topics: Joi.array().items(Joi.object({
-      title: Joi.string().max(100).required(),
-      description: Joi.string().max(500).optional(),
-      duration: Joi.number().min(1).optional(),
-      resources: Joi.array().items(Joi.string().max(200)).optional()
-    })).optional(),
-    assessmentCriteria: Joi.array().items(Joi.string().max(200)).optional()
-  }).optional()
+  gradeLevels: Joi.array().items(
+    Joi.string().valid(
+      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
+      'Grade 7', 'Grade 8', 'Grade 9',
+      'Grade 10', 'Grade 11', 'Grade 12'
+    )
+  ).optional(),
+  totalMarks: Joi.number().min(10).max(200).optional()
 });
 
 // Group validation schemas

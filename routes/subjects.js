@@ -10,24 +10,28 @@ const router = express.Router();
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, type, level, isActive } = req.query;
+    const { page = 1, limit = 10, search, grade, isActive } = req.query;
+    
+    console.log('GET /api/subjects - Query params:', req.query);
     
     // Build query
     const query = {};
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { code: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
+        { code: { $regex: search, $options: 'i' } }
       ];
     }
-    if (type) query.type = type;
-    if (level) query.level = level;
-    if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (grade) query.gradeLevels = grade;
+    if (isActive !== undefined && isActive !== '') {
+      query.isActive = isActive === 'true';
+      console.log('Applied isActive filter:', query.isActive);
+    }
+
+    console.log('Final MongoDB query:', JSON.stringify(query, null, 2));
 
     const subjects = await Subject.find(query)
       .populate('createdBy', 'firstName lastName fullName')
-      .populate('prerequisites', 'name code credits')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ name: 1 });
@@ -62,7 +66,6 @@ router.get('/:id', authenticate, async (req, res) => {
   try {
     const subject = await Subject.findById(req.params.id)
       .populate('createdBy', 'firstName lastName fullName email')
-      .populate('prerequisites', 'name code credits type')
       .populate('activeCourses');
 
     if (!subject) {
@@ -108,8 +111,7 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(subjectSc
     await subject.save();
 
     const populatedSubject = await Subject.findById(subject._id)
-      .populate('createdBy', 'firstName lastName fullName')
-      .populate('prerequisites', 'name code credits');
+      .populate('createdBy', 'firstName lastName fullName');
 
     res.status(201).json({
       success: true,
@@ -163,8 +165,7 @@ router.put('/:id', authenticate, validate(subjectSchema), async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     )
-    .populate('createdBy', 'firstName lastName fullName')
-    .populate('prerequisites', 'name code credits');
+    .populate('createdBy', 'firstName lastName fullName');
 
     res.json({
       success: true,
@@ -337,14 +338,13 @@ router.get('/:id/statistics', authenticate, authorize('admin', 'teacher'), async
         id: subject._id,
         name: subject.name,
         code: subject.code,
-        credits: subject.credits,
-        type: subject.type
+        gradeLevels: subject.gradeLevels,
+        totalMarks: subject.totalMarks
       },
       courses: courseStats[0] || {
         totalCourses: 0,
         activeCourses: 0,
-        totalStudents: 0,
-        averageGrade: 0
+        totalStudents: 0
       },
       assignments: assignmentStats[0] || {
         totalAssignments: 0,
@@ -425,7 +425,7 @@ router.get('/search/suggestions', authenticate, async (req, res) => {
       ],
       isActive: true
     })
-    .select('name code type credits')
+    .select('name code gradeLevels')
     .limit(10)
     .sort({ name: 1 });
 
