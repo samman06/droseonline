@@ -10,7 +10,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, grade, isActive } = req.query;
+    const { page = 1, limit = 10, search, isActive } = req.query;
     
     console.log('GET /api/subjects - Query params:', req.query);
     
@@ -22,7 +22,7 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
         { code: { $regex: search, $options: 'i' } }
       ];
     }
-    if (grade) query.gradeLevels = grade;
+    // Grades are assigned on groups, not on subject
     if (isActive !== undefined && isActive !== '') {
       query.isActive = isActive === 'true';
       console.log('Applied isActive filter:', query.isActive);
@@ -226,6 +226,93 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
+// @route   POST /api/subjects/:id/activate
+// @desc    Activate a subject
+// @access  Private (Admin only)
+router.post('/:id/activate', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const subject = await Subject.findById(req.params.id);
+    if (!subject) {
+      return res.status(404).json({ success: false, message: 'Subject not found' });
+    }
+
+    subject.isActive = true;
+    await subject.save();
+
+    return res.json({ success: true, message: 'Subject activated successfully' });
+  } catch (error) {
+    console.error('Activate subject error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while activating subject' });
+  }
+});
+
+// @route   POST /api/subjects/:id/deactivate
+// @desc    Deactivate a subject
+// @access  Private (Admin only)
+router.post('/:id/deactivate', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const subject = await Subject.findById(req.params.id);
+    if (!subject) {
+      return res.status(404).json({ success: false, message: 'Subject not found' });
+    }
+
+    const Course = require('../models/Course');
+    const activeCourses = await Course.countDocuments({ subject: req.params.id, isActive: true });
+    if (activeCourses > 0) {
+      return res.status(400).json({ success: false, message: `Cannot deactivate subject. It is used in ${activeCourses} active course(s).` });
+    }
+
+    subject.isActive = false;
+    await subject.save();
+
+    return res.json({ success: true, message: 'Subject deactivated successfully' });
+  } catch (error) {
+    console.error('Deactivate subject error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while deactivating subject' });
+  }
+});
+
+// @route   POST /api/subjects/bulk-action
+// @desc    Bulk activate/deactivate subjects
+// @access  Private (Admin only)
+router.post('/bulk-action', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const { action, subjectIds } = req.body;
+    if (!Array.isArray(subjectIds) || subjectIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'No subjectIds provided' });
+    }
+
+    const results = { processed: 0, failed: [] };
+    const Course = require('../models/Course');
+
+    for (const id of subjectIds) {
+      try {
+        if (action === 'activate') {
+          await Subject.findByIdAndUpdate(id, { isActive: true });
+        } else if (action === 'deactivate') {
+          const activeCourses = await Course.countDocuments({ subject: id, isActive: true });
+          if (activeCourses > 0) {
+            results.failed.push({ id, reason: `Used in ${activeCourses} active course(s)` });
+            continue;
+          }
+          await Subject.findByIdAndUpdate(id, { isActive: false });
+        } else {
+          results.failed.push({ id, reason: 'Invalid action' });
+          continue;
+        }
+        results.processed += 1;
+      } catch (e) {
+        results.failed.push({ id, reason: 'Error updating' });
+      }
+    }
+
+    return res.json({ success: true, data: results });
+  } catch (error) {
+    console.error('Subjects bulk-action error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while performing bulk action' });
+  }
+});
+
 // @route   GET /api/subjects/:id/courses
 // @desc    Get all courses for a subject
 // @access  Private
@@ -337,9 +424,7 @@ router.get('/:id/statistics', authenticate, authorize('admin', 'teacher'), async
       subject: {
         id: subject._id,
         name: subject.name,
-        code: subject.code,
-        gradeLevels: subject.gradeLevels,
-        totalMarks: subject.totalMarks
+        code: subject.code
       },
       courses: courseStats[0] || {
         totalCourses: 0,

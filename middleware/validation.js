@@ -47,15 +47,7 @@ const updateProfileSchema = Joi.object({
 // Subject validation schemas (Simplified for Egyptian Education System)
 const subjectSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
-  code: Joi.string().trim().max(10).required(),
-  gradeLevels: Joi.array().items(
-    Joi.string().valid(
-      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
-      'Grade 7', 'Grade 8', 'Grade 9',
-      'Grade 10', 'Grade 11', 'Grade 12'
-    )
-  ).optional(),
-  totalMarks: Joi.number().min(10).max(200).optional()
+  code: Joi.string().trim().max(10).required()
 });
 
 // Group validation schemas

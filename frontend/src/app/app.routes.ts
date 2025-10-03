@@ -125,7 +125,24 @@ export const routes: Routes = [
         path: 'subjects',
         canActivate: [RoleGuard],
         data: { roles: ['admin', 'teacher'] },
-        loadComponent: () => import('./subjects/subject-list/subject-list.component').then(m => m.SubjectListComponent)
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./subjects/subject-list/subject-list.component').then(m => m.SubjectListComponent)
+          },
+          {
+            path: 'new',
+            loadComponent: () => import('./subjects/subject-create/subject-create.component').then(m => m.SubjectCreateComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./subjects/subject-detail/subject-detail.component').then(m => m.SubjectDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./subjects/subject-edit/subject-edit.component').then(m => m.SubjectEditComponent)
+          }
+        ]
       },
       {
         path: 'groups',

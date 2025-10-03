@@ -16,23 +16,9 @@ const subjectSchema = new mongoose.Schema({
     maxlength: 10
   },
   
-  // Grade levels this subject is taught in (Egyptian education system)
-  gradeLevels: [{
-    type: String,
-    enum: [
-      'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', // Primary
-      'Grade 7', 'Grade 8', 'Grade 9', // Preparatory
-      'Grade 10', 'Grade 11', 'Grade 12' // Secondary
-    ]
-  }],
+  // Grade levels moved to Group assignment. No gradeLevels here.
   
-  // Total marks/points for this subject
-  totalMarks: {
-    type: Number,
-    min: 10,
-    max: 200,
-    default: 100
-  },
+  // No total marks on subject; assessment handled elsewhere
   
   // Status and Management
   isActive: {
@@ -65,17 +51,12 @@ subjectSchema.virtual('activeCourses', {
   match: { isActive: true }
 });
 
-// Virtual for grade level range display
-subjectSchema.virtual('gradeLevelRange').get(function() {
-  if (!this.gradeLevels || this.gradeLevels.length === 0) return 'All Grades';
-  if (this.gradeLevels.length === 1) return this.gradeLevels[0];
-  return `${this.gradeLevels[0]} - ${this.gradeLevels[this.gradeLevels.length - 1]}`;
-});
+// No grade virtuals; grades assigned via Groups
 
 // Indexes
 subjectSchema.index({ code: 1 });
 subjectSchema.index({ name: 1 });
-subjectSchema.index({ gradeLevels: 1 });
+// Removed gradeLevels index
 subjectSchema.index({ isActive: 1 });
 subjectSchema.index({ createdBy: 1 });
 
