@@ -79,7 +79,7 @@ app.use('/api/students', require('./routes/students'));
 app.use('/api/teachers', require('./routes/teachers'));
 app.use('/api/subjects', require('./routes/subjects'));
 app.use('/api/groups', require('./routes/groups'));
-app.use('/api/courses', require('./routes/courses'));
+// Courses module removed
 app.use('/api/assignments', require('./routes/assignments'));
 app.use('/api/grades', require('./routes/grades'));
 app.use('/api/attendance', require('./routes/attendance'));

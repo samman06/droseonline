@@ -33,11 +33,7 @@ export const routes: Routes = [
     redirectTo: '/dashboard/teachers',
     pathMatch: 'full'
   },
-  {
-    path: 'courses',
-    redirectTo: '/dashboard/courses',
-    pathMatch: 'full'
-  },
+  // Courses removed
   {
     path: 'assignments',
     redirectTo: '/dashboard/assignments',
@@ -113,10 +109,7 @@ export const routes: Routes = [
           }
         ]
       },
-      {
-        path: 'courses',
-        loadComponent: () => import('./courses/course-list/course-list.component').then(m => m.CourseListComponent)
-      },
+      // Courses removed
       {
         path: 'assignments',
         loadComponent: () => import('./assignments/assignment-list/assignment-list.component').then(m => m.AssignmentListComponent)
