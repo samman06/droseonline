@@ -19,30 +19,28 @@ const groupSchema = new mongoose.Schema({
     maxlength: 500
   },
   
-  // Academic Information
-  academicYear: {
+  // Assignment
+  subject: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'AcademicYear',
+    ref: 'Subject',
     required: true
   },
-  level: {
-    type: String,
-    enum: ['freshman', 'sophomore', 'junior', 'senior', 'graduate'],
+  teacher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
-  semester: {
+  // Grade filter for enrollment (Egyptian grades)
+  gradeLevel: {
     type: String,
-    enum: ['fall', 'spring', 'summer'],
+    enum: [
+      'Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6',
+      'Grade 7','Grade 8','Grade 9',
+      'Grade 10','Grade 11','Grade 12'
+    ],
     required: true
   },
   
-  // Capacity Management
-  capacity: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 100
-  },
   currentEnrollment: {
     type: Number,
     default: 0
@@ -72,24 +70,22 @@ const groupSchema = new mongoose.Schema({
     ref: 'User'
   },
   
-  // Schedule Information
+  // Weekly schedule (simple recurrence)
   schedule: [{
     day: {
       type: String,
       enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
     },
-    startTime: String, // Format: "HH:MM"
-    endTime: String,   // Format: "HH:MM"
-    subject: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subject'
-    },
-    teacher: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    room: String
+    startTime: String, // "HH:MM"
+    endTime: String    // "HH:MM"
   }],
+
+  // Pricing
+  pricePerSession: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
   
   // Status and Management
   isActive: {
@@ -115,27 +111,20 @@ const groupSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Virtual for available spots
-groupSchema.virtual('availableSpots').get(function() {
-  return this.capacity - this.currentEnrollment;
-});
+// No available spots (no max capacity)
 
 // Virtual for active students count
 groupSchema.virtual('activeStudentsCount').get(function() {
   return this.students.filter(s => s.status === 'active').length;
 });
 
-// Virtual for full name with level and semester
+// Optional composite name
 groupSchema.virtual('fullName').get(function() {
-  return `${this.name} - ${this.level} (${this.semester})`;
+  return `${this.name} - ${this.gradeLevel}`;
 });
 
 // Method to add student to group
 groupSchema.methods.addStudent = function(studentId) {
-  if (this.currentEnrollment >= this.capacity) {
-    throw new Error('Group is at full capacity');
-  }
-  
   const existingStudent = this.students.find(s => 
     s.student.toString() === studentId.toString() && s.status === 'active'
   );
@@ -178,9 +167,10 @@ groupSchema.pre('save', function(next) {
 // Indexes
 groupSchema.index({ code: 1 });
 groupSchema.index({ name: 1 });
-groupSchema.index({ academicYear: 1 });
-groupSchema.index({ level: 1, semester: 1 });
 groupSchema.index({ isActive: 1 });
 groupSchema.index({ 'students.student': 1 });
+groupSchema.index({ teacher: 1 });
+groupSchema.index({ subject: 1 });
+groupSchema.index({ gradeLevel: 1 });
 
 module.exports = mongoose.model('Group', groupSchema);

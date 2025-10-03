@@ -12,7 +12,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, level, semester, academicYear, isActive } = req.query;
+    const { page = 1, limit = 10, search, teacherId, subjectId, gradeLevel, day, isActive } = req.query;
     
     const query = {};
     
@@ -23,13 +23,15 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
       ];
     }
     
-    if (level) query.level = level;
-    if (semester) query.semester = semester;
-    if (academicYear) query.academicYear = academicYear;
+    if (teacherId) query.teacher = teacherId;
+    if (subjectId) query.subject = subjectId;
+    if (gradeLevel) query.gradeLevel = gradeLevel;
+    if (day) query['schedule.day'] = day;
     if (isActive !== undefined) query.isActive = isActive === 'true';
 
     const groups = await Group.find(query)
-      .populate('academicYear', 'name code isCurrent')
+      .populate('teacher', 'firstName lastName fullName')
+      .populate('subject', 'name code')
       .populate('classMonitor', 'firstName lastName fullName')
       .populate('createdBy', 'firstName lastName fullName')
       .populate({
@@ -69,20 +71,13 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const group = await Group.findById(req.params.id)
-      .populate('academicYear', 'name code startDate endDate isCurrent')
+      .populate('teacher', 'firstName lastName fullName email')
+      .populate('subject', 'name code')
       .populate('classMonitor', 'firstName lastName fullName email')
       .populate('createdBy', 'firstName lastName fullName')
       .populate({
         path: 'students.student',
-        select: 'firstName lastName fullName email dateOfBirth academicInfo.studentId'
-      })
-      .populate({
-        path: 'schedule.subject',
-        select: 'name code credits'
-      })
-      .populate({
-        path: 'schedule.teacher',
-        select: 'firstName lastName fullName email'
+        select: 'firstName lastName fullName email dateOfBirth academicInfo.studentId academicInfo.currentGrade'
       });
 
     if (!group) {
@@ -119,13 +114,10 @@ router.post('/', authenticate, authorize('admin'), validate(groupSchema), async 
       });
     }
 
-    // Verify academic year exists
-    const academicYear = await AcademicYear.findById(req.body.academicYear);
-    if (!academicYear) {
-      return res.status(400).json({
-        success: false,
-        message: 'Academic year not found'
-      });
+    // Ensure teacher and subject exist
+    const teacher = await User.findOne({ _id: req.body.teacher, role: 'teacher' });
+    if (!teacher) {
+      return res.status(400).json({ success: false, message: 'Teacher not found' });
     }
 
     const groupData = {
@@ -137,7 +129,8 @@ router.post('/', authenticate, authorize('admin'), validate(groupSchema), async 
     await group.save();
 
     const populatedGroup = await Group.findById(group._id)
-      .populate('academicYear', 'name code')
+      .populate('teacher', 'firstName lastName fullName')
+      .populate('subject', 'name code')
       .populate('classMonitor', 'firstName lastName fullName')
       .populate('createdBy', 'firstName lastName fullName');
 
@@ -181,15 +174,10 @@ router.put('/:id', authenticate, authorize('admin'), validate(groupSchema), asyn
       }
     }
 
-    // Verify academic year exists if being changed
-    if (req.body.academicYear && req.body.academicYear !== group.academicYear.toString()) {
-      const academicYear = await AcademicYear.findById(req.body.academicYear);
-      if (!academicYear) {
-        return res.status(400).json({
-          success: false,
-          message: 'Academic year not found'
-        });
-      }
+    // Verify teacher and subject if changed
+    if (req.body.teacher) {
+      const teacher = await User.findOne({ _id: req.body.teacher, role: 'teacher' });
+      if (!teacher) return res.status(400).json({ success: false, message: 'Teacher not found' });
     }
 
     const updatedGroup = await Group.findByIdAndUpdate(
@@ -197,7 +185,8 @@ router.put('/:id', authenticate, authorize('admin'), validate(groupSchema), asyn
       req.body,
       { new: true, runValidators: true }
     )
-    .populate('academicYear', 'name code')
+    .populate('teacher', 'firstName lastName fullName')
+    .populate('subject', 'name code')
     .populate('classMonitor', 'firstName lastName fullName')
     .populate('createdBy', 'firstName lastName fullName');
 
@@ -237,19 +226,7 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
       });
     }
 
-    // Check if group is used in any active courses
-    const Course = require('../models/Course');
-    const activeCourses = await Course.countDocuments({ 
-      groups: req.params.id,
-      isActive: true 
-    });
-
-    if (activeCourses > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot delete group. It is used in ${activeCourses} active course(s).`
-      });
-    }
+    // No course dependency
 
     // Soft delete
     group.isActive = false;
@@ -296,6 +273,12 @@ router.post('/:id/students', authenticate, authorize('admin'), async (req, res) 
         success: false,
         message: 'Student not found'
       });
+    }
+
+    // Auto filter: enforce grade match
+    const studentGrade = student.academicInfo?.currentGrade || student.academicInfo?.year;
+    if (studentGrade && group.gradeLevel && studentGrade !== group.gradeLevel) {
+      return res.status(400).json({ success: false, message: `Student grade (${studentGrade}) does not match group grade (${group.gradeLevel})` });
     }
 
     // Add student to group

@@ -141,7 +141,24 @@ export const routes: Routes = [
         path: 'groups',
         canActivate: [RoleGuard],
         data: { roles: ['admin'] },
-        loadComponent: () => import('./groups/group-list/group-list.component').then(m => m.GroupListComponent)
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./groups/group-list/group-list.component').then(m => m.GroupListComponent)
+          },
+          {
+            path: 'new',
+            loadComponent: () => import('./groups/group-create/group-create.component').then(m => m.GroupCreateComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./groups/group-detail/group-detail.component').then(m => m.GroupDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./groups/group-edit/group-edit.component').then(m => m.GroupEditComponent)
+          }
+        ]
       },
       {
         path: 'attendance',
