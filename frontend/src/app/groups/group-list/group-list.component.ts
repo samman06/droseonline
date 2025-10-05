@@ -52,9 +52,7 @@ import { SubjectService } from '../../services/subject.service';
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th class="px-6 py-3"></th>
               </tr>
@@ -64,7 +62,6 @@ import { SubjectService } from '../../services/subject.service';
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ g.name }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ g.teacher?.fullName || '—' }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ g.subject?.name || '—' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ g.gradeLevel }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">
                   <div class="flex flex-wrap gap-1">
                     <span *ngFor="let s of g.schedule" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
@@ -72,7 +69,6 @@ import { SubjectService } from '../../services/subject.service';
                     </span>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ g.pricePerSession | currency:'EGP':'symbol-narrow' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="g.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
                     <span class="w-2 h-2 rounded-full mr-2" [class]="g.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
