@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, tap, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { MockAuthService, User, LoginRequest, RegisterRequest, AuthResponse } from './mock-auth.service';
+import { environment } from '../../environments/environment';
 
 // Export types properly for isolated modules
 export type { User, LoginRequest, RegisterRequest, AuthResponse } from './mock-auth.service';
@@ -12,8 +13,8 @@ export type { User, LoginRequest, RegisterRequest, AuthResponse } from './mock-a
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:5000/api';
-  private readonly USE_MOCK = false; // Using real backend API
+  private readonly API_URL = environment.apiBaseUrl;
+  private readonly USE_MOCK = environment.features.enableMockData;
   
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   private tokenSubject = new BehaviorSubject<string | null>(null);

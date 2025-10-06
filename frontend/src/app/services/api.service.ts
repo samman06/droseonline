@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -29,12 +30,14 @@ export interface QueryParams {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_URL = 'http://localhost:5000/api';
+  private readonly API_URL = environment.apiBaseUrl;
 
   constructor(
     private http: HttpClient,
     private authService: AuthService
-  ) {}
+  ) {
+    console.log('API Service initialized with base URL:', this.API_URL);
+  }
 
   // Generic GET method for listing data
   get<T>(endpoint: string, params?: QueryParams): Observable<ApiResponse<T>> {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from './services/auth.service';
+import { ConfigService } from './services/config.service';
 import { ConfirmationModalComponent } from './shared/confirmation-modal/confirmation-modal.component';
 
 interface Toast {
@@ -22,13 +23,19 @@ interface Toast {
   styleUrls: ['./app.scss']
 })
 export class AppComponent implements OnInit {
-  title = signal('Drose Online');
+  title = signal('DroseOnline'); // Default value
   isLoading = false;
   toasts: Toast[] = [];
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService
+  ) {}
 
   ngOnInit() {
+    // Set title from config after initialization
+    this.title.set(this.configService.appName);
+    
     // Initialize app, check authentication status
     this.checkAuthStatus();
   }

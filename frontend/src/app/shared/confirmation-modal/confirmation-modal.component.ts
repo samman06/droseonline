@@ -47,18 +47,18 @@ import { ConfirmationService, ConfirmationConfig } from '../../services/confirma
               (click)="onCancel()" 
               type="button"
               class="flex-1 px-6 py-3 text-sm font-semibold rounded-lg border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200">
-              {{ config?.cancelText || 'Cancel' }}
+              {{ config.cancelText || 'Cancel' }}
             </button>
             <button 
               (click)="onConfirm()" 
               type="button"
               [ngClass]="{
-                'bg-red-600 hover:bg-red-700 text-white': config?.type === 'danger',
-                'bg-yellow-600 hover:bg-yellow-700 text-white': config?.type === 'warning',
-                'bg-blue-600 hover:bg-blue-700 text-white': !config?.type || config?.type === 'info'
+                'bg-red-600 hover:bg-red-700 text-white': config.type === 'danger',
+                'bg-yellow-600 hover:bg-yellow-700 text-white': config.type === 'warning',
+                'bg-blue-600 hover:bg-blue-700 text-white': !config.type || config.type === 'info'
               }"
               class="flex-1 px-6 py-3 text-sm font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
-              {{ config?.confirmText || 'Confirm' }}
+              {{ config.confirmText || 'Confirm' }}
             </button>
           </div>
         </div>

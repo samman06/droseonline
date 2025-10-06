@@ -3,12 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { ApiService, QueryParams, ApiResponse } from './api.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StudentService {
-  private readonly API_URL = 'http://localhost:5000/api';
+  private readonly API_URL = environment.apiBaseUrl;
   private readonly STUDENTS_ENDPOINT = 'students';
 
   constructor(
