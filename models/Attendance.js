@@ -1,352 +1,173 @@
 const mongoose = require('mongoose');
 
-const attendanceSchema = new mongoose.Schema({
-  // Relationships
-  course: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course',
-    required: true
-  },
+const attendanceRecordSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Student',
     required: true
   },
-  teacher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  group: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Group'
-  },
-  
-  // Class/Session Information
-  classDate: {
-    type: Date,
-    required: true
-  },
-  classStartTime: {
-    type: String, // Format: "HH:MM"
-    required: true
-  },
-  classEndTime: {
-    type: String, // Format: "HH:MM"
-    required: true
-  },
-  classType: {
-    type: String,
-    enum: ['lecture', 'lab', 'tutorial', 'seminar', 'exam', 'other'],
-    default: 'lecture'
-  },
-  topic: {
-    type: String,
-    maxlength: 200
-  },
-  room: String,
-  
-  // Attendance Details
   status: {
     type: String,
-    enum: ['present', 'absent', 'late', 'excused', 'partial'],
+    enum: ['present', 'absent', 'late', 'excused'],
+    default: 'present',
     required: true
   },
-  arrivalTime: String, // Format: "HH:MM"
-  departureTime: String, // Format: "HH:MM"
-  
-  // Late/Early Leave Details
-  minutesLate: {
-    type: Number,
-    default: 0
-  },
-  minutesEarlyLeave: {
-    type: Number,
-    default: 0
-  },
-  
-  // Absence Information
-  absenceReason: {
+  notes: {
     type: String,
-    enum: ['sick', 'family_emergency', 'personal', 'academic', 'medical', 'other'],
-    required: function() {
-      return this.status === 'absent' || this.status === 'excused';
-    }
-  },
-  absenceNote: {
-    type: String,
+    trim: true,
     maxlength: 500
   },
-  isExcused: {
-    type: Boolean,
-    default: false
-  },
-  excusedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  excuseDocument: {
-    filename: String,
-    path: String,
-    uploadDate: Date
-  },
-  
-  // Participation and Behavior
-  participationScore: {
-    type: Number,
-    min: 0,
-    max: 10,
-    default: 0
-  },
-  behaviorNotes: {
-    type: String,
-    maxlength: 500
-  },
-  
-  // Recording Method
-  recordingMethod: {
-    type: String,
-    enum: ['manual', 'biometric', 'qr_code', 'mobile_app', 'rfid', 'facial_recognition'],
-    default: 'manual'
-  },
-  
-  // Digital Verification
-  verificationData: {
-    ipAddress: String,
-    location: {
-      latitude: Number,
-      longitude: Number,
-      accuracy: Number
-    },
-    deviceInfo: String,
-    timestamp: Date
-  },
-  
-  // Make-up Class Information
-  isMakeupClass: {
-    type: Boolean,
-    default: false
-  },
-  originalClassDate: Date,
-  makeupReason: String,
-  
-  // Notes and Comments
-  teacherNotes: {
-    type: String,
-    maxlength: 1000
-  },
-  adminNotes: {
-    type: String,
-    maxlength: 1000
-  },
-  
-  // Metadata
-  recordedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  recordedAt: {
+  markedAt: {
     type: Date,
     default: Date.now
   },
-  
-  // Modification History
-  modificationHistory: [{
-    modifiedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    modifiedAt: {
-      type: Date,
-      default: Date.now
-    },
-    previousStatus: String,
-    newStatus: String,
-    reason: String
-  }]
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
-
-// Virtual for attendance percentage calculation
-attendanceSchema.virtual('attendanceValue').get(function() {
-  switch (this.status) {
-    case 'present':
-      return 1.0;
-    case 'late':
-      return this.minutesLate <= 15 ? 0.8 : 0.5; // Partial credit for being late
-    case 'partial':
-      return 0.5;
-    case 'excused':
-      return 1.0; // Excused absences count as present
-    case 'absent':
-    default:
-      return 0.0;
+  markedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 });
 
-// Virtual for class duration in minutes
-attendanceSchema.virtual('classDurationMinutes').get(function() {
-  if (!this.classStartTime || !this.classEndTime) return 0;
-  
-  const [startHour, startMin] = this.classStartTime.split(':').map(Number);
-  const [endHour, endMin] = this.classEndTime.split(':').map(Number);
-  
-  const startMinutes = startHour * 60 + startMin;
-  const endMinutes = endHour * 60 + endMin;
-  
-  return endMinutes - startMinutes;
-});
-
-// Virtual for actual attendance time
-attendanceSchema.virtual('actualAttendanceMinutes').get(function() {
-  if (this.status === 'absent') return 0;
-  
-  const classDuration = this.classDurationMinutes;
-  const deductions = this.minutesLate + this.minutesEarlyLeave;
-  
-  return Math.max(0, classDuration - deductions);
-});
-
-// Virtual for attendance percentage for this class
-attendanceSchema.virtual('classAttendancePercentage').get(function() {
-  if (this.classDurationMinutes === 0) return 0;
-  return Math.round((this.actualAttendanceMinutes / this.classDurationMinutes) * 100);
-});
-
-// Static method to calculate student attendance percentage for a course
-attendanceSchema.statics.calculateCourseAttendance = async function(studentId, courseId, startDate, endDate) {
-  const pipeline = [
-    {
-      $match: {
-        student: new mongoose.Types.ObjectId(studentId),
-        course: new mongoose.Types.ObjectId(courseId),
-        ...(startDate && endDate && {
-          classDate: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate)
-          }
-        })
-      }
+const attendanceSchema = new mongoose.Schema({
+  group: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Group',
+    required: true,
+    index: true
+  },
+  session: {
+    date: {
+      type: Date,
+      required: true,
+      index: true
     },
-    {
-      $group: {
-        _id: null,
-        totalClasses: { $sum: 1 },
-        presentClasses: {
-          $sum: {
-            $cond: [
-              { $in: ['$status', ['present', 'excused']] },
-              1,
-              0
-            ]
-          }
-        },
-        lateClasses: {
-          $sum: {
-            $cond: [{ $eq: ['$status', 'late'] }, 1, 0]
-          }
-        },
-        absentClasses: {
-          $sum: {
-            $cond: [{ $eq: ['$status', 'absent'] }, 1, 0]
-          }
-        },
-        totalAttendanceValue: { $sum: '$attendanceValue' }
-      }
-    },
-    {
-      $project: {
-        totalClasses: 1,
-        presentClasses: 1,
-        lateClasses: 1,
-        absentClasses: 1,
-        attendancePercentage: {
-          $multiply: [
-            { $divide: ['$totalAttendanceValue', '$totalClasses'] },
-            100
-          ]
-        }
-      }
+    scheduleIndex: {
+      type: Number,
+      required: true
     }
-  ];
+  },
+  teacher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Teacher',
+    required: true,
+    index: true
+  },
+  subject: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Subject',
+    required: true
+  },
+  records: [attendanceRecordSchema],
+  sessionNotes: {
+    type: String,
+    trim: true,
+    maxlength: 1000
+  },
+  isCompleted: {
+    type: Boolean,
+    default: false
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
+}, {
+  timestamps: true
+});
+
+// Compound index to ensure one attendance record per group per session date
+attendanceSchema.index({ group: 1, 'session.date': 1 }, { unique: true });
+
+// Virtual for attendance statistics
+attendanceSchema.virtual('stats').get(function() {
+  const total = this.records.length;
+  if (total === 0) return { total: 0, present: 0, absent: 0, late: 0, excused: 0, rate: 0 };
+
+  const present = this.records.filter(r => r.status === 'present').length;
+  const absent = this.records.filter(r => r.status === 'absent').length;
+  const late = this.records.filter(r => r.status === 'late').length;
+  const excused = this.records.filter(r => r.status === 'excused').length;
+  const rate = Math.round(((present + late) / total) * 100);
+
+  return { total, present, absent, late, excused, rate };
+});
+
+// Method to get student's attendance record in this session
+attendanceSchema.methods.getStudentRecord = function(studentId) {
+  return this.records.find(r => r.student.toString() === studentId.toString());
+};
+
+// Method to update student's attendance status
+attendanceSchema.methods.updateStudentStatus = function(studentId, status, notes, markedBy) {
+  const record = this.records.find(r => r.student.toString() === studentId.toString());
+  if (record) {
+    record.status = status;
+    record.notes = notes || record.notes;
+    record.markedAt = new Date();
+    record.markedBy = markedBy;
+  }
+  return record;
+};
+
+// Static method to get attendance statistics for a student
+attendanceSchema.statics.getStudentStats = async function(studentId) {
+  const attendances = await this.find({ 'records.student': studentId });
   
-  const result = await this.aggregate(pipeline);
-  return result[0] || {
-    totalClasses: 0,
-    presentClasses: 0,
-    lateClasses: 0,
-    absentClasses: 0,
-    attendancePercentage: 0
+  let total = 0;
+  let present = 0;
+  let absent = 0;
+  let late = 0;
+  let excused = 0;
+
+  attendances.forEach(attendance => {
+    const record = attendance.records.find(r => r.student.toString() === studentId.toString());
+    if (record) {
+      total++;
+      if (record.status === 'present') present++;
+      else if (record.status === 'absent') absent++;
+      else if (record.status === 'late') late++;
+      else if (record.status === 'excused') excused++;
+    }
+  });
+
+  const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
+
+  return { total, present, absent, late, excused, rate };
+};
+
+// Static method to get attendance statistics for a group
+attendanceSchema.statics.getGroupStats = async function(groupId) {
+  const attendances = await this.find({ group: groupId });
+  
+  let totalSessions = attendances.length;
+  let totalPresent = 0;
+  let totalAbsent = 0;
+  let totalLate = 0;
+  let totalExcused = 0;
+  let totalRecords = 0;
+
+  attendances.forEach(attendance => {
+    totalRecords += attendance.records.length;
+    totalPresent += attendance.records.filter(r => r.status === 'present').length;
+    totalAbsent += attendance.records.filter(r => r.status === 'absent').length;
+    totalLate += attendance.records.filter(r => r.status === 'late').length;
+    totalExcused += attendance.records.filter(r => r.status === 'excused').length;
+  });
+
+  const rate = totalRecords > 0 ? Math.round(((totalPresent + totalLate) / totalRecords) * 100) : 0;
+
+  return { 
+    totalSessions, 
+    totalRecords,
+    totalPresent, 
+    totalAbsent, 
+    totalLate, 
+    totalExcused, 
+    rate 
   };
 };
 
-// Method to mark as late
-attendanceSchema.methods.markAsLate = function(arrivalTime) {
-  this.status = 'late';
-  this.arrivalTime = arrivalTime;
-  
-  // Calculate minutes late
-  const [classHour, classMin] = this.classStartTime.split(':').map(Number);
-  const [arrivalHour, arrivalMin] = arrivalTime.split(':').map(Number);
-  
-  const classStartMinutes = classHour * 60 + classMin;
-  const arrivalMinutes = arrivalHour * 60 + arrivalMin;
-  
-  this.minutesLate = Math.max(0, arrivalMinutes - classStartMinutes);
-  
-  return this.save();
-};
-
-// Method to excuse absence
-attendanceSchema.methods.excuseAbsence = function(excusedBy, reason, note) {
-  if (this.status !== 'absent') {
-    throw new Error('Can only excuse absent students');
-  }
-  
-  this.status = 'excused';
-  this.isExcused = true;
-  this.excusedBy = excusedBy;
-  this.absenceReason = reason;
-  this.absenceNote = note;
-  
-  // Add to modification history
-  this.modificationHistory.push({
-    modifiedBy: excusedBy,
-    modifiedAt: new Date(),
-    previousStatus: 'absent',
-    newStatus: 'excused',
-    reason: `Absence excused: ${reason}`
-  });
-  
-  return this.save();
-};
-
-// Pre-save middleware to auto-calculate attendance value
-attendanceSchema.pre('save', function(next) {
-  // Auto-calculate minutes late if arrival time is provided
-  if (this.arrivalTime && this.classStartTime && this.status === 'late') {
-    const [classHour, classMin] = this.classStartTime.split(':').map(Number);
-    const [arrivalHour, arrivalMin] = this.arrivalTime.split(':').map(Number);
-    
-    const classStartMinutes = classHour * 60 + classMin;
-    const arrivalMinutes = arrivalHour * 60 + arrivalMin;
-    
-    this.minutesLate = Math.max(0, arrivalMinutes - classStartMinutes);
-  }
-  
-  next();
-});
-
-// Indexes for better performance
-attendanceSchema.index({ student: 1, course: 1, classDate: 1 });
-attendanceSchema.index({ course: 1, classDate: 1 });
-attendanceSchema.index({ teacher: 1, classDate: 1 });
-attendanceSchema.index({ group: 1, classDate: 1 });
-attendanceSchema.index({ status: 1 });
-attendanceSchema.index({ classDate: 1 });
+// Ensure virtuals are included in JSON
+attendanceSchema.set('toJSON', { virtuals: true });
+attendanceSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
