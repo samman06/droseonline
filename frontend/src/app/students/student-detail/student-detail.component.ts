@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { StudentService } from '../../services/student.service';
+import { AttendanceService } from '../../services/attendance.service';
 
 interface Student {
   id: string;
@@ -278,6 +279,48 @@ interface Student {
               </div>
             </div>
 
+            <!-- Attendance Stats -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="text-lg font-semibold text-gray-900">Attendance</h2>
+              </div>
+              <div class="card-body">
+                <div *ngIf="loadingAttendance" class="text-center py-4">
+                  <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+                <div *ngIf="!loadingAttendance && attendanceStats" class="space-y-4">
+                  <div class="text-center p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+                    <p class="text-3xl font-bold text-indigo-600">{{ attendanceStats.rate }}%</p>
+                    <p class="text-xs text-gray-600 mt-1">Attendance Rate</p>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                      <p class="text-xl font-bold text-green-600">{{ attendanceStats.present }}</p>
+                      <p class="text-xs text-gray-600">Present</p>
+                    </div>
+                    <div class="text-center p-3 bg-yellow-50 rounded-lg">
+                      <p class="text-xl font-bold text-yellow-600">{{ attendanceStats.late }}</p>
+                      <p class="text-xs text-gray-600">Late</p>
+                    </div>
+                    <div class="text-center p-3 bg-red-50 rounded-lg">
+                      <p class="text-xl font-bold text-red-600">{{ attendanceStats.absent }}</p>
+                      <p class="text-xs text-gray-600">Absent</p>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                      <p class="text-xl font-bold text-blue-600">{{ attendanceStats.excused }}</p>
+                      <p class="text-xs text-gray-600">Excused</p>
+                    </div>
+                  </div>
+                  <div class="text-center pt-2 border-t border-gray-200">
+                    <p class="text-sm text-gray-600">Total Sessions: <span class="font-semibold">{{ attendanceStats.total }}</span></p>
+                  </div>
+                </div>
+                <div *ngIf="!loadingAttendance && !attendanceStats" class="text-center py-4 text-gray-500 text-sm">
+                  No attendance records yet
+                </div>
+              </div>
+            </div>
+
             <!-- Quick Actions -->
             <div class="card">
               <div class="card-header">
@@ -344,13 +387,16 @@ interface Student {
 export class StudentDetailComponent implements OnInit {
   student: Student | null = null;
   studentCourses: any[] = [];
+  attendanceStats: any = null;
   isLoading = true;
+  loadingAttendance = false;
   error: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private studentService: StudentService
+    private studentService: StudentService,
+    private attendanceService: AttendanceService
   ) {}
 
   ngOnInit(): void {
@@ -359,6 +405,7 @@ export class StudentDetailComponent implements OnInit {
       if (studentId) {
         this.loadStudent(studentId);
         this.loadStudentCourses(studentId);
+        this.loadAttendanceStats(studentId);
       }
     });
   }
@@ -386,6 +433,20 @@ export class StudentDetailComponent implements OnInit {
         console.error('Error loading student:', error);
         this.error = 'Failed to load student details';
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadAttendanceStats(id: string): void {
+    this.loadingAttendance = true;
+    this.attendanceService.getStudentAttendance(id).subscribe({
+      next: (response) => {
+        this.attendanceStats = response.stats;
+        this.loadingAttendance = false;
+      },
+      error: (err) => {
+        console.error('Error loading attendance stats:', err);
+        this.loadingAttendance = false;
       }
     });
   }

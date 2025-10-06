@@ -138,6 +138,29 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'attendance',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./attendance/attendance-list/attendance-list.component').then(m => m.AttendanceListComponent)
+          },
+          {
+            path: 'mark/:groupId',
+            loadComponent: () => import('./attendance/attendance-mark/attendance-mark.component').then(m => m.AttendanceMarkComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./attendance/attendance-detail/attendance-detail.component').then(m => m.AttendanceDetailComponent)
+          },
+          {
+            path: 'edit/:id',
+            loadComponent: () => import('./attendance/attendance-edit/attendance-edit.component').then(m => m.AttendanceEditComponent)
+          }
+        ]
+      },
+      {
         path: 'groups',
         canActivate: [RoleGuard],
         data: { roles: ['admin'] },

@@ -22,26 +22,26 @@ export class LoginComponent implements OnInit {
       category: 'Administrators',
       icon: '👤',
       users: [
-        { email: 'admin@droseonline.com', password: 'admin123', name: 'System Admin', role: 'admin' },
-        { email: 'superadmin@droseonline.com', password: 'admin123', name: 'Super Admin', role: 'admin' },
+        { email: 'admin@droseonline.com', password: 'password123', name: 'System Administrator', role: 'admin' },
+        { email: 'test@admin.com', password: 'password123', name: 'Test Admin', role: 'admin' },
       ]
     },
     {
       category: 'Teachers',
       icon: '👨‍🏫',
       users: [
-        { email: 'sarah.johnson@droseonline.com', password: 'teacher123', name: 'Dr. Sarah Johnson', role: 'teacher' },
-        { email: 'michael.davis@droseonline.com', password: 'teacher123', name: 'Prof. Michael Davis', role: 'teacher' },
-        { email: 'emily.wilson@droseonline.com', password: 'teacher123', name: 'Dr. Emily Wilson', role: 'teacher' },
+        { email: 'sarah.johnson@droseonline.com', password: 'password123', name: 'Dr. Sarah Johnson', role: 'teacher' },
+        { email: 'michael.davis@droseonline.com', password: 'password123', name: 'Prof. Michael Davis', role: 'teacher' },
+        { email: 'emily.wilson@droseonline.com', password: 'password123', name: 'Dr. Emily Wilson', role: 'teacher' },
       ]
     },
     {
       category: 'Students',
       icon: '👨‍🎓',
       users: [
-        { email: 'emma.wilson@student.droseonline.com', password: 'student123', name: 'Emma Wilson', role: 'student' },
-        { email: 'james.brown@student.droseonline.com', password: 'student123', name: 'James Brown', role: 'student' },
-        { email: 'sophia.garcia@student.droseonline.com', password: 'student123', name: 'Sophia Garcia', role: 'student' },
+        { email: 'emma.wilson@student.droseonline.com', password: 'password123', name: 'Emma Wilson', role: 'student' },
+        { email: 'daniel.martinez0@student.droseonline.com', password: 'password123', name: 'Daniel Martinez', role: 'student' },
+        { email: 'joshua.clark1@student.droseonline.com', password: 'password123', name: 'Joshua Clark', role: 'student' },
       ]
     }
   ];
