@@ -60,16 +60,52 @@ import { ConfirmationService } from '../../services/confirmation.service';
         </div>
       </div>
 
-      <!-- Filters -->
+      <!-- Enhanced Filters Section -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="text" [(ngModel)]="filters.search" (ngModelChange)="onFiltersChange()" class="form-input" placeholder="🔍 Search by name or code...">
-          <!-- Grades removed: subjects are assigned to groups -->
-          <select [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()" class="form-select">
-            <option value="">All Status</option>
-            <option value="true">✓ Active</option>
-            <option value="false">✗ Inactive</option>
-          </select>
+        <!-- Filters Header -->
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+            Clear Filters
+          </button>
+        </div>
+
+        <!-- Active Filter Chips -->
+        <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mb-3">
+          <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Search: {{ filters.search }}
+            <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.isActive" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Status: {{ filters.isActive === 'true' ? 'Active' : 'Inactive' }}
+            <button (click)="removeFilter('isActive')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Search by Name or Code -->
+          <div>
+            <input 
+              type="text" 
+              [(ngModel)]="filters.search" 
+              (ngModelChange)="onSearchChange($event)" 
+              class="form-input" 
+              placeholder="🔍 Search by name or code..."
+            >
+          </div>
+          
+          <!-- Status Filter -->
+          <div>
+            <select 
+              [(ngModel)]="filters.isActive" 
+              (ngModelChange)="onFiltersChange()" 
+              class="form-select"
+            >
+              <option value="">All Status</option>
+              <option value="true">Active Only</option>
+              <option value="false">Inactive Only</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -92,9 +128,17 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ subject.code }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="subject.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
-                    <span class="w-2 h-2 rounded-full mr-2" [class]="subject.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-                    {{ subject.isActive ? 'Active' : 'Inactive' }}
+                  <span *ngIf="subject.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-2 border-green-300 shadow-sm hover:shadow-md transition-all duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="tracking-wide">ACTIVE</span>
+                  </span>
+                  <span *ngIf="!subject.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-red-50 to-orange-50 text-red-700 border-2 border-red-300 shadow-sm hover:shadow-md transition-all duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="tracking-wide">INACTIVE</span>
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -124,7 +168,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">Loading...</td>
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">Loading...</td>
               </tr>
             </tbody>
           </table>
@@ -143,6 +187,7 @@ export class SubjectListComponent implements OnInit {
   subjects: any[] = [];
   isLoading = false;
   openDropdownId: string | null = null;
+  private searchDebounce: any;
 
   filters: any = { search: '', isActive: '', limit: 100 };
 
@@ -169,6 +214,29 @@ export class SubjectListComponent implements OnInit {
   }
 
   onFiltersChange(): void { this.loadSubjects(); }
+  
+  onSearchChange(value: string): void {
+    if (this.searchDebounce) {
+      clearTimeout(this.searchDebounce);
+    }
+    this.searchDebounce = setTimeout(() => {
+      this.loadSubjects();
+    }, 300);
+  }
+
+  clearFilters(): void {
+    this.filters = { search: '', isActive: '', limit: 100 };
+    this.loadSubjects();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filters.search || this.filters.isActive);
+  }
+
+  removeFilter(key: 'search' | 'isActive'): void {
+    (this.filters as any)[key] = '';
+    this.loadSubjects();
+  }
   navigateToCreate(): void { this.router.navigate(['/dashboard/subjects/new']); }
   viewSubject(s: any): void { this.router.navigate(['/dashboard/subjects', s.id || s._id]); }
   editSubject(s: any): void { this.router.navigate(['/dashboard/subjects', s.id || s._id, 'edit']); }

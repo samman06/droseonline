@@ -62,26 +62,83 @@ import { SubjectService } from '../../services/subject.service';
         </div>
       </div>
 
+      <!-- Enhanced Filters Section -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <input class="form-input" placeholder="🔍 Search..." [(ngModel)]="filters.search" (ngModelChange)="onFiltersChange()" />
-          <select class="form-select" [(ngModel)]="filters.teacherId" (ngModelChange)="onFiltersChange()">
-            <option value="">All Teachers</option>
-            <option *ngFor="let t of teachers" [value]="t.id || t._id">{{ t.fullName || (t.firstName + ' ' + t.lastName) }}</option>
-          </select>
-          <select class="form-select" [(ngModel)]="filters.subjectId" (ngModelChange)="onFiltersChange()">
-            <option value="">All Subjects</option>
-            <option *ngFor="let s of subjects" [value]="s.id || s._id">{{ s.name }} ({{ s.code }})</option>
-          </select>
-          <select class="form-select" [(ngModel)]="filters.gradeLevel" (ngModelChange)="onFiltersChange()">
-            <option value="">All Grades</option>
-            <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
-          </select>
-          <select class="form-select" [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()">
-            <option value="">All Status</option>
-            <option value="true">✓ Active</option>
-            <option value="false">✗ Inactive</option>
-          </select>
+        <!-- Filters Header -->
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+            Clear Filters
+          </button>
+        </div>
+
+        <!-- Active Filter Chips -->
+        <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mb-3">
+          <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Search: {{ filters.search }}
+            <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.teacherId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Teacher: {{ getTeacherName(filters.teacherId) }}
+            <button (click)="removeFilter('teacherId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.subjectId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Subject: {{ getSubjectName(filters.subjectId) }}
+            <button (click)="removeFilter('subjectId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.gradeLevel" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Grade: {{ filters.gradeLevel }}
+            <button (click)="removeFilter('gradeLevel')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.isActive" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Status: {{ filters.isActive === 'true' ? 'Active' : 'Inactive' }}
+            <button (click)="removeFilter('isActive')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <!-- Search -->
+          <div>
+            <input 
+              class="form-input" 
+              placeholder="🔍 Search..." 
+              [(ngModel)]="filters.search" 
+              (ngModelChange)="onSearchChange($event)" 
+            />
+          </div>
+          
+          <!-- Teacher Filter -->
+          <div>
+            <select class="form-select" [(ngModel)]="filters.teacherId" (ngModelChange)="onFiltersChange()">
+              <option value="">All Teachers</option>
+              <option *ngFor="let t of teachers" [value]="t.id || t._id">{{ t.fullName || (t.firstName + ' ' + t.lastName) }}</option>
+            </select>
+          </div>
+          
+          <!-- Subject Filter -->
+          <div>
+            <select class="form-select" [(ngModel)]="filters.subjectId" (ngModelChange)="onFiltersChange()">
+              <option value="">All Subjects</option>
+              <option *ngFor="let s of subjects" [value]="s.id || s._id">{{ s.name }} ({{ s.code }})</option>
+            </select>
+          </div>
+          
+          <!-- Grade Filter -->
+          <div>
+            <select class="form-select" [(ngModel)]="filters.gradeLevel" (ngModelChange)="onFiltersChange()">
+              <option value="">All Grades</option>
+              <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
+            </select>
+          </div>
+          
+          <!-- Status Filter -->
+          <div>
+            <select class="form-select" [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()">
+              <option value="">All Status</option>
+              <option value="true">Active Only</option>
+              <option value="false">Inactive Only</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -111,9 +168,17 @@ import { SubjectService } from '../../services/subject.service';
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="g.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
-                    <span class="w-2 h-2 rounded-full mr-2" [class]="g.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-                    {{ g.isActive ? 'Active' : 'Inactive' }}
+                  <span *ngIf="g.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-2 border-green-300 shadow-sm hover:shadow-md transition-all duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="tracking-wide">ACTIVE</span>
+                  </span>
+                  <span *ngIf="!g.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-red-50 to-orange-50 text-red-700 border-2 border-red-300 shadow-sm hover:shadow-md transition-all duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="tracking-wide">INACTIVE</span>
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -137,7 +202,7 @@ import { SubjectService } from '../../services/subject.service';
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="7" class="px-6 py-8 text-center text-gray-500">Loading...</td>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading...</td>
               </tr>
             </tbody>
           </table>
@@ -156,6 +221,7 @@ export class GroupListComponent implements OnInit {
   groups: any[] = [];
   isLoading = false;
   openDropdownId: string | null = null;
+  private searchDebounce: any;
 
   filters: any = { search: '', teacherId: '', subjectId: '', gradeLevel: '', isActive: '' };
   readonly grades = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
@@ -195,6 +261,39 @@ export class GroupListComponent implements OnInit {
   }
 
   onFiltersChange(): void { this.loadGroups(); }
+  
+  onSearchChange(value: string): void {
+    if (this.searchDebounce) {
+      clearTimeout(this.searchDebounce);
+    }
+    this.searchDebounce = setTimeout(() => {
+      this.loadGroups();
+    }, 300);
+  }
+
+  clearFilters(): void {
+    this.filters = { search: '', teacherId: '', subjectId: '', gradeLevel: '', isActive: '' };
+    this.loadGroups();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filters.search || this.filters.teacherId || this.filters.subjectId || this.filters.gradeLevel || this.filters.isActive);
+  }
+
+  removeFilter(key: 'search' | 'teacherId' | 'subjectId' | 'gradeLevel' | 'isActive'): void {
+    (this.filters as any)[key] = '';
+    this.loadGroups();
+  }
+
+  getTeacherName(teacherId: string): string {
+    const teacher = this.teachers.find(t => (t.id || t._id) === teacherId);
+    return teacher ? (teacher.fullName || (teacher.firstName + ' ' + teacher.lastName)) : 'Unknown';
+  }
+
+  getSubjectName(subjectId: string): string {
+    const subject = this.subjects.find(s => (s.id || s._id) === subjectId);
+    return subject ? `${subject.name} (${subject.code})` : 'Unknown';
+  }
   navigateToCreate(): void { this.router.navigate(['/dashboard/groups/new']); }
   viewGroup(g: any): void { this.router.navigate(['/dashboard/groups', g.id || g._id]); }
   editGroup(g: any): void { this.router.navigate(['/dashboard/groups', g.id || g._id, 'edit']); }
