@@ -27,51 +27,51 @@ interface Teacher {
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
-     <div class="space-y-6 p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
-       <!-- Header Section with Enhanced Design -->
-       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-           <div class="flex items-center space-x-4">
-             <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
-               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-               </svg>
-             </div>
-             <div>
-               <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                 Teachers Management
-               </h1>
-               <p class="mt-1 text-gray-600">Manage teacher profiles, assignments, and performance</p>
-               <div class="mt-2 flex items-center space-x-4 text-sm">
-                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
-                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
-                   </svg>
-                   {{ pagination.total }} Total
-                 </span>
-                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                   <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                   {{ getActiveTeachersCount() }} Active
-                 </span>
-               </div>
-             </div>
-           </div>
-           <div class="mt-4 lg:mt-0 flex space-x-3">
-             <button (click)="exportTeachers()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-               </svg>
-               Export Data
-             </button>
-             <button (click)="addNewTeacher()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
-               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-               </svg>
-               Add New Teacher
-             </button>
-           </div>
-         </div>
-       </div>
+    <div class="space-y-6">
+      <!-- Header Section with Enhanced Design -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                Teachers Management
+              </h1>
+              <p class="mt-1 text-gray-600">Manage teacher profiles, assignments, and performance</p>
+              <div class="mt-2 flex items-center space-x-4 text-sm">
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
+                  </svg>
+                  {{ pagination.total }} Total
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  {{ getActiveTeachersCount() }} Active
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 lg:mt-0 flex space-x-3">
+            <button (click)="exportTeachers()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Export Data
+            </button>
+            <button (click)="addNewTeacher()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add New Teacher
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Enhanced Filters Section -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
