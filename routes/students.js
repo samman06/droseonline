@@ -47,7 +47,7 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
 
     const students = await User.find(query)
       .select('-password')
-      .populate('academicInfo.groups', 'name code level semester capacity currentEnrollment')
+      .populate('academicInfo.groups', 'name code gradeLevel teacher subject')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ firstName: 1, lastName: 1 });
@@ -90,14 +90,7 @@ router.get('/:id', authenticate, async (req, res) => {
 
     const student = await User.findOne({ _id: req.params.id, role: 'student' })
       .select('-password')
-      .populate('academicInfo.groups', 'name code level semester academicYear capacity currentEnrollment')
-      .populate({
-        path: 'academicInfo.groups',
-        populate: {
-          path: 'academicYear',
-          select: 'name code startDate endDate isCurrent'
-        }
-      });
+      .populate('academicInfo.groups', 'name code gradeLevel teacher subject schedule pricePerSession');
 
     if (!student) {
       return res.status(404).json({
@@ -166,7 +159,7 @@ router.put('/:id', authenticate, async (req, res) => {
       { new: true, runValidators: true }
     )
     .select('-password')
-    .populate('academicInfo.groups', 'name code level semester');
+    .populate('academicInfo.groups', 'name code gradeLevel');
 
     res.json({
       success: true,

@@ -115,7 +115,7 @@ const groupSchema = new mongoose.Schema({
 
 // Virtual for active students count
 groupSchema.virtual('activeStudentsCount').get(function() {
-  return this.students.filter(s => s.status === 'active').length;
+  return this.students ? this.students.filter(s => s.status === 'active').length : 0;
 });
 
 // Optional composite name
