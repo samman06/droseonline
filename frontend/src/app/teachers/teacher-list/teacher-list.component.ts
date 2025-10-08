@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TeacherService } from '../../services/teacher.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { SubjectService } from '../../services/subject.service';
 
 interface Teacher {
   id: string;
@@ -72,37 +73,51 @@ interface Teacher {
          </div>
        </div>
 
-      <!-- Simple Filters Section -->
+      <!-- Enhanced Filters Section -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Filters Header -->
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+            Clear Filters
+          </button>
+        </div>
+
+        <!-- Active Filter Chips -->
+        <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mb-3">
+          <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+            Search: {{ filters.search }}
+            <button (click)="removeFilter('search')" class="ml-2 text-purple-600 hover:text-purple-800">×</button>
+          </span>
+          <span *ngIf="filters.subjectId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+            Subject: {{ getSubjectName(filters.subjectId) }}
+            <button (click)="removeFilter('subjectId')" class="ml-2 text-purple-600 hover:text-purple-800">×</button>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Search -->
-          <div class="md:col-span-2">
+          <div>
             <input 
               type="text" 
               [(ngModel)]="filters.search" 
-              (ngModelChange)="onFiltersChange()" 
+              (ngModelChange)="onSearchChange($event)" 
               class="form-input" 
-              placeholder="Search by name, email, or ID..."
+              placeholder="🔍 Search by name, email, or ID..."
             >
           </div>
           
-          <!-- Subject Filter -->
+          <!-- Subject Filter (Dropdown) -->
           <div>
-            <input 
-              type="text" 
-              [(ngModel)]="filters.subject" 
+            <select 
+              [(ngModel)]="filters.subjectId" 
               (ngModelChange)="onFiltersChange()" 
-              class="form-input" 
-              placeholder="Filter by subject..."
+              class="form-select"
             >
-          </div>
-          
-          <!-- Status Filter -->
-          <div>
-            <select [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()" class="form-select">
-              <option value="">All Status</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
+              <option value="">All Subjects</option>
+              <option *ngFor="let subject of subjects" [value]="subject.id || subject._id">
+                {{ subject.name }} ({{ subject.code }})
+              </option>
             </select>
           </div>
         </div>
@@ -182,9 +197,7 @@ interface Teacher {
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Assignments
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Status
-                </th>
+                
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Hire Date
                 </th>
@@ -245,14 +258,7 @@ interface Teacher {
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-5 whitespace-nowrap">
-                  <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" 
-                        [class]="teacher.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
-                    <span class="w-2 h-2 rounded-full mr-2" 
-                          [class]="teacher.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-                    {{ teacher.isActive ? 'Active' : 'Inactive' }}
-                  </span>
-                </td>
+                
                 <td class="px-6 py-5 whitespace-nowrap">
                   <div class="flex items-center text-sm text-gray-600">
                     <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,11 +446,12 @@ export class TeacherListComponent implements OnInit {
   selectedTeachers: string[] = [];
   isLoading = false;
   openDropdownId: string | null = null;
+  subjects: any[] = [];
+  private searchDebounce: any;
   
   filters = {
     search: '',
-    subject: '',
-    isActive: ''
+    subjectId: ''
   };
   
   pagination = {
@@ -459,11 +466,23 @@ export class TeacherListComponent implements OnInit {
   constructor(
     private teacherService: TeacherService,
     private router: Router,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private subjectService: SubjectService
   ) {}
 
   ngOnInit(): void {
     this.loadTeachers();
+    this.loadSubjects();
+  }
+
+  loadSubjects(): void {
+    this.subjectService.getSubjects({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+      next: (res) => {
+        const list = res.data?.subjects || res.data || [];
+        this.subjects = Array.isArray(list) ? list : [];
+      },
+      error: (err) => console.error('Error loading subjects:', err)
+    });
   }
 
   loadTeachers(): void {
@@ -475,8 +494,7 @@ export class TeacherListComponent implements OnInit {
     };
 
     if (this.filters.search) params.search = this.filters.search;
-    if (this.filters.subject) params.subject = this.filters.subject;
-    if (this.filters.isActive) params.isActive = this.filters.isActive;
+    if (this.filters.subjectId) params.subject = this.filters.subjectId;
 
     this.teacherService.getTeachers(params).subscribe({
       next: (response) => {
@@ -506,14 +524,38 @@ export class TeacherListComponent implements OnInit {
     this.loadTeachers();
   }
 
+  onSearchChange(value: string): void {
+    if (this.searchDebounce) {
+      clearTimeout(this.searchDebounce);
+    }
+    this.searchDebounce = setTimeout(() => {
+      this.pagination.page = 1;
+      this.loadTeachers();
+    }, 300);
+  }
+
   clearFilters(): void {
     this.filters = {
       search: '',
-      subject: '',
-      isActive: ''
+      subjectId: ''
     };
     this.pagination.page = 1;
     this.loadTeachers();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filters.search || this.filters.subjectId);
+  }
+
+  removeFilter(key: 'search' | 'subjectId'): void {
+    (this.filters as any)[key] = '';
+    this.pagination.page = 1;
+    this.loadTeachers();
+  }
+
+  getSubjectName(subjectId: string): string {
+    const subject = this.subjects.find(s => (s.id || s._id) === subjectId);
+    return subject ? `${subject.name} (${subject.code})` : 'Unknown';
   }
 
   changePage(page: number): void {

@@ -4,6 +4,8 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { StudentService } from '../../services/student.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { TeacherService } from '../../services/teacher.service';
+import { SubjectService } from '../../services/subject.service';
 
 interface Student {
   id: string;
@@ -91,13 +93,41 @@ interface Student {
 
       <!-- Simple Filters Section -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Filters Header -->
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+            Clear Filters
+          </button>
+        </div>
+
+        <!-- Active Filter Chips -->
+        <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mb-3">
+          <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Search: {{ filters.search }}
+            <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.year" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Grade: {{ filters.year }}
+            <button (click)="removeFilter('year')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.teacherId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Teacher: {{ getTeacherName(filters.teacherId) }}
+            <button (click)="removeFilter('teacherId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+          <span *ngIf="filters.subjectId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Subject: {{ getSubjectName(filters.subjectId) }}
+            <button (click)="removeFilter('subjectId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <!-- Search by Name -->
           <div>
             <input 
               type="text" 
               [(ngModel)]="filters.search"
-              (ngModelChange)="onFiltersChange()"
+              (ngModelChange)="onSearchChange($event)"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="🔍 Search by name..."
             >
@@ -132,16 +162,31 @@ interface Student {
             </select>
           </div>
 
-          <!-- Status Filter -->
+          <!-- Teacher Filter -->
           <div>
             <select 
-              [(ngModel)]="filters.isActive"
+              [(ngModel)]="filters.teacherId"
               (ngModelChange)="onFiltersChange()"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">All Status</option>
-              <option value="true">✓ Active</option>
-              <option value="false">✗ Inactive</option>
+              <option value="">All Teachers</option>
+              <option *ngFor="let teacher of teachers" [value]="teacher.id || teacher._id">
+                {{ teacher.fullName }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Subject Filter -->
+          <div>
+            <select 
+              [(ngModel)]="filters.subjectId"
+              (ngModelChange)="onFiltersChange()"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="">All Subjects</option>
+              <option *ngFor="let subject of subjects" [value]="subject.id || subject._id">
+                {{ subject.name }} ({{ subject.code }})
+              </option>
             </select>
           </div>
         </div>
@@ -239,9 +284,7 @@ interface Student {
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Academic Info
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
+                  
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Enrolled
                   </th>
@@ -286,16 +329,7 @@ interface Student {
                     <div class="text-sm text-gray-900">{{ student.academicInfo.studentId }}</div>
                     <div class="text-sm text-gray-500">{{ student.academicInfo.currentGrade || student.academicInfo.year }}</div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span 
-                      class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm"
-                      [class]="student.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'"
-                    >
-                      <span class="w-2 h-2 rounded-full mr-2" 
-                            [class]="student.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-                      {{ student.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
+                  
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {{ student.academicInfo.enrollmentDate | date:'mediumDate' }}
                   </td>
@@ -468,12 +502,15 @@ export class StudentListComponent implements OnInit {
   students: Student[] = [];
   selectedStudents: string[] = [];
   isLoading = false;
+  teachers: any[] = [];
+  subjects: any[] = [];
   
   filters = {
     search: '',
     year: '',
     grade: '',
-    isActive: ''
+    teacherId: '',
+    subjectId: ''
   };
   
   pagination = {
@@ -485,15 +522,40 @@ export class StudentListComponent implements OnInit {
 
   Math = Math; // Make Math available in template
   openDropdownId: string | null = null;
+  private searchDebounce: any;
 
   constructor(
     private studentService: StudentService,
     private router: Router,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private teacherService: TeacherService,
+    private subjectService: SubjectService
   ) {}
 
   ngOnInit(): void {
     this.loadStudents();
+    this.loadTeachers();
+    this.loadSubjects();
+  }
+
+  loadTeachers(): void {
+    this.teacherService.getTeachers({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+      next: (res) => {
+        const list = res.data?.teachers || res.data || [];
+        this.teachers = Array.isArray(list) ? list : [];
+      },
+      error: (err) => console.error('Error loading teachers:', err)
+    });
+  }
+
+  loadSubjects(): void {
+    this.subjectService.getSubjects({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+      next: (res) => {
+        const list = res.data?.subjects || res.data || [];
+        this.subjects = Array.isArray(list) ? list : [];
+      },
+      error: (err) => console.error('Error loading subjects:', err)
+    });
   }
 
   // Navigation methods
@@ -551,9 +613,18 @@ export class StudentListComponent implements OnInit {
 
   onFiltersChange(): void {
     console.log('Filter changed! Current filters:', this.filters);
-    console.log('isActive value:', this.filters.isActive, 'type:', typeof this.filters.isActive);
     this.pagination.page = 1;
     this.loadStudents();
+  }
+
+  onSearchChange(value: string): void {
+    if (this.searchDebounce) {
+      clearTimeout(this.searchDebounce);
+    }
+    this.searchDebounce = setTimeout(() => {
+      this.pagination.page = 1;
+      this.loadStudents();
+    }, 300);
   }
 
   clearFilters(): void {
@@ -561,10 +632,31 @@ export class StudentListComponent implements OnInit {
       search: '',
       year: '',
       grade: '',
-      isActive: ''
+      teacherId: '',
+      subjectId: ''
     };
     this.pagination.page = 1;
     this.loadStudents();
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(this.filters.search || this.filters.year || this.filters.teacherId || this.filters.subjectId);
+  }
+
+  removeFilter(key: 'search' | 'year' | 'teacherId' | 'subjectId'): void {
+    (this.filters as any)[key] = '';
+    this.pagination.page = 1;
+    this.loadStudents();
+  }
+
+  getTeacherName(teacherId: string): string {
+    const teacher = this.teachers.find(t => (t.id || t._id) === teacherId);
+    return teacher ? teacher.fullName : 'Unknown';
+  }
+
+  getSubjectName(subjectId: string): string {
+    const subject = this.subjects.find(s => (s.id || s._id) === subjectId);
+    return subject ? `${subject.name} (${subject.code})` : 'Unknown';
   }
 
   changePage(page: number): void {
