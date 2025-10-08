@@ -308,15 +308,27 @@ export class GroupListComponent implements OnInit {
   closeDropdown(): void { this.openDropdownId = null; }
 
   async activate(g: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({ title: 'Activate Group', message: `Activate ${g.name}?`, confirmText: 'Yes, Activate', cancelText: 'Cancel', type: 'info' });
+    const confirmed = await this.confirmation.confirm({ 
+      title: 'Activate Group', 
+      message: `Activate ${g.name}?`, 
+      confirmText: 'Yes, Activate', 
+      cancelText: 'Cancel', 
+      type: 'info' 
+    });
     if (!confirmed) return;
-    this.groupService.updateGroup(g.id || g._id, { isActive: true }).subscribe({ next: _ => this.loadGroups() });
+    this.groupService.toggleStatus(g.id || g._id).subscribe({ next: _ => this.loadGroups() });
   }
 
   async deactivate(g: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({ title: 'Deactivate Group', message: `Deactivate ${g.name}?`, confirmText: 'Yes, Deactivate', cancelText: 'Cancel', type: 'warning' });
+    const confirmed = await this.confirmation.confirm({ 
+      title: 'Deactivate Group', 
+      message: `Deactivate ${g.name}?`, 
+      confirmText: 'Yes, Deactivate', 
+      cancelText: 'Cancel', 
+      type: 'warning' 
+    });
     if (!confirmed) return;
-    this.groupService.updateGroup(g.id || g._id, { isActive: false }).subscribe({ next: _ => this.loadGroups() });
+    this.groupService.toggleStatus(g.id || g._id).subscribe({ next: _ => this.loadGroups() });
   }
 
   // Statistics methods

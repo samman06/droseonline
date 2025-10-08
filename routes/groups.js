@@ -245,6 +245,32 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
+// @route   POST /api/groups/:id/toggle-status
+// @desc    Toggle group active status
+// @access  Private (Admin)
+router.post('/:id/toggle-status', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const group = await Group.findById(req.params.id);
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    // Toggle the status
+    group.isActive = !group.isActive;
+    await group.save();
+
+    const status = group.isActive ? 'activated' : 'deactivated';
+    return res.json({ 
+      success: true, 
+      message: `Group ${status} successfully`,
+      data: { isActive: group.isActive }
+    });
+  } catch (error) {
+    console.error('Toggle group status error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while toggling group status' });
+  }
+});
+
 // @route   POST /api/groups/:id/students
 // @desc    Add student to group
 // @access  Private (Admin)

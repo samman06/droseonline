@@ -28,6 +28,10 @@ export class GroupService {
     return this.api.delete(this.GROUPS_ENDPOINT, id);
   }
 
+  toggleStatus(id: string): Observable<ApiResponse<any>> {
+    return this.api.post(`${this.GROUPS_ENDPOINT}/${id}/toggle-status`, {});
+  }
+
   addStudent(id: string, studentId: string): Observable<ApiResponse<any>> {
     return this.api.post(`${this.GROUPS_ENDPOINT}/${id}/students`, { studentId });
   }
