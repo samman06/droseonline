@@ -32,6 +32,42 @@ import { ConfirmationService } from '../../services/confirmation.service';
           </div>
         </div>
 
+        <!-- Group Selection -->
+        <div *ngIf="!groupId" class="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Select a Group</h2>
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Group</label>
+              <select 
+                [(ngModel)]="selectedGroupId"
+                (change)="onGroupSelect()"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+              >
+                <option value="">-- Select a Group --</option>
+                <option *ngFor="let g of allGroups" [value]="g._id">
+                  {{ g.name }} - {{ g.subject?.name }} ({{ g.teacher?.fullName }})
+                </option>
+              </select>
+            </div>
+            <div *ngIf="selectedGroup" class="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-lg border border-indigo-200">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p class="text-sm text-gray-600">Teacher</p>
+                  <p class="font-semibold text-gray-900">{{ selectedGroup.teacher?.fullName }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600">Grade Level</p>
+                  <p class="font-semibold text-gray-900">{{ selectedGroup.gradeLevel }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600">Students</p>
+                  <p class="font-semibold text-gray-900">{{ selectedGroup.students?.length || 0 }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Loading State -->
         <div *ngIf="isLoading" class="bg-white rounded-xl shadow-lg p-12 text-center">
           <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -212,6 +248,9 @@ import { ConfirmationService } from '../../services/confirmation.service';
 })
 export class AttendanceMarkComponent implements OnInit {
   groupId: string = '';
+  selectedGroupId: string = '';
+  selectedGroup: any = null;
+  allGroups: any[] = [];
   group: any = null;
   students: any[] = [];
   attendanceRecords: any[] = [];
@@ -236,7 +275,42 @@ export class AttendanceMarkComponent implements OnInit {
     if (this.groupId) {
       this.loadGroup();
     } else {
-      this.error = 'Group ID is required';
+      this.loadAllGroups();
+    }
+  }
+
+  loadAllGroups(): void {
+    this.isLoading = true;
+    this.groupService.getGroups({ page: 1, limit: 10, isActive: 'true' }).subscribe({
+      next: (response: any) => {
+        console.log('Groups API Response:', response);
+        // Handle the nested structure: response.data.groups
+        if (response && response.data) {
+          this.allGroups = response.data.groups || response.data || [];
+        } else {
+          this.allGroups = [];
+        }
+        console.log('All Groups:', this.allGroups);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load groups:', err);
+        this.error = 'Failed to load groups';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  onGroupSelect(): void {
+    if (this.selectedGroupId) {
+      this.selectedGroup = this.allGroups.find(g => g._id === this.selectedGroupId);
+      this.groupId = this.selectedGroupId;
+      this.loadGroup();
+    } else {
+      this.selectedGroup = null;
+      this.group = null;
+      this.students = [];
+      this.attendanceRecords = [];
     }
   }
 
@@ -246,11 +320,19 @@ export class AttendanceMarkComponent implements OnInit {
 
     this.groupService.getGroup(this.groupId).subscribe({
       next: (response: any) => {
-        this.group = response;
-        this.students = response.students || [];
+        console.log('Group Detail API Response:', response);
+        // Handle API response structure: { success, data: group }
+        this.group = response.data || response;
+        
+        // Extract students from the nested structure
+        const studentsArray = this.group.students || [];
+        // Map to get the actual student objects (they're nested as student.student)
+        this.students = studentsArray.map((s: any) => s.student || s);
+        
+        console.log('Students:', this.students);
         
         // Initialize attendance records with default status 'present'
-        this.attendanceRecords = this.students.map(student => ({
+        this.attendanceRecords = this.students.map((student: any) => ({
           studentId: student._id,
           status: 'present',
           notes: ''
@@ -258,7 +340,7 @@ export class AttendanceMarkComponent implements OnInit {
 
         // Determine schedule index based on today's day
         const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][this.sessionDate.getDay()];
-        this.scheduleIndex = response.schedule.findIndex((s: any) => s.day.toLowerCase() === dayOfWeek);
+        this.scheduleIndex = this.group.schedule?.findIndex((s: any) => s.day.toLowerCase() === dayOfWeek) || 0;
         
         if (this.scheduleIndex === -1) {
           this.scheduleIndex = 0;
@@ -267,6 +349,7 @@ export class AttendanceMarkComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
+        console.error('Failed to load group:', err);
         this.error = err.error?.message || 'Failed to load group details';
         this.isLoading = false;
       }

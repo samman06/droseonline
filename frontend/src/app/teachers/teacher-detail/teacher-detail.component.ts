@@ -9,7 +9,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="max-w-7xl mx-auto p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <div class="max-w-7xl mx-auto p-6 space-y-6">
       <!-- Back Button -->
       <div class="mb-6">
         <button (click)="goBack()" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all">

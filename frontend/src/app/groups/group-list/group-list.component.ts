@@ -13,12 +13,53 @@ import { SubjectService } from '../../services/subject.service';
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="space-y-6">
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Groups Management</h1>
-          <p class="text-gray-600">Weekly groups with teacher, subject, and grade filter</p>
+      <!-- Header Section with Enhanced Design -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Groups Management
+              </h1>
+              <p class="mt-1 text-gray-600">Organize classes with teachers, subjects, and schedules</p>
+              <div class="mt-2 flex items-center space-x-4 text-sm">
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                  </svg>
+                  {{ groups.length }} Total
+                </span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                  {{ getActiveGroupsCount() }} Active
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 lg:mt-0 flex space-x-3">
+            <button 
+              (click)="exportGroups()" 
+              class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+              [disabled]="groups.length === 0"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Export Data
+            </button>
+            <button (click)="navigateToCreate()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add New Group
+            </button>
+          </div>
         </div>
-        <button (click)="navigateToCreate()" class="btn-primary">Add Group</button>
       </div>
 
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -108,6 +149,7 @@ import { SubjectService } from '../../services/subject.service';
     .form-input { @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200; }
     .form-select { @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white; }
     .btn-primary { @apply inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-200; }
+    .btn-secondary { @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500; }
   `]
 })
 export class GroupListComponent implements OnInit {
@@ -176,5 +218,39 @@ export class GroupListComponent implements OnInit {
     const confirmed = await this.confirmation.confirm({ title: 'Deactivate Group', message: `Deactivate ${g.name}?`, confirmText: 'Yes, Deactivate', cancelText: 'Cancel', type: 'warning' });
     if (!confirmed) return;
     this.groupService.updateGroup(g.id || g._id, { isActive: false }).subscribe({ next: _ => this.loadGroups() });
+  }
+
+  // Statistics methods
+  getActiveGroupsCount(): number {
+    return this.groups.filter(group => group.isActive).length;
+  }
+
+  // Export method
+  exportGroups(): void {
+    if (this.groups.length === 0) return;
+    
+    // Create CSV content
+    const headers = ['Group Name', 'Code', 'Teacher', 'Subject', 'Grade Level', 'Students', 'Status'];
+    const csvContent = [
+      headers.join(','),
+      ...this.groups.map(group => [
+        `"${group.name}"`,
+        group.code || '',
+        `"${group.teacher?.fullName || ''}"`,
+        `"${group.subject?.name || ''}"`,
+        group.gradeLevel || '',
+        group.currentEnrollment || 0,
+        group.isActive ? 'Active' : 'Inactive'
+      ].join(','))
+    ].join('\n');
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `groups_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 }

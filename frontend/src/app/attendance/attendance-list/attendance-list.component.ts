@@ -302,6 +302,11 @@ export class AttendanceListComponent implements OnInit {
   pendingCount: number = 0;
   showPending: boolean = false;
   
+  // Cache flags to prevent duplicate API calls
+  private groupsLoaded = false;
+  private teachersLoaded = false;
+  private subjectsLoaded = false;
+  
   filters = {
     groupId: '',
     teacherId: '',
@@ -357,27 +362,54 @@ export class AttendanceListComponent implements OnInit {
   }
 
   loadGroups(): void {
+    // Prevent duplicate API calls
+    if (this.groupsLoaded) {
+      console.log('Groups already loaded, skipping API call');
+      return;
+    }
+    
     this.groupService.getGroups({ page: 1, limit: 100, isActive: 'true' }).subscribe({
       next: (response: any) => {
-        this.groups = response.groups;
+        console.log('Groups response:', response);
+        // Handle nested structure: response.data.groups
+        this.groups = response.data?.groups || response.groups || [];
+        this.groupsLoaded = true;
       },
       error: (err) => console.error('Error loading groups:', err)
     });
   }
 
   loadTeachers(): void {
+    // Prevent duplicate API calls
+    if (this.teachersLoaded) {
+      console.log('Teachers already loaded, skipping API call');
+      return;
+    }
+    
     this.teacherService.getTeachers({ page: 1, limit: 100, isActive: 'true' }).subscribe({
       next: (response: any) => {
-        this.teachers = response.teachers;
+        console.log('Teachers response:', response);
+        // Handle nested structure: response.data.teachers
+        this.teachers = response.data?.teachers || response.teachers || [];
+        this.teachersLoaded = true;
       },
       error: (err) => console.error('Error loading teachers:', err)
     });
   }
 
   loadSubjects(): void {
+    // Prevent duplicate API calls
+    if (this.subjectsLoaded) {
+      console.log('Subjects already loaded, skipping API call');
+      return;
+    }
+    
     this.subjectService.getSubjects({ page: 1, limit: 100, isActive: 'true' }).subscribe({
       next: (response: any) => {
-        this.subjects = response.subjects;
+        console.log('Subjects response:', response);
+        // Handle nested structure: response.data.subjects
+        this.subjects = response.data?.subjects || response.subjects || [];
+        this.subjectsLoaded = true;
       },
       error: (err) => console.error('Error loading subjects:', err)
     });

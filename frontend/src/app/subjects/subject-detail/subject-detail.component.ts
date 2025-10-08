@@ -10,6 +10,16 @@ import { ConfirmationService } from '../../services/confirmation.service';
   imports: [CommonModule],
   template: `
     <div class="max-w-4xl mx-auto p-6 space-y-6">
+      <!-- Back Button -->
+      <div class="mb-6">
+        <button (click)="goBack()" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all">
+          <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          <span class="text-gray-700 font-medium">Back to Subjects</span>
+        </button>
+      </div>
+
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">{{ subject?.name }}</h1>
@@ -50,6 +60,10 @@ export class SubjectDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.subjectService.getSubject(id).subscribe({ next: (res) => this.subject = res.data?.subject });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/dashboard/subjects']);
   }
 
   edit(): void { this.router.navigate(['/dashboard/subjects', this.subject?.id || this.subject?._id, 'edit']); }

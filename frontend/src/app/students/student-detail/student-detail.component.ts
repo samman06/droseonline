@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 interface Student {
   id: string;
@@ -37,35 +38,15 @@ interface Student {
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-6xl mx-auto p-6 space-y-6">
       <!-- Back Button -->
-      <div class="flex items-center space-x-4">
-        <button 
-          (click)="goBack()"
-          class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="mb-6">
+        <button (click)="goBack()" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all">
+          <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
-          Back to Students
+          <span class="text-gray-700 font-medium">Back to Students</span>
         </button>
-        <nav class="flex" aria-label="Breadcrumb">
-          <ol class="flex items-center space-x-4">
-            <li>
-              <div class="flex">
-                <a routerLink="/dashboard/students" class="text-sm font-medium text-gray-500 hover:text-gray-700">Students</a>
-              </div>
-            </li>
-            <li>
-              <div class="flex items-center">
-                <svg class="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-                <span class="ml-4 text-sm font-medium text-gray-900">{{ student?.fullName || 'Student Details' }}</span>
-              </div>
-            </li>
-          </ol>
-        </nav>
       </div>
       <!-- Loading State -->
       <div *ngIf="isLoading" class="flex justify-center items-center py-12">
@@ -396,7 +377,8 @@ export class StudentDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private studentService: StudentService,
-    private attendanceService: AttendanceService
+    private attendanceService: AttendanceService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -485,8 +467,18 @@ export class StudentDetailComponent implements OnInit {
     }
   }
 
-  deleteStudent(): void {
-    if (this.student && confirm(`Are you sure you want to delete ${this.student.fullName}? This action cannot be undone.`)) {
+  async deleteStudent(): Promise<void> {
+    if (!this.student) return;
+    
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete Student',
+      message: `Are you sure you want to delete ${this.student.fullName}? This action cannot be undone and will remove all their records and enrollments.`,
+      confirmText: 'Yes, Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (confirmed) {
       console.log('Attempting to delete student:', this.student.id);
       
       this.studentService.deleteStudent(this.student.id).subscribe({
@@ -494,29 +486,13 @@ export class StudentDetailComponent implements OnInit {
           console.log('Delete student response:', response);
           if (response.success) {
             console.log('Student deleted successfully');
-            alert(`${this.student!.fullName} has been deleted successfully.`);
             this.router.navigate(['/dashboard/students']);
           } else {
             console.error('Delete failed with message:', response.message);
-            alert('Failed to delete student: ' + (response.message || 'Unknown error'));
           }
         },
         error: (error) => {
           console.error('Error deleting student:', error);
-          
-          // Provide more specific error messages
-          let errorMessage = 'Failed to delete student';
-          if (error.status === 403) {
-            errorMessage = 'You do not have permission to delete students. Admin access required.';
-          } else if (error.status === 404) {
-            errorMessage = 'Student not found.';
-          } else if (error.status === 500) {
-            errorMessage = 'Server error occurred while deleting student.';
-          } else if (error.message) {
-            errorMessage = error.message;
-          }
-          
-          alert(errorMessage);
         }
       });
     }
