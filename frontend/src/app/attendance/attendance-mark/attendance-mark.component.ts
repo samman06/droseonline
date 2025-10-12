@@ -106,85 +106,134 @@ import { ConfirmationService } from '../../services/confirmation.service';
 
           <!-- Quick Actions -->
           <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex flex-wrap gap-3">
-              <button 
-                (click)="markAllAs('present')"
-                class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
-              >
-                ✓ Mark All Present
-              </button>
-              <button 
-                (click)="markAllAs('absent')"
-                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-              >
-                ✗ Mark All Absent
-              </button>
-              <button 
-                (click)="resetAll()"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-              >
-                ↻ Reset
-              </button>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap gap-3">
+                <button 
+                  (click)="markAllAs('present')"
+                  class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
+                  title="Keyboard: Ctrl+Shift+P"
+                >
+                  ✓ Mark All Present
+                </button>
+                <button 
+                  (click)="markAllAs('absent')"
+                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+                  title="Keyboard: Ctrl+Shift+A"
+                >
+                  ✗ Mark All Absent
+                </button>
+                <button 
+                  (click)="invertSelection()"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                  title="Keyboard: Ctrl+I"
+                >
+                  ⇄ Invert
+                </button>
+                <button 
+                  (click)="resetAll()"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                  title="Keyboard: Ctrl+R"
+                >
+                  ↻ Reset
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    [(ngModel)]="enableKeyboardShortcuts"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span class="ml-2 text-sm text-gray-700">Keyboard Shortcuts</span>
+                </label>
+              </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">
+              <span class="font-medium">Quick Keys:</span> P=Present, L=Late, A=Absent, E=Excused | 
+              <span class="font-medium">Navigate:</span> ↑↓ or Tab
             </div>
           </div>
 
           <!-- Students List -->
           <div class="p-6">
-            <div class="space-y-4">
+            <div class="space-y-3">
               <div *ngFor="let student of students; let i = index" 
-                   class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                <div class="flex-1">
-                  <p class="font-semibold text-gray-900">{{ student.fullName }}</p>
-                  <p class="text-sm text-gray-500">Grade: {{ student.gradeLevel }}</p>
+                   [attr.data-index]="i"
+                   (keydown)="handleKeyPress($event, i)"
+                   class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus-within:ring-2 focus-within:ring-indigo-500">
+                <div class="flex items-start gap-4">
+                  <!-- Student Info -->
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 truncate">{{ i + 1 }}. {{ student.fullName }}</p>
+                    <p class="text-sm text-gray-500">{{ student.academicInfo?.studentId || 'N/A' }}</p>
+                  </div>
+
+                  <!-- Status Buttons -->
+                  <div class="flex items-center gap-2">
+                    <button 
+                      (click)="setStatus(i, 'present')"
+                      [class]="attendanceRecords[i].status === 'present' 
+                        ? 'bg-green-600 text-white ring-2 ring-green-600 ring-offset-1' 
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-green-50'"
+                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200"
+                      title="P"
+                    >
+                      ✓ Present
+                    </button>
+                    <button 
+                      (click)="setStatus(i, 'late')"
+                      [class]="attendanceRecords[i].status === 'late' 
+                        ? 'bg-yellow-600 text-white ring-2 ring-yellow-600 ring-offset-1' 
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-yellow-50'"
+                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200"
+                      title="L"
+                    >
+                      ⏰ Late
+                    </button>
+                    <button 
+                      (click)="setStatus(i, 'absent')"
+                      [class]="attendanceRecords[i].status === 'absent' 
+                        ? 'bg-red-600 text-white ring-2 ring-red-600 ring-offset-1' 
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-red-50'"
+                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200"
+                      title="A"
+                    >
+                      ✗ Absent
+                    </button>
+                    <button 
+                      (click)="setStatus(i, 'excused')"
+                      [class]="attendanceRecords[i].status === 'excused' 
+                        ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-1' 
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-blue-50'"
+                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200"
+                      title="E"
+                    >
+                      📋 Excused
+                    </button>
+                  </div>
                 </div>
 
-                <!-- Status Buttons -->
-                <div class="flex items-center gap-2">
-                  <button 
-                    (click)="setStatus(i, 'present')"
-                    [class]="attendanceRecords[i].status === 'present' 
-                      ? 'bg-green-600 text-white ring-2 ring-green-600 ring-offset-2' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-green-50'"
-                    class="px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
-                  >
-                    Present
-                  </button>
-                  <button 
-                    (click)="setStatus(i, 'late')"
-                    [class]="attendanceRecords[i].status === 'late' 
-                      ? 'bg-yellow-600 text-white ring-2 ring-yellow-600 ring-offset-2' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-yellow-50'"
-                    class="px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200"
-                  >
-                    Late
-                  </button>
-                  <button 
-                    (click)="setStatus(i, 'absent')"
-                    [class]="attendanceRecords[i].status === 'absent' 
-                      ? 'bg-red-600 text-white ring-2 ring-red-600 ring-offset-2' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-red-50'"
-                    class="px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
-                  >
-                    Absent
-                  </button>
-                  <button 
-                    (click)="setStatus(i, 'excused')"
-                    [class]="attendanceRecords[i].status === 'excused' 
-                      ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' 
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-blue-50'"
-                    class="px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-                  >
-                    Excused
-                  </button>
+                <!-- Late Minutes Input (shown when status is late) -->
+                <div *ngIf="attendanceRecords[i].status === 'late'" class="mt-3 flex items-center gap-2">
+                  <label class="text-sm font-medium text-gray-700 whitespace-nowrap">Minutes Late:</label>
+                  <input 
+                    type="number" 
+                    [(ngModel)]="attendanceRecords[i].minutesLate"
+                    min="0"
+                    max="240"
+                    placeholder="0"
+                    class="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  />
+                  <span class="text-xs text-gray-500">minutes</span>
                 </div>
 
                 <!-- Notes Input -->
-                <div class="ml-4 w-48">
+                <div class="mt-3">
                   <input 
                     type="text" 
                     [(ngModel)]="attendanceRecords[i].notes"
-                    placeholder="Add notes..."
-                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Add notes (optional)..."
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -226,20 +275,47 @@ import { ConfirmationService } from '../../services/confirmation.service';
           </div>
 
           <!-- Actions -->
-          <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-            <button 
-              (click)="goBack()"
-              class="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-            >
-              Cancel
-            </button>
-            <button 
-              (click)="saveAttendance()"
-              [disabled]="isSaving"
-              class="px-6 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              {{ isSaving ? 'Saving...' : 'Save Attendance' }}
-            </button>
+          <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <label class="flex items-center">
+                  <input 
+                    type="checkbox" 
+                    [(ngModel)]="lockAfterSave"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span class="ml-2 text-sm text-gray-700">Lock session after saving</span>
+                </label>
+                <button 
+                  type="button"
+                  class="text-sm text-gray-500 hover:text-gray-700"
+                  title="Locking prevents further edits (admins can unlock)"
+                >
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="flex gap-3">
+                <button 
+                  (click)="goBack()"
+                  class="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                >
+                  Cancel
+                </button>
+                <button 
+                  (click)="saveAttendance()"
+                  [disabled]="isSaving"
+                  class="px-6 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  <svg *ngIf="!isSaving" class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span *ngIf="isSaving" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                  {{ isSaving ? 'Saving...' : 'Save Attendance' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -261,6 +337,11 @@ export class AttendanceMarkComponent implements OnInit {
   isLoading = false;
   isSaving = false;
   error: string = '';
+  
+  // New features
+  enableKeyboardShortcuts: boolean = true;
+  lockAfterSave: boolean = false;
+  currentFocusIndex: number = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -269,6 +350,19 @@ export class AttendanceMarkComponent implements OnInit {
     private groupService: GroupService,
     private confirmationService: ConfirmationService
   ) {}
+  
+  // Keyboard shortcuts listener
+  ngAfterViewInit(): void {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('keydown', (e) => this.handleGlobalKeyPress(e));
+    }
+  }
+  
+  ngOnDestroy(): void {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('keydown', (e) => this.handleGlobalKeyPress(e));
+    }
+  }
 
   ngOnInit(): void {
     this.groupId = this.route.snapshot.paramMap.get('groupId') || '';
@@ -358,11 +452,28 @@ export class AttendanceMarkComponent implements OnInit {
 
   setStatus(index: number, status: string): void {
     this.attendanceRecords[index].status = status;
+    // Auto-focus on minutes late if setting to late
+    if (status === 'late') {
+      this.attendanceRecords[index].minutesLate = this.attendanceRecords[index].minutesLate || 5;
+    }
   }
 
   markAllAs(status: string): void {
     this.attendanceRecords.forEach(record => {
       record.status = status;
+      if (status === 'late' && !record.minutesLate) {
+        record.minutesLate = 5;
+      }
+    });
+  }
+
+  invertSelection(): void {
+    this.attendanceRecords.forEach(record => {
+      if (record.status === 'present') {
+        record.status = 'absent';
+      } else if (record.status === 'absent') {
+        record.status = 'present';
+      }
     });
   }
 
@@ -370,8 +481,71 @@ export class AttendanceMarkComponent implements OnInit {
     this.attendanceRecords.forEach(record => {
       record.status = 'present';
       record.notes = '';
+      record.minutesLate = 0;
     });
     this.sessionNotes = '';
+  }
+  
+  // Keyboard shortcuts handlers
+  handleGlobalKeyPress(e: KeyboardEvent): void {
+    if (!this.enableKeyboardShortcuts || !this.group) return;
+    
+    // Bulk actions with Ctrl/Cmd
+    if (e.ctrlKey || e.metaKey) {
+      if (e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        this.markAllAs('present');
+      } else if (e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        this.markAllAs('absent');
+      } else if (e.key === 'i' || e.key === 'I') {
+        e.preventDefault();
+        this.invertSelection();
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        this.resetAll();
+      }
+    }
+  }
+  
+  handleKeyPress(e: KeyboardEvent, index: number): void {
+    if (!this.enableKeyboardShortcuts) return;
+    
+    const key = e.key.toLowerCase();
+    
+    // Status shortcuts
+    if (key === 'p') {
+      e.preventDefault();
+      this.setStatus(index, 'present');
+    } else if (key === 'l') {
+      e.preventDefault();
+      this.setStatus(index, 'late');
+    } else if (key === 'a') {
+      e.preventDefault();
+      this.setStatus(index, 'absent');
+    } else if (key === 'e') {
+      e.preventDefault();
+      this.setStatus(index, 'excused');
+    }
+    // Navigation
+    else if (key === 'arrowup' && index > 0) {
+      e.preventDefault();
+      this.currentFocusIndex = index - 1;
+      this.focusOnRow(this.currentFocusIndex);
+    } else if (key === 'arrowdown' && index < this.students.length - 1) {
+      e.preventDefault();
+      this.currentFocusIndex = index + 1;
+      this.focusOnRow(this.currentFocusIndex);
+    }
+  }
+  
+  focusOnRow(index: number): void {
+    if (typeof document !== 'undefined') {
+      const row = document.querySelector(`[data-index="${index}"]`) as HTMLElement;
+      if (row) {
+        row.focus();
+      }
+    }
   }
 
   getSummary() {
@@ -395,7 +569,9 @@ export class AttendanceMarkComponent implements OnInit {
   async saveAttendance(): Promise<void> {
     const confirmed = await this.confirmationService.confirm({
       title: 'Save Attendance',
-      message: 'Are you sure you want to save this attendance record?',
+      message: this.lockAfterSave 
+        ? 'Save and lock this session? You will not be able to edit it later (unless you are an admin).' 
+        : 'Are you sure you want to save this attendance record?',
       confirmText: 'Save',
       cancelText: 'Cancel',
       type: 'info'
@@ -416,7 +592,21 @@ export class AttendanceMarkComponent implements OnInit {
 
     this.attendanceService.createAttendance(data).subscribe({
       next: (response) => {
-        this.router.navigate(['/dashboard/attendance']);
+        // Lock session if requested
+        if (this.lockAfterSave && response.attendance && response.attendance._id) {
+          this.attendanceService.lockAttendance(response.attendance._id).subscribe({
+            next: () => {
+              this.router.navigate(['/dashboard/attendance']);
+            },
+            error: (err) => {
+              console.error('Failed to lock session:', err);
+              // Still navigate even if locking fails
+              this.router.navigate(['/dashboard/attendance']);
+            }
+          });
+        } else {
+          this.router.navigate(['/dashboard/attendance']);
+        }
       },
       error: (err) => {
         this.error = err.error?.message || 'Failed to save attendance';

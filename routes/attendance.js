@@ -15,6 +15,7 @@ const createAttendanceSchema = Joi.object({
     Joi.object({
       studentId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
       status: Joi.string().valid('present', 'absent', 'late', 'excused').required(),
+      minutesLate: Joi.number().min(0).optional(),
       notes: Joi.string().max(500).optional().allow('')
     })
   ).required(),
@@ -27,6 +28,7 @@ const updateAttendanceSchema = Joi.object({
     Joi.object({
       studentId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
       status: Joi.string().valid('present', 'absent', 'late', 'excused').required(),
+      minutesLate: Joi.number().min(0).optional(),
       notes: Joi.string().max(500).optional().allow('')
     })
   ).optional(),
@@ -109,15 +111,20 @@ router.get('/pending', authenticate, async (req, res) => {
 
     // Get all active groups
     const groups = await Group.find({ isActive: true })
-      .populate('teacher', 'fullName')
-      .populate('subject', 'name');
+      .populate('teacher', 'fullName email')
+      .populate('subject', 'name code')
+      .populate('students.student', 'fullName');
+
+    console.log(`📊 Found ${groups.length} active groups`);
 
     // Check which groups have sessions today based on schedule
     const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
     
     const groupsWithSessionToday = groups.filter(group => 
-      group.schedule.some(s => s.day.toLowerCase() === dayOfWeek)
+      group.schedule && group.schedule.some(s => s.day && s.day.toLowerCase() === dayOfWeek)
     );
+
+    console.log(`📅 ${groupsWithSessionToday.length} groups have sessions today (${dayOfWeek})`);
 
     // Check which groups already have attendance marked for today
     const attendanceToday = await Attendance.find({
@@ -126,21 +133,37 @@ router.get('/pending', authenticate, async (req, res) => {
 
     const groupsWithAttendance = new Set(attendanceToday.map(a => a.group.toString()));
 
+    console.log(`✅ ${groupsWithAttendance.size} groups already have attendance marked`);
+
     // Filter groups that need attendance
     const pendingGroups = groupsWithSessionToday
       .filter(group => !groupsWithAttendance.has(group._id.toString()))
       .map(group => ({
         _id: group._id,
         name: group.name,
+        gradeLevel: group.gradeLevel,
         teacher: group.teacher,
         subject: group.subject,
+        studentCount: group.students ? group.students.length : 0,
         schedule: group.schedule.filter(s => s.day.toLowerCase() === dayOfWeek)
       }));
 
-    res.json({ pendingGroups, count: pendingGroups.length });
+    console.log(`⏳ ${pendingGroups.length} groups pending attendance`);
+
+    res.json({ 
+      success: true,
+      pendingGroups, 
+      count: pendingGroups.length,
+      today: today.toISOString().split('T')[0],
+      dayOfWeek: dayOfWeek
+    });
   } catch (error) {
-    console.error('Error fetching pending attendance:', error);
-    res.status(500).json({ message: 'Error fetching pending attendance', error: error.message });
+    console.error('❌ Error fetching pending attendance:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to fetch pending attendance. Please try again.',
+      error: error.message 
+    });
   }
 });
 
@@ -397,6 +420,155 @@ router.put('/:id', authenticate, validation.validate(updateAttendanceSchema), as
   } catch (error) {
     console.error('Error updating attendance:', error);
     res.status(500).json({ message: 'Error updating attendance', error: error.message });
+  }
+});
+
+// POST /api/attendance/:id/bulk-update - Bulk update multiple records
+router.post('/:id/bulk-update', authenticate, async (req, res) => {
+  try {
+    const { records } = req.body;
+    
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ message: 'Records array is required' });
+    }
+
+    const attendance = await Attendance.findById(req.params.id);
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance session not found' });
+    }
+
+    // Check if user can edit
+    if (!attendance.canEdit(req.user.role)) {
+      return res.status(403).json({ 
+        message: 'This attendance session is locked. Only admins can make changes.' 
+      });
+    }
+
+    // Update all records
+    records.forEach(record => {
+      attendance.updateStudentStatus(
+        record.studentId,
+        record.status,
+        record.notes,
+        req.user.id,
+        record.minutesLate
+      );
+    });
+
+    await attendance.save();
+    await attendance.populate([
+      { path: 'group', select: 'name' },
+      { path: 'teacher', select: 'fullName' },
+      { path: 'subject', select: 'name' },
+      { path: 'records.student', select: 'fullName' }
+    ]);
+
+    res.json({ message: 'Attendance updated successfully', attendance });
+  } catch (error) {
+    console.error('Error bulk updating attendance:', error);
+    res.status(500).json({ message: 'Error bulk updating attendance', error: error.message });
+  }
+});
+
+// POST /api/attendance/:id/lock - Lock attendance session
+router.post('/:id/lock', authenticate, async (req, res) => {
+  try {
+    const attendance = await Attendance.findById(req.params.id);
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance session not found' });
+    }
+
+    if (attendance.isLocked) {
+      return res.status(400).json({ message: 'Session is already locked' });
+    }
+
+    await attendance.lock(req.user.id);
+
+    res.json({ message: 'Attendance session locked successfully', attendance });
+  } catch (error) {
+    console.error('Error locking attendance:', error);
+    res.status(500).json({ message: 'Error locking attendance', error: error.message });
+  }
+});
+
+// POST /api/attendance/:id/unlock - Unlock attendance session (admin only)
+router.post('/:id/unlock', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can unlock attendance sessions' });
+    }
+
+    const attendance = await Attendance.findById(req.params.id);
+    if (!attendance) {
+      return res.status(404).json({ message: 'Attendance session not found' });
+    }
+
+    if (!attendance.isLocked) {
+      return res.status(400).json({ message: 'Session is not locked' });
+    }
+
+    await attendance.unlock();
+
+    res.json({ message: 'Attendance session unlocked successfully', attendance });
+  } catch (error) {
+    console.error('Error unlocking attendance:', error);
+    res.status(500).json({ message: 'Error unlocking attendance', error: error.message });
+  }
+});
+
+// GET /api/attendance/reports/export - Export attendance records
+router.get('/reports/export', authenticate, async (req, res) => {
+  try {
+    const { groupId, dateFrom, dateTo, format = 'json' } = req.query;
+
+    const query = {};
+    if (groupId) query.group = groupId;
+    if (dateFrom || dateTo) {
+      query['session.date'] = {};
+      if (dateFrom) query['session.date'].$gte = new Date(dateFrom);
+      if (dateTo) query['session.date'].$lte = new Date(dateTo);
+    }
+
+    const attendances = await Attendance.find(query)
+      .populate('group', 'name')
+      .populate('teacher', 'fullName')
+      .populate('subject', 'name')
+      .populate('records.student', 'fullName academicInfo.studentId')
+      .sort('session.date');
+
+    // Flatten data for export
+    const exportData = [];
+    attendances.forEach(attendance => {
+      attendance.records.forEach(record => {
+        exportData.push({
+          Date: new Date(attendance.session.date).toLocaleDateString(),
+          Group: attendance.group.name,
+          Subject: attendance.subject.name,
+          Teacher: attendance.teacher.fullName,
+          StudentID: record.student.academicInfo?.studentId || '',
+          StudentName: record.student.fullName,
+          Status: record.status,
+          MinutesLate: record.minutesLate || 0,
+          Notes: record.notes || ''
+        });
+      });
+    });
+
+    if (format === 'csv') {
+      // Generate CSV
+      const headers = Object.keys(exportData[0] || {}).join(',');
+      const rows = exportData.map(row => Object.values(row).map(val => `"${val}"`).join(','));
+      const csv = [headers, ...rows].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=attendance-export.csv');
+      res.send(csv);
+    } else {
+      res.json({ data: exportData, count: exportData.length });
+    }
+  } catch (error) {
+    console.error('Error exporting attendance:', error);
+    res.status(500).json({ message: 'Error exporting attendance', error: error.message });
   }
 });
 

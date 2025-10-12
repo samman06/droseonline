@@ -24,6 +24,15 @@ import { ConfirmationService } from '../../services/confirmation.service';
             </div>
             <div class="flex gap-3">
               <button 
+                (click)="exportData()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+              >
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export
+              </button>
+              <button 
                 (click)="showPendingGroups()"
                 class="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
               >
@@ -132,22 +141,48 @@ import { ConfirmationService } from '../../services/confirmation.service';
               </div>
               <div *ngIf="pendingGroups.length > 0" class="space-y-3">
                 <div *ngFor="let group of pendingGroups" 
-                     class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900">{{ group.name }}</p>
-                    <p class="text-sm text-gray-600">{{ group.teacher?.fullName }} - {{ group.subject?.name }}</p>
-                    <div class="flex gap-2 mt-1">
-                      <span *ngFor="let s of group.schedule" class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">
-                        {{ s.day }} {{ s.startTime }}-{{ s.endTime }}
-                      </span>
+                     class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 border border-gray-200">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <p class="font-semibold text-gray-900 text-lg">{{ group.name }}</p>
+                        <span *ngIf="group.gradeLevel" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                          {{ group.gradeLevel }}
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                          </svg>
+                          <span>{{ group.teacher?.fullName || 'No teacher' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                          </svg>
+                          <span>{{ group.subject?.name || 'No subject' }}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                          </svg>
+                          <span>{{ group.studentCount || 0 }} students</span>
+                        </div>
+                      </div>
+                      <div class="flex gap-2 flex-wrap">
+                        <span *ngFor="let s of group.schedule" class="text-xs px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                          🕐 {{ s.day | titlecase }} • {{ s.startTime }} - {{ s.endTime }}
+                        </span>
+                      </div>
                     </div>
+                    <button 
+                      (click)="markAttendance(group._id)"
+                      class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap"
+                    >
+                      ✓ Mark Now
+                    </button>
                   </div>
-                  <button 
-                    (click)="markAttendance(group._id)"
-                    class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                  >
-                    Mark Attendance
-                  </button>
                 </div>
               </div>
             </div>
@@ -171,6 +206,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Subject</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Attendance</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Lock</th>
                 <th class="px-6 py-3"></th>
               </tr>
             </thead>
@@ -206,6 +242,26 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   >
                     <span class="w-2 h-2 rounded-full mr-2 bg-white" [class.animate-pulse]="!attendance.isCompleted"></span>
                     {{ attendance.isCompleted ? 'Completed' : 'Incomplete' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span 
+                    *ngIf="attendance.isLocked"
+                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
+                  >
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Locked
+                  </span>
+                  <span 
+                    *ngIf="!attendance.isLocked"
+                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
+                  >
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
+                    </svg>
+                    Unlocked
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -418,10 +474,15 @@ export class AttendanceListComponent implements OnInit {
   loadPendingGroups(): void {
     this.attendanceService.getPendingAttendance().subscribe({
       next: (response) => {
-        this.pendingGroups = response.pendingGroups;
-        this.pendingCount = response.count;
+        console.log('✅ Pending groups response:', response);
+        this.pendingGroups = response.pendingGroups || [];
+        this.pendingCount = response.count || 0;
       },
-      error: (err) => console.error('Error loading pending groups:', err)
+      error: (err) => {
+        console.error('❌ Error loading pending groups:', err);
+        this.pendingGroups = [];
+        this.pendingCount = 0;
+      }
     });
   }
 
@@ -445,6 +506,28 @@ export class AttendanceListComponent implements OnInit {
 
   toggleDropdown(id: string): void {
     this.openDropdownId = this.openDropdownId === id ? null : id;
+  }
+
+  exportData(): void {
+    const exportParams: any = {};
+    if (this.filters.groupId) exportParams.groupId = this.filters.groupId;
+    if (this.filters.dateFrom) exportParams.dateFrom = this.filters.dateFrom;
+    if (this.filters.dateTo) exportParams.dateTo = this.filters.dateTo;
+    exportParams.format = 'csv';
+
+    this.attendanceService.exportAttendance(exportParams).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `attendance-export-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error exporting attendance:', err);
+      }
+    });
   }
 
   async deleteAttendance(id: string): Promise<void> {

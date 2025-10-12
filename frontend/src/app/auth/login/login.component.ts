@@ -23,7 +23,6 @@ export class LoginComponent implements OnInit {
       icon: '👤',
       users: [
         { email: 'admin@droseonline.com', password: 'password123', name: 'System Administrator', role: 'admin' },
-        { email: 'test@admin.com', password: 'password123', name: 'Test Admin', role: 'admin' },
       ]
     },
     {
@@ -39,9 +38,9 @@ export class LoginComponent implements OnInit {
       category: 'Students',
       icon: '👨‍🎓',
       users: [
-        { email: 'emma.wilson@student.droseonline.com', password: 'password123', name: 'Emma Wilson', role: 'student' },
-        { email: 'daniel.martinez0@student.droseonline.com', password: 'password123', name: 'Daniel Martinez', role: 'student' },
-        { email: 'joshua.clark1@student.droseonline.com', password: 'password123', name: 'Joshua Clark', role: 'student' },
+        { email: 'ahmed.hassan0@student.droseonline.com', password: 'password123', name: 'Ahmed Hassan', role: 'student' },
+        { email: 'fatima.ali1@student.droseonline.com', password: 'password123', name: 'Fatima Ali', role: 'student' },
+        { email: 'mohamed.ibrahim2@student.droseonline.com', password: 'password123', name: 'Mohamed Ibrahim', role: 'student' },
       ]
     }
   ];

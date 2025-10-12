@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication & API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .error { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        .info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid #ddd;
+        }
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-pass { background: #d4edda; }
+        .test-fail { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication & API Test Dashboard</h1>
+        <p style="color: #666;">Test your authentication flow and API connections</p>
+
+        <!-- Step 1: Token Check -->
+        <div class="section">
+            <h2>📋 Step 1: Check Token in localStorage</h2>
+            <div id="tokenStatus"></div>
+            <button onclick="checkToken()">🔍 Check Token</button>
+            <button onclick="setToken()">🔑 Set Fresh Token</button>
+            <button onclick="clearToken()">🗑️ Clear Token</button>
+        </div>
+
+        <!-- Step 2: API Configuration -->
+        <div class="section">
+            <h2>⚙️ Step 2: API Configuration</h2>
+            <div id="configStatus"></div>
+            <button onclick="checkConfig()">🔍 Check Config</button>
+        </div>
+
+        <!-- Step 3: Test API Call -->
+        <div class="section">
+            <h2>🧪 Step 3: Test API Call</h2>
+            <div id="apiStatus"></div>
+            <button onclick="testAPI()">🚀 Test /api/attendance/pending</button>
+        </div>
+
+        <!-- Step 4: Test Results -->
+        <div class="section">
+            <h2>📊 Test Results</h2>
+            <div id="testResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const FRESH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZTMxM2QxNGQ3ZjI0MzdkZWNlNWQyMCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1OTkxMzc2NywiZXhwIjoxNzYyNTA1NzY3fQ.TpCRNDFhLHww2ZPODvR1ofMJy29hFwsr-faIoFTUzb0';
+        const API_BASE = 'http://localhost:5000';
+        const results = [];
+
+        function addResult(test, passed, message) {
+            results.push({ test, passed, message });
+            updateResults();
+        }
+
+        function updateResults() {
+            const html = results.map(r => `
+                <div class="test-result ${r.passed ? 'test-pass' : 'test-fail'}">
+                    ${r.passed ? '✅' : '❌'} <strong>${r.test}:</strong> ${r.message}
+                </div>
+            `).join('');
+            document.getElementById('testResults').innerHTML = html || '<p class="info">No tests run yet</p>';
+        }
+
+        function checkToken() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            let html = '';
+            
+            if (token && user) {
+                const userData = JSON.parse(user);
+                html = `
+                    <div class="status success">
+                        <strong>✅ Token Found!</strong><br>
+                        <small>Token: ${token.substring(0, 50)}...</small><br>
+                        <small>User: ${userData.email} (${userData.role})</small>
+                    </div>
+                `;
+                addResult('Token Check', true, 'Token and user found in localStorage');
+            } else {
+                html = `
+                    <div class="status error">
+                        <strong>❌ No Token Found</strong><br>
+                        Token: ${token ? 'Found' : 'Missing'}<br>
+                        User: ${user ? 'Found' : 'Missing'}
+                    </div>
+                `;
+                addResult('Token Check', false, 'Token or user missing from localStorage');
+            }
+            
+            document.getElementById('tokenStatus').innerHTML = html;
+        }
+
+        function setToken() {
+            localStorage.setItem('token', FRESH_TOKEN);
+            localStorage.setItem('user', JSON.stringify({
+                _id: '68e313d14d7f2437dece5d20',
+                email: 'admin@droseonline.com',
+                role: 'admin',
+                fullName: 'System Administrator'
+            }));
+            
+            document.getElementById('tokenStatus').innerHTML = `
+                <div class="status success">
+                    <strong>✅ Fresh Token Set!</strong><br>
+                    <small>Token expires in 30 days</small><br>
+                    <small>User: admin@droseonline.com (admin)</small>
+                </div>
+            `;
+            addResult('Set Token', true, 'Fresh token successfully stored in localStorage');
+            
+            setTimeout(() => {
+                if (confirm('Token set! Reload page to initialize AuthService?')) {
+                    location.reload();
+                }
+            }, 1000);
+        }
+
+        function clearToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            document.getElementById('tokenStatus').innerHTML = `
+                <div class="status warning">
+                    <strong>🗑️ Token Cleared</strong>
+                </div>
+            `;
+            addResult('Clear Token', true, 'Token and user removed from localStorage');
+        }
+
+        function checkConfig() {
+            const config = {
+                apiBase: API_BASE,
+                currentOrigin: window.location.origin,
+                localStorage: {
+                    available: typeof(Storage) !== 'undefined',
+                    tokenExists: !!localStorage.getItem('token'),
+                    userExists: !!localStorage.getItem('user')
+                }
+            };
+            
+            document.getElementById('configStatus').innerHTML = `
+                <div class="status info">
+                    <strong>Configuration:</strong>
+                    <pre>${JSON.stringify(config, null, 2)}</pre>
+                </div>
+            `;
+            addResult('Config Check', true, 'Configuration verified');
+        }
+
+        async function testAPI() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="status error">
+                        <strong>❌ Cannot test API</strong><br>
+                        No token found. Please set token first.
+                    </div>
+                `;
+                addResult('API Test', false, 'No token available for testing');
+                return;
+            }
+
+            document.getElementById('apiStatus').innerHTML = `
+                <div class="status info">
+                    <strong>🔄 Testing API...</strong><br>
+                    Calling ${API_BASE}/api/attendance/pending
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/attendance/pending`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('apiStatus').innerHTML = `
+                        <div class="status success">
+                            <strong>✅ API Call Successful!</strong><br>
+                            Status: ${response.status}<br>
+                            Pending Groups: ${data.count}<br>
+                            Today: ${data.today} (${data.dayOfWeek})
+                            <details style="margin-top: 10px;">
+                                <summary style="cursor: pointer; font-weight: 600;">📦 View Response Data</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        </div>
+                    `;
+                    addResult('API Test', true, `Successfully fetched ${data.count} pending groups`);
+                } else {
+                    document.getElementById('apiStatus').innerHTML = `
+                        <div class="status error">
+                            <strong>❌ API Call Failed</strong><br>
+                            Status: ${response.status}<br>
+                            Message: ${data.message || 'Unknown error'}
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    addResult('API Test', false, `API returned ${response.status}: ${data.message}`);
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML = `
+                    <div class="status error">
+                        <strong>❌ Request Failed</strong><br>
+                        Error: ${error.message}
+                        <br><br>
+                        <strong>Possible causes:</strong>
+                        <ul>
+                            <li>Backend server not running on port 5000</li>
+                            <li>CORS issue</li>
+                            <li>Network connectivity problem</li>
+                        </ul>
+                    </div>
+                `;
+                addResult('API Test', false, `Request error: ${error.message}`);
+            }
+        }
+
+        // Auto-run checks on page load
+        window.onload = () => {
+            checkToken();
+            checkConfig();
+        };
+    </script>
+</body>
+</html>
+

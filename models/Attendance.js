@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const attendanceRecordSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student',
+    ref: 'User',
     required: true
   },
   status: {
@@ -11,6 +11,11 @@ const attendanceRecordSchema = new mongoose.Schema({
     enum: ['present', 'absent', 'late', 'excused'],
     default: 'present',
     required: true
+  },
+  minutesLate: {
+    type: Number,
+    min: 0,
+    default: 0
   },
   notes: {
     type: String,
@@ -47,7 +52,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher',
+    ref: 'User',
     required: true,
     index: true
   },
@@ -65,6 +70,17 @@ const attendanceSchema = new mongoose.Schema({
   isCompleted: {
     type: Boolean,
     default: false
+  },
+  isLocked: {
+    type: Boolean,
+    default: false
+  },
+  lockedAt: {
+    type: Date
+  },
+  lockedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -97,15 +113,40 @@ attendanceSchema.methods.getStudentRecord = function(studentId) {
 };
 
 // Method to update student's attendance status
-attendanceSchema.methods.updateStudentStatus = function(studentId, status, notes, markedBy) {
+attendanceSchema.methods.updateStudentStatus = function(studentId, status, notes, markedBy, minutesLate) {
   const record = this.records.find(r => r.student.toString() === studentId.toString());
   if (record) {
     record.status = status;
     record.notes = notes || record.notes;
+    record.minutesLate = minutesLate !== undefined ? minutesLate : record.minutesLate;
     record.markedAt = new Date();
     record.markedBy = markedBy;
   }
   return record;
+};
+
+// Method to lock session
+attendanceSchema.methods.lock = function(userId) {
+  this.isLocked = true;
+  this.lockedAt = new Date();
+  this.lockedBy = userId;
+  return this.save();
+};
+
+// Method to unlock session (admin only)
+attendanceSchema.methods.unlock = function() {
+  this.isLocked = false;
+  this.lockedAt = null;
+  this.lockedBy = null;
+  return this.save();
+};
+
+// Method to check if session can be edited
+attendanceSchema.methods.canEdit = function(userRole) {
+  // Admins can always edit
+  if (userRole === 'admin') return true;
+  // Teachers can only edit if not locked
+  return !this.isLocked;
 };
 
 // Static method to get attendance statistics for a student

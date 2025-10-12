@@ -38,11 +38,64 @@ export class AuthService {
   }
 
   get currentUser(): User | null {
-    return this.currentUserSubject.value;
+    // Always sync with localStorage as source of truth
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+    const subjectUser = this.currentUserSubject.value;
+    
+    // If localStorage has a user but subject doesn't, sync it
+    if (storedUser && !subjectUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        console.log('🔄 AuthService: Syncing user from localStorage to BehaviorSubject');
+        this.currentUserSubject.next(user);
+        return user;
+      } catch (e) {
+        console.error('Failed to parse stored user:', e);
+        localStorage.removeItem('user');
+        return null;
+      }
+    }
+    
+    // If subject has a user but localStorage doesn't, clear subject
+    if (!storedUser && subjectUser) {
+      console.log('🔄 AuthService: Clearing user from BehaviorSubject (not in localStorage)');
+      this.currentUserSubject.next(null);
+      return null;
+    }
+    
+    // Return subject value if both match, or parse localStorage
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (e) {
+        return subjectUser;
+      }
+    }
+    
+    return subjectUser;
   }
 
   get token(): string | null {
-    return this.tokenSubject.value;
+    // Always sync with localStorage as source of truth
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const subjectToken = this.tokenSubject.value;
+    
+    // If localStorage has a token but subject doesn't, sync it
+    if (storedToken && !subjectToken) {
+      console.log('🔄 AuthService: Syncing token from localStorage to BehaviorSubject');
+      this.tokenSubject.next(storedToken);
+      return storedToken;
+    }
+    
+    // If subject has a token but localStorage doesn't, clear subject
+    if (!storedToken && subjectToken) {
+      console.log('🔄 AuthService: Clearing token from BehaviorSubject (not in localStorage)');
+      this.tokenSubject.next(null);
+      return null;
+    }
+    
+    // Return localStorage value as source of truth
+    return storedToken || subjectToken;
   }
 
   get isAuthenticated(): boolean {
