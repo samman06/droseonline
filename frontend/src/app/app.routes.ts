@@ -109,10 +109,97 @@ export const routes: Routes = [
           }
         ]
       },
-      // Courses removed
+      // Announcements
+      {
+        path: 'announcements',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher', 'student'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./announcements/announcement-list/announcement-list.component').then(m => m.AnnouncementListComponent)
+          },
+          {
+            path: 'new',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] },
+            loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
+          },
+          {
+            path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] },
+            loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
+          }
+        ]
+      },
+      // Courses
+      {
+        path: 'courses',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher', 'student'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./courses/course-list/course-list.component').then(m => m.CourseListComponent)
+          },
+          {
+            path: 'new',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin'] },
+            loadComponent: () => import('./courses/course-form/course-form.component').then(m => m.CourseFormComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./courses/course-detail/course-detail.component').then(m => m.CourseDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] },
+            loadComponent: () => import('./courses/course-form/course-form.component').then(m => m.CourseFormComponent)
+          }
+        ]
+      },
+      // Assignments
       {
         path: 'assignments',
-        loadComponent: () => import('./assignments/assignment-list/assignment-list.component').then(m => m.AssignmentListComponent)
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher', 'student'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./assignments/assignment-list/assignment-list.component').then(m => m.AssignmentListComponent)
+          },
+          {
+            path: 'new',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] },
+            loadComponent: () => import('./assignments/assignment-form/assignment-form.component').then(m => m.AssignmentFormComponent)
+          },
+          {
+            path: 'grade/:submissionId',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] },
+            loadComponent: () => import('./assignments/teacher-grading/teacher-grading.component').then(m => m.TeacherGradingComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./assignments/assignment-detail/assignment-detail.component').then(m => m.AssignmentDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] },
+            loadComponent: () => import('./assignments/assignment-form/assignment-form.component').then(m => m.AssignmentFormComponent)
+          },
+          {
+            path: ':id/submit',
+            canActivate: [RoleGuard],
+            data: { roles: ['student'] },
+            loadComponent: () => import('./assignments/student-submission/student-submission.component').then(m => m.StudentSubmissionComponent)
+          }
+        ]
       },
       {
         path: 'subjects',

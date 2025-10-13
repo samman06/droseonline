@@ -5,27 +5,24 @@ import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from './services/auth.service';
 import { ConfigService } from './services/config.service';
 import { ConfirmationModalComponent } from './shared/confirmation-modal/confirmation-modal.component';
-
-interface Toast {
-  id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message?: string;
-  show: boolean;
-  duration?: number;
-}
+import { ToastContainerComponent } from './shared/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, HttpClientModule, ConfirmationModalComponent],
+  imports: [
+    CommonModule, 
+    RouterOutlet, 
+    HttpClientModule, 
+    ConfirmationModalComponent,
+    ToastContainerComponent
+  ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class AppComponent implements OnInit {
   title = signal('DroseOnline'); // Default value
   isLoading = false;
-  toasts: Toast[] = [];
 
   constructor(
     private authService: AuthService,
@@ -57,31 +54,6 @@ export class AppComponent implements OnInit {
         }
       });
     }
-  }
-
-  showToast(type: Toast['type'], title: string, message?: string, duration = 5000) {
-    const toast: Toast = {
-      id: Date.now().toString(),
-      type,
-      title,
-      message,
-      show: true,
-      duration
-    };
-
-    this.toasts.push(toast);
-
-    // Auto dismiss after duration
-    setTimeout(() => {
-      this.dismissToast(toast);
-    }, duration);
-  }
-
-  dismissToast(toast: Toast) {
-    toast.show = false;
-    setTimeout(() => {
-      this.toasts = this.toasts.filter(t => t.id !== toast.id);
-    }, 300);
   }
 
   showLoading() {
