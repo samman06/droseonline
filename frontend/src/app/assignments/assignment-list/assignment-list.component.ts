@@ -173,7 +173,9 @@ export class AssignmentListComponent implements OnInit {
     this.assignmentService.getAssignments(params).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.assignments = response.data;
+          // Handle nested data structure
+          const responseData = response.data as any;
+          this.assignments = responseData.assignments || response.data;
         }
         this.loading = false;
       },

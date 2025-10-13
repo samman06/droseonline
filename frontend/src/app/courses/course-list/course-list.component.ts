@@ -161,8 +161,12 @@ export class CourseListComponent implements OnInit {
     this.courseService.getCourses(params).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.courses = response.data;
-          if (response.pagination) {
+          // Handle nested data structure
+          const responseData = response.data as any;
+          this.courses = responseData.courses || response.data;
+          if (responseData.pagination) {
+            this.pagination = responseData.pagination;
+          } else if (response.pagination) {
             this.pagination = response.pagination;
           }
         }

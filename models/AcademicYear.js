@@ -145,6 +145,7 @@ const academicYearSchema = new mongoose.Schema({
 
 // Virtual for current semester
 academicYearSchema.virtual('currentSemester').get(function() {
+  if (!this.semesters || !Array.isArray(this.semesters)) return null;
   const now = new Date();
   return this.semesters.find(semester => 
     semester.startDate <= now && semester.endDate >= now
@@ -153,6 +154,7 @@ academicYearSchema.virtual('currentSemester').get(function() {
 
 // Virtual for active semesters
 academicYearSchema.virtual('activeSemesters').get(function() {
+  if (!this.semesters || !Array.isArray(this.semesters)) return [];
   return this.semesters.filter(semester => semester.isActive);
 });
 

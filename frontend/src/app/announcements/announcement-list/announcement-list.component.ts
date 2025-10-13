@@ -296,8 +296,12 @@ export class AnnouncementListComponent implements OnInit {
     this.announcementService.getAnnouncements(params).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.announcements = response.data;
-          if (response.pagination) {
+          // Handle nested data structure
+          const responseData = response.data as any;
+          this.announcements = responseData.announcements || response.data;
+          if (responseData.pagination) {
+            this.pagination = responseData.pagination;
+          } else if (response.pagination) {
             this.pagination = response.pagination;
           }
         }
