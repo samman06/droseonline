@@ -13,7 +13,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, teacherId, subjectId, academicYear, semester, isActive } = req.query;
+    const { page = 1, limit = 10, search, teacherId, subjectId, academicYear, isActive } = req.query;
     
     let query = {};
     
@@ -38,7 +38,6 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
     if (teacherId) query.teacher = teacherId;
     if (subjectId) query.subject = subjectId;
     if (academicYear) query.academicYear = academicYear;
-    if (semester) query.semester = semester;
     if (isActive !== undefined) query.isActive = isActive === 'true';
 
     const courses = await Course.find(query)

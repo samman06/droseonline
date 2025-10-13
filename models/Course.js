@@ -38,11 +38,6 @@ const courseSchema = new mongoose.Schema({
   },
   
   // Course Details
-  semester: {
-    type: String,
-    enum: ['fall', 'spring', 'summer'],
-    required: true
-  },
   startDate: {
     type: Date,
     required: true
@@ -52,23 +47,7 @@ const courseSchema = new mongoose.Schema({
     required: true
   },
   
-  // Schedule
-  schedule: [{
-    day: {
-      type: String,
-      enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-    },
-    startTime: String, // Format: "HH:MM"
-    endTime: String,   // Format: "HH:MM"
-    room: String,
-    type: {
-      type: String,
-      enum: ['lecture', 'lab', 'tutorial', 'seminar'],
-      default: 'lecture'
-    }
-  }],
-  
-  // Course Content
+                                                                                                                        // Course Content
   syllabus: {
     description: String,
     objectives: [String],
@@ -91,7 +70,7 @@ const courseSchema = new mongoose.Schema({
     name: String,
     weightage: {
       type: Number,
-      required: true,
+      required: true,                                                                                       
       min: 0,
       max: 100
     },
@@ -257,7 +236,7 @@ courseSchema.pre('save', function(next) {
 courseSchema.index({ code: 1 });
 courseSchema.index({ subject: 1 });
 courseSchema.index({ teacher: 1 });
-courseSchema.index({ academicYear: 1, semester: 1 });
+courseSchema.index({ academicYear: 1 });
 courseSchema.index({ isActive: 1, isPublished: 1 });
 courseSchema.index({ startDate: 1, endDate: 1 });
 

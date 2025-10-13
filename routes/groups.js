@@ -12,7 +12,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, teacherId, subjectId, gradeLevel, day, isActive } = req.query;
+    const { page = 1, limit = 10, search, teacherId, subjectId, courseId, gradeLevel, day, isActive } = req.query;
     
     const query = {};
     
@@ -23,16 +23,35 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
       ];
     }
     
-    if (teacherId) query.teacher = teacherId;
-    if (subjectId) query.subject = subjectId;
+    // Filter by course directly
+    if (courseId) {
+      query.course = courseId;
+    }
+    // Or filter by teacher/subject (query courses first, then groups)
+    else if (teacherId || subjectId) {
+      const Course = require('../models/Course');
+      const courseQuery = {};
+      if (teacherId) courseQuery.teacher = teacherId;
+      if (subjectId) courseQuery.subject = subjectId;
+      
+      const courses = await Course.find(courseQuery).select('_id');
+      const courseIds = courses.map(c => c._id);
+      query.course = { $in: courseIds };
+    }
+    
     if (gradeLevel) query.gradeLevel = gradeLevel;
     if (day) query['schedule.day'] = day;
     if (isActive !== undefined) query.isActive = isActive === 'true';
 
     const groups = await Group.find(query)
-      .populate('teacher', 'firstName lastName fullName')
-      .populate('subject', 'name code')
-      .populate('course', 'name code semester academicYear startDate endDate')
+      .populate({
+        path: 'course',
+        select: 'name code academicYear startDate endDate',
+        populate: [
+          { path: 'teacher', select: 'firstName lastName fullName' },
+          { path: 'subject', select: 'name code' }
+        ]
+      })
       .populate('classMonitor', 'firstName lastName fullName')
       .populate('createdBy', 'firstName lastName fullName')
       .populate({
@@ -72,9 +91,14 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const group = await Group.findById(req.params.id)
-      .populate('teacher', 'firstName lastName fullName email')
-      .populate('subject', 'name code')
-      .populate('course', 'name code semester academicYear startDate endDate creditHours')
+      .populate({
+        path: 'course',
+        select: 'name code academicYear startDate endDate creditHours',
+        populate: [
+          { path: 'teacher', select: 'firstName lastName fullName email' },
+          { path: 'subject', select: 'name code' }
+        ]
+      })
       .populate('classMonitor', 'firstName lastName fullName email')
       .populate('createdBy', 'firstName lastName fullName')
       .populate({
@@ -577,5 +601,105 @@ router.get('/:id/statistics', authenticate, authorize('admin', 'teacher'), async
     });
   }
 });
+
+// @route   POST /api/groups/check-schedule-conflict
+// @desc    Check for schedule conflicts
+// @access  Private
+router.post('/check-schedule-conflict', authenticate, async (req, res) => {
+  try {
+    const { courseId, schedule, excludeGroupId } = req.body;
+
+    if (!courseId || !schedule || !Array.isArray(schedule)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course ID and schedule are required'
+      });
+    }
+
+    // Get the course to find its teacher
+    const Course = require('../models/Course');
+    const course = await Course.findById(courseId).select('teacher');
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Find all courses taught by the same teacher
+    const teacherCourses = await Course.find({ teacher: course.teacher }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+
+    // Build query to find groups in courses with the same teacher
+    const query = { course: { $in: courseIds } };
+    if (excludeGroupId) {
+      query._id = { $ne: excludeGroupId };
+    }
+
+    // Find all groups taught by this teacher (through their courses)
+    const teacherGroups = await Group.find(query).select('name code schedule');
+
+    // Check for schedule conflicts
+    const conflicts = [];
+    
+    for (const slot of schedule) {
+      for (const group of teacherGroups) {
+        for (const existingSlot of group.schedule) {
+          // Check if days match
+          if (slot.day === existingSlot.day) {
+            // Check if times overlap
+            const newStart = slot.startTime;
+            const newEnd = slot.endTime;
+            const existingStart = existingSlot.startTime;
+            const existingEnd = existingSlot.endTime;
+
+            if (timeOverlaps(newStart, newEnd, existingStart, existingEnd)) {
+              conflicts.push({
+                groupId: group._id,
+                groupName: group.name,
+                groupCode: group.code,
+                day: slot.day,
+                time: `${existingSlot.startTime} - ${existingSlot.endTime}`,
+                conflictWith: `${slot.startTime} - ${slot.endTime}`
+              });
+            }
+          }
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        hasConflict: conflicts.length > 0,
+        conflicts
+      }
+    });
+  } catch (error) {
+    console.error('Check schedule conflict error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while checking schedule conflicts'
+    });
+  }
+});
+
+// Helper function to check if time ranges overlap
+function timeOverlaps(start1, end1, start2, end2) {
+  // Convert times to minutes for easier comparison
+  const toMinutes = (time) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const s1 = toMinutes(start1);
+  const e1 = toMinutes(end1);
+  const s2 = toMinutes(start2);
+  const e2 = toMinutes(end2);
+
+  // Check if ranges overlap
+  return (s1 < e2) && (e1 > s2);
+}
 
 module.exports = router;

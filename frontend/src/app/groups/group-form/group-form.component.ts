@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { TeacherService } from '../../services/teacher.service';
-import { SubjectService } from '../../services/subject.service';
 import { CourseService } from '../../services/course.service';
+import { GroupService } from '../../services/group.service';
+import { ToastService } from '../../services/toast.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-group-form',
@@ -45,40 +46,71 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } fr
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="form-label">Teacher</label>
-              <select class="form-input" formControlName="teacher">
-                <option value="" disabled>Select a teacher</option>
-                <option *ngFor="let t of teachers" [value]="t.id || t._id">{{ t.fullName || (t.firstName + ' ' + t.lastName) }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="form-label">Subject</label>
-              <select class="form-input" formControlName="subject">
-                <option value="" disabled>Select a subject</option>
-                <option *ngFor="let s of subjects" [value]="s.id || s._id">{{ s.name }} ({{ s.code }})</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="form-label">Course <span class="text-xs text-gray-500">(Optional - for formal courses)</span></label>
+              <label class="form-label">Course <span class="text-red-500">*</span></label>
               <select class="form-input" formControlName="course">
-                <option value="">None (Standalone Group)</option>
-                <option *ngFor="let c of courses" [value]="c._id">{{ c.name }} - {{ c.code }} ({{ c.semester | titlecase }})</option>
+                <option value="" disabled>Select a course</option>
+                <option *ngFor="let c of courses" [value]="c._id">
+                  {{ c.name }} - {{ c.code }}
+                </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Link this group to a formal course if applicable</p>
+              <p class="text-xs text-gray-500 mt-1">
+                ℹ️ Teacher and subject are inherited from the course
+              </p>
             </div>
             <div>
-              <label class="form-label">Grade Level</label>
+              <label class="form-label">Grade Level <span class="text-red-500">*</span></label>
               <select class="form-input" formControlName="gradeLevel">
                 <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
               </select>
             </div>
           </div>
 
+          <!-- Display course info when selected -->
+          <div *ngIf="selectedCourse" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-blue-900 mb-2">Course Information</h3>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span class="text-blue-700 font-medium">Teacher:</span>
+                <span class="text-blue-900 ml-2">{{ selectedCourse.teacher?.fullName }}</span>
+              </div>
+              <div>
+                <span class="text-blue-700 font-medium">Subject:</span>
+                <span class="text-blue-900 ml-2">{{ selectedCourse.subject?.name }}</span>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label class="form-label">Weekly Schedule</label>
+            
+            <!-- Schedule Conflict Warning -->
+            <div *ngIf="scheduleConflicts.length > 0" class="mb-3 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <div class="flex-1">
+                  <h4 class="text-sm font-semibold text-red-800 mb-1">⚠️ Schedule Conflict Detected</h4>
+                  <p class="text-xs text-red-700 mb-2">The teacher has conflicting schedules with other groups:</p>
+                  <ul class="space-y-1">
+                    <li *ngFor="let conflict of scheduleConflicts" class="text-xs text-red-700">
+                      <strong>{{ conflict.groupName }} ({{ conflict.groupCode }})</strong> - {{ conflict.day | titlecase }}: {{ conflict.time }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="checkingConflicts" class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+              <div class="flex items-center">
+                <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Checking for schedule conflicts...
+              </div>
+            </div>
+            
             <div formArrayName="schedule" class="space-y-3">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3" *ngFor="let s of schedule.controls; let i = index" [formGroupName]="i">
                 <select class="form-input" formControlName="day">
@@ -147,30 +179,27 @@ export class GroupFormComponent implements OnInit {
 
   readonly days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
   readonly grades = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
-  teachers: any[] = [];
-  subjects: any[] = [];
   courses: any[] = [];
+  selectedCourse: any = null;
+  scheduleConflicts: any[] = [];
+  checkingConflicts = false;
 
   constructor(
     private fb: FormBuilder, 
-    private teacherService: TeacherService, 
-    private subjectService: SubjectService, 
     private courseService: CourseService,
+    private groupService: GroupService,
+    private toastService: ToastService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     // Normalize initial IDs if objects were provided
-    const initialTeacherId = this.initialValue.teacher?._id || this.initialValue.teacher || '';
-    const initialSubjectId = this.initialValue.subject?._id || this.initialValue.subject || '';
     const initialCourseId = this.initialValue.course?._id || this.initialValue.course || '';
 
     this.form = this.fb.group({
       name: [this.initialValue.name || '', [Validators.required, Validators.minLength(2)]],
       code: [this.initialValue.code || '', [Validators.required]],
-      teacher: [initialTeacherId, [Validators.required]],
-      subject: [initialSubjectId, [Validators.required]],
-      course: [initialCourseId],  // Optional field
+      course: [initialCourseId, [Validators.required]],  // Required field
       gradeLevel: [this.initialValue.gradeLevel || 'Grade 9', [Validators.required]],
       schedule: this.fb.array((this.initialValue.schedule || [{ day: 'saturday', startTime: '10:00', endTime: '12:00' }]).map((s: any) => this.fb.group({
         day: [s.day || 'saturday', Validators.required],
@@ -181,27 +210,29 @@ export class GroupFormComponent implements OnInit {
       isActive: [this.initialValue.isActive ?? true]
     });
 
-    // Load dropdown options
-    this.teacherService.getTeachers({ isActive: 'true', page: 1, limit: 100 }).subscribe({
-      next: res => {
-        const list = res.data?.teachers || res.data || [];
-        this.teachers = Array.isArray(list) ? list : [];
-      },
-      error: err => { console.error('Failed to load teachers:', err); this.teachers = []; }
-    });
-    this.subjectService.getSubjects({ isActive: 'true', page: 1, limit: 100 }).subscribe({
-      next: res => {
-        const list = res.data?.subjects || res.data || [];
-        this.subjects = Array.isArray(list) ? list : [];
-      },
-      error: err => { console.error('Failed to load subjects:', err); this.subjects = []; }
-    });
+    // Load courses with teacher and subject info
     this.courseService.getCourses({ isActive: 'true', page: 1, limit: 100 }).subscribe({
       next: res => {
         const list = res.data || [];
         this.courses = Array.isArray(list) ? list : [];
+        
+        // If editing, find and set the selected course
+        if (initialCourseId && this.courses.length > 0) {
+          this.selectedCourse = this.courses.find(c => c._id === initialCourseId);
+        }
       },
       error: err => { console.error('Failed to load courses:', err); this.courses = []; }
+    });
+
+    // Watch for course changes to update selected course and check conflicts
+    this.form.get('course')?.valueChanges.pipe(distinctUntilChanged()).subscribe((courseId) => {
+      this.selectedCourse = this.courses.find(c => c._id === courseId);
+      this.checkScheduleConflicts();
+    });
+    
+    // Watch for schedule changes to check for conflicts
+    this.form.get('schedule')?.valueChanges.pipe(debounceTime(500)).subscribe(() => {
+      this.checkScheduleConflicts();
     });
   }
 
@@ -209,8 +240,60 @@ export class GroupFormComponent implements OnInit {
   addSlot(): void { this.schedule.push(this.fb.group({ day: 'saturday', startTime: '10:00', endTime: '12:00' })); }
   removeSlot(i: number): void { this.schedule.removeAt(i); }
 
+  checkScheduleConflicts(): void {
+    const courseId = this.form.get('course')?.value;
+    const schedule = this.form.get('schedule')?.value;
+
+    if (!courseId || !schedule || schedule.length === 0) {
+      this.scheduleConflicts = [];
+      return;
+    }
+
+    // Validate schedule times
+    const hasInvalidSchedule = schedule.some((slot: any) => 
+      !slot.day || !slot.startTime || !slot.endTime
+    );
+    
+    if (hasInvalidSchedule) {
+      this.scheduleConflicts = [];
+      return;
+    }
+
+    this.checkingConflicts = true;
+    const excludeGroupId = this.initialValue?._id || this.initialValue?.id;
+
+    this.groupService.checkScheduleConflict(courseId, schedule, excludeGroupId).subscribe({
+      next: (response: any) => {
+        this.checkingConflicts = false;
+        if (response.success && response.data) {
+          this.scheduleConflicts = response.data.conflicts || [];
+          
+          if (this.scheduleConflicts.length > 0) {
+            this.toastService.warning(
+              `⚠️ Schedule conflict detected with ${this.scheduleConflicts.length} other group(s)`,
+              'Schedule Conflict',
+              5000
+            );
+          }
+        }
+      },
+      error: (error: any) => {
+        this.checkingConflicts = false;
+        console.error('Failed to check schedule conflicts:', error);
+      }
+    });
+  }
+
   submit(): void {
     if (this.form.invalid) return;
+    
+    if (this.scheduleConflicts.length > 0) {
+      const confirmed = confirm(
+        `⚠️ Warning: This schedule conflicts with ${this.scheduleConflicts.length} other group(s).\n\nDo you want to proceed anyway?`
+      );
+      if (!confirmed) return;
+    }
+    
     this.submitting = true;
     this.save.emit(this.form.value);
   }

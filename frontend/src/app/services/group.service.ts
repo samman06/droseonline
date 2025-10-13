@@ -39,6 +39,14 @@ export class GroupService {
   removeStudent(id: string, studentId: string): Observable<ApiResponse<any>> {
     return this.api.delete(`${this.GROUPS_ENDPOINT}/${id}/students`, studentId);
   }
+
+  checkScheduleConflict(courseId: string, schedule: any[], excludeGroupId?: string): Observable<ApiResponse<any>> {
+    return this.api.post(`${this.GROUPS_ENDPOINT}/check-schedule-conflict`, {
+      courseId,
+      schedule,
+      excludeGroupId
+    });
+  }
 }
 
 

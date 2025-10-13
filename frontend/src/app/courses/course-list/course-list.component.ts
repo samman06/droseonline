@@ -30,17 +30,7 @@ import { AuthService } from '../../services/auth.service';
 
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Semester</label>
-            <select [(ngModel)]="filters.semester" (change)="loadCourses()" 
-                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <option value="">All Semesters</option>
-              <option value="fall">Fall</option>
-              <option value="spring">Spring</option>
-              <option value="summer">Summer</option>
-            </select>
-          </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select [(ngModel)]="filters.isActive" (change)="loadCourses()" 
@@ -103,12 +93,6 @@ import { AuthService } from '../../services/auth.service';
               </svg>
               <span>{{ course.currentEnrollment || 0 }} students</span>
             </div>
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-              <span class="capitalize">{{ course.semester }}</span>
-            </div>
           </div>
 
           <div class="flex gap-2 pt-4 border-t border-gray-200">
@@ -142,7 +126,6 @@ export class CourseListComponent implements OnInit {
   searchTimeout: any;
 
   filters = {
-    semester: '',
     isActive: '',
     search: ''
   };
@@ -172,7 +155,6 @@ export class CourseListComponent implements OnInit {
       limit: this.pagination.limit
     };
 
-    if (this.filters.semester) params.semester = this.filters.semester;
     if (this.filters.isActive) params.isActive = this.filters.isActive;
     if (this.filters.search) params.search = this.filters.search;
 
@@ -202,7 +184,7 @@ export class CourseListComponent implements OnInit {
   }
 
   resetFilters(): void {
-    this.filters = { semester: '', isActive: '', search: '' };
+    this.filters = { isActive: '', search: '' };
     this.pagination.page = 1;
     this.loadCourses();
   }

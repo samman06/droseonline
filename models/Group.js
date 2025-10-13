@@ -19,21 +19,11 @@ const groupSchema = new mongoose.Schema({
     maxlength: 500
   },
   
-  // Assignment
-  subject: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Subject',
-    required: true
-  },
-  teacher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  // Course (optional - if group is part of a formal course)
+  // Course Assignment (Required - groups inherit teacher and subject from course)
   course: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course'
+    ref: 'Course',
+    required: true
   },
   // Grade filter for enrollment (Egyptian grades)
   gradeLevel: {

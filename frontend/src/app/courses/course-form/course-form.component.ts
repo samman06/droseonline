@@ -105,21 +105,6 @@ import { AuthService } from '../../services/auth.service';
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Semester <span class="text-red-500">*</span>
-              </label>
-              <select formControlName="semester" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <option value="">Select semester</option>
-                <option value="fall">Fall</option>
-                <option value="spring">Spring</option>
-                <option value="summer">Summer</option>
-              </select>
-              <div *ngIf="courseForm.get('semester')?.invalid && courseForm.get('semester')?.touched" class="text-red-500 text-sm mt-1">
-                Semester is required
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Academic Year <span class="text-red-500">*</span>
               </label>
               <input 
@@ -155,9 +140,9 @@ import { AuthService } from '../../services/auth.service';
           </div>
         </div>
 
-        <!-- Schedule -->
+        <!-- Course Duration -->
         <div class="bg-white rounded-lg shadow-sm p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Schedule</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Course Duration</h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -176,53 +161,10 @@ import { AuthService } from '../../services/auth.service';
                 class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             </div>
           </div>
-
-          <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Meeting Days</label>
-            <div class="grid grid-cols-7 gap-2">
-              <label *ngFor="let day of weekDays" class="flex items-center justify-center p-2 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                     [class.border-blue-500]="selectedDays.includes(day.value)"
-                     [class.bg-blue-50]="selectedDays.includes(day.value)">
-                <input 
-                  type="checkbox" 
-                  [value]="day.value"
-                  (change)="toggleDay(day.value)"
-                  [checked]="selectedDays.includes(day.value)"
-                  class="sr-only">
-                <span class="text-sm font-medium" 
-                      [class.text-blue-600]="selectedDays.includes(day.value)">
-                  {{ day.label }}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
-              <input 
-                type="time" 
-                formControlName="startTime"
-                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">End Time</label>
-              <input 
-                type="time" 
-                formControlName="endTime"
-                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
-          </div>
-
-          <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Room/Location</label>
-            <input 
-              type="text" 
-              formControlName="room"
-              class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="e.g., Room 101, Building A">
-          </div>
+          
+          <p class="mt-3 text-sm text-gray-500">
+            ℹ️ Schedules are defined per section (group), not per course
+          </p>
         </div>
 
         <!-- Status -->
@@ -264,17 +206,6 @@ export class CourseFormComponent implements OnInit {
   currentUser: any;
   subjects: any[] = [];
   teachers: any[] = [];
-  selectedDays: string[] = [];
-  
-  weekDays = [
-    { label: 'Su', value: 'sunday' },
-    { label: 'Mo', value: 'monday' },
-    { label: 'Tu', value: 'tuesday' },
-    { label: 'We', value: 'wednesday' },
-    { label: 'Th', value: 'thursday' },
-    { label: 'Fr', value: 'friday' },
-    { label: 'Sa', value: 'saturday' }
-  ];
 
   constructor(
     private fb: FormBuilder,
@@ -307,15 +238,11 @@ export class CourseFormComponent implements OnInit {
       description: [''],
       subject: ['', Validators.required],
       teacher: ['', Validators.required],
-      semester: ['', Validators.required],
       academicYear: ['', Validators.required],
       creditHours: [3],
       maxStudents: [30],
       startDate: [''],
       endDate: [''],
-      startTime: [''],
-      endTime: [''],
-      room: [''],
       isActive: [true]
     });
   }
@@ -369,22 +296,13 @@ export class CourseFormComponent implements OnInit {
             description: course.description,
             subject: course.subject,
             teacher: course.teacher,
-            semester: course.semester,
             academicYear: course.academicYear,
             creditHours: course.creditHours,
             maxStudents: course.maxStudents,
             startDate,
             endDate,
-            startTime: course.startTime,
-            endTime: course.endTime,
-            room: course.room,
             isActive: course.isActive
           });
-
-          // Load schedule days
-          if (course.schedule && course.schedule.days) {
-            this.selectedDays = course.schedule.days;
-          }
         }
         this.loading = false;
       },
@@ -394,15 +312,6 @@ export class CourseFormComponent implements OnInit {
         this.router.navigate(['/dashboard/courses']);
       }
     });
-  }
-
-  toggleDay(day: string): void {
-    const index = this.selectedDays.indexOf(day);
-    if (index > -1) {
-      this.selectedDays.splice(index, 1);
-    } else {
-      this.selectedDays.push(day);
-    }
   }
 
   onSubmit(): void {
@@ -441,18 +350,11 @@ export class CourseFormComponent implements OnInit {
       description: formValue.description,
       subject: formValue.subject,
       teacher: formValue.teacher,
-      semester: formValue.semester,
       academicYear: formValue.academicYear,
       creditHours: formValue.creditHours || 3,
       maxStudents: formValue.maxStudents || undefined,
       startDate: formValue.startDate || undefined,
       endDate: formValue.endDate || undefined,
-      schedule: {
-        days: this.selectedDays,
-        startTime: formValue.startTime,
-        endTime: formValue.endTime
-      },
-      room: formValue.room,
       isActive: formValue.isActive
     };
   }
