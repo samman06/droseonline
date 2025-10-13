@@ -202,17 +202,15 @@ interface Student {
             <h3 class="text-lg font-medium text-gray-900 mb-4">Academic Information</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="form-label">Student ID *</label>
+                <label class="form-label">Student ID <span class="text-xs text-gray-500">(Auto-generated)</span></label>
                 <input 
                   type="text" 
                   formControlName="studentId"
-                  class="form-input"
-                  [class.border-red-300]="isFieldInvalid('academicInfo.studentId')"
-                  placeholder="STU000001"
+                  class="form-input bg-gray-100 cursor-not-allowed"
+                  placeholder="Auto-generated (e.g., ST-000001)"
+                  [disabled]="true"
                 >
-                <div *ngIf="isFieldInvalid('academicInfo.studentId')" class="form-error">
-                  Student ID is required
-                </div>
+                <p class="text-xs text-gray-500 mt-1">Student ID will be automatically generated when you save</p>
               </div>
               
               <div>
@@ -403,7 +401,7 @@ export class StudentFormComponent implements OnInit {
         secondaryPhone: ['']
       }),
       academicInfo: this.fb.group({
-        studentId: ['', Validators.required],
+        studentId: [{value: '', disabled: true}], // Auto-generated, not required
         currentGrade: ['', Validators.required],
         year: ['', Validators.required],
         enrollmentDate: ['', Validators.required],

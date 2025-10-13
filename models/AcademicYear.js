@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const academicYearSchema = new mongoose.Schema({
   name: {
@@ -10,7 +11,6 @@ const academicYearSchema = new mongoose.Schema({
   },
   code: {
     type: String,
-    required: true,
     unique: true,
     uppercase: true,
     trim: true
@@ -229,25 +229,40 @@ academicYearSchema.methods.getUpcomingEvents = function(days = 30) {
   return events.sort((a, b) => a.date || a.startDate - b.date || b.startDate);
 };
 
-// Pre-save validation
-academicYearSchema.pre('save', function(next) {
-  // Validate date range
-  if (this.startDate && this.endDate && this.startDate >= this.endDate) {
-    return next(new Error('End date must be after start date'));
-  }
-  
-  // Validate semester dates
-  for (const semester of this.semesters) {
-    if (semester.startDate >= semester.endDate) {
-      return next(new Error(`Semester ${semester.name}: End date must be after start date`));
+// Pre-save validation and code generation
+academicYearSchema.pre('save', async function(next) {
+  try {
+    // Auto-generate academic year code if not provided
+    if (this.isNew && !this.code) {
+      const sequence = await Counter.getNextSequence('academicYear');
+      this.code = `AY-${String(sequence).padStart(6, '0')}`;
     }
     
-    if (semester.startDate < this.startDate || semester.endDate > this.endDate) {
-      return next(new Error(`Semester ${semester.name}: Dates must be within academic year range`));
+    // Ensure code is uppercase
+    if (this.code) {
+      this.code = this.code.toUpperCase();
     }
+    
+    // Validate date range
+    if (this.startDate && this.endDate && this.startDate >= this.endDate) {
+      return next(new Error('End date must be after start date'));
+    }
+    
+    // Validate semester dates
+    for (const semester of this.semesters) {
+      if (semester.startDate >= semester.endDate) {
+        return next(new Error(`Semester ${semester.name}: End date must be after start date`));
+      }
+      
+      if (semester.startDate < this.startDate || semester.endDate > this.endDate) {
+        return next(new Error(`Semester ${semester.name}: Dates must be within academic year range`));
+      }
+    }
+    
+    next();
+  } catch (error) {
+    next(error);
   }
-  
-  next();
 });
 
 // Ensure only one academic year is current at a time

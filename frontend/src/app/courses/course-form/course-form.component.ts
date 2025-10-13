@@ -45,16 +45,15 @@ import { AuthService } from '../../services/auth.service';
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Course Code <span class="text-red-500">*</span>
+                Course Code <span class="text-xs text-gray-500">(Auto-generated)</span>
               </label>
               <input 
                 type="text" 
                 formControlName="code"
-                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="e.g., PHY101">
-              <div *ngIf="courseForm.get('code')?.invalid && courseForm.get('code')?.touched" class="text-red-500 text-sm mt-1">
-                Course code is required
-              </div>
+                class="w-full rounded-lg border-gray-300 shadow-sm bg-gray-100 cursor-not-allowed"
+                placeholder="Auto-generated (e.g., CO-000001)"
+                [disabled]="true">
+              <p class="text-xs text-gray-500 mt-1">Code will be automatically generated when you save</p>
             </div>
 
             <div>
@@ -234,7 +233,7 @@ export class CourseFormComponent implements OnInit {
   initForm(): void {
     this.courseForm = this.fb.group({
       name: ['', [Validators.required]],
-      code: ['', [Validators.required]],
+      code: [{value: '', disabled: true}], // Auto-generated, not required
       description: [''],
       subject: ['', Validators.required],
       teacher: ['', Validators.required],

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const groupSchema = new mongoose.Schema({
   name: {
@@ -9,7 +10,6 @@ const groupSchema = new mongoose.Schema({
   },
   code: {
     type: String,
-    required: true,
     unique: true,
     uppercase: true,
     trim: true
@@ -154,9 +154,20 @@ groupSchema.methods.removeStudent = function(studentId, status = 'dropped') {
 };
 
 // Update enrollment count before saving
-groupSchema.pre('save', function(next) {
-  this.currentEnrollment = this.students.filter(s => s.status === 'active').length;
-  next();
+groupSchema.pre('save', async function(next) {
+  try {
+    // Auto-generate group code if not provided
+    if (this.isNew && !this.code) {
+      const sequence = await Counter.getNextSequence('group');
+      this.code = `GR-${String(sequence).padStart(6, '0')}`;
+    }
+    
+    // Update enrollment count
+    this.currentEnrollment = this.students.filter(s => s.status === 'active').length;
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Indexes

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const courseSchema = new mongoose.Schema({
   // Basic Information
@@ -10,7 +11,6 @@ const courseSchema = new mongoose.Schema({
   },
   code: {
     type: String,
-    required: true,
     unique: true,
     uppercase: true,
     trim: true
@@ -214,22 +214,37 @@ courseSchema.methods.getCurrentStudentsCount = async function() {
   return totalStudents;
 };
 
-// Pre-save validation
-courseSchema.pre('save', function(next) {
-  // Validate date range
-  if (this.startDate && this.endDate && this.startDate >= this.endDate) {
-    return next(new Error('End date must be after start date'));
-  }
-  
-  // Validate assessment structure if provided
-  if (this.assessmentStructure && this.assessmentStructure.length > 0) {
-    const totalWeightage = this.getTotalWeightage();
-    if (totalWeightage > 100) {
-      return next(new Error('Total assessment weightage cannot exceed 100%'));
+// Pre-save validation and code generation
+courseSchema.pre('save', async function(next) {
+  try {
+    // Auto-generate course code if not provided
+    if (this.isNew && !this.code) {
+      const sequence = await Counter.getNextSequence('course');
+      this.code = `CO-${String(sequence).padStart(6, '0')}`;
     }
+    
+    // Ensure code is uppercase
+    if (this.code) {
+      this.code = this.code.toUpperCase();
+    }
+    
+    // Validate date range
+    if (this.startDate && this.endDate && this.startDate >= this.endDate) {
+      return next(new Error('End date must be after start date'));
+    }
+    
+    // Validate assessment structure if provided
+    if (this.assessmentStructure && this.assessmentStructure.length > 0) {
+      const totalWeightage = this.getTotalWeightage();
+      if (totalWeightage > 100) {
+        return next(new Error('Total assessment weightage cannot exceed 100%'));
+      }
+    }
+    
+    next();
+  } catch (error) {
+    next(error);
   }
-  
-  next();
 });
 
 // Indexes

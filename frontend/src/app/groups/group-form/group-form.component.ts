@@ -39,8 +39,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
               <input class="form-input" formControlName="name" placeholder="e.g., Physics Group A" />
             </div>
             <div>
-              <label class="form-label">Code</label>
-              <input class="form-input" formControlName="code" placeholder="e.g., PHY-A-01" />
+              <label class="form-label">Code <span class="text-xs text-gray-500">(Auto-generated)</span></label>
+              <input class="form-input bg-gray-100 cursor-not-allowed" formControlName="code" placeholder="Auto-generated (e.g., GR-000001)" [disabled]="true" />
+              <p class="text-xs text-gray-500 mt-1">Code will be automatically generated when you save</p>
             </div>
           </div>
 
@@ -198,7 +199,7 @@ export class GroupFormComponent implements OnInit {
 
     this.form = this.fb.group({
       name: [this.initialValue.name || '', [Validators.required, Validators.minLength(2)]],
-      code: [this.initialValue.code || '', [Validators.required]],
+      code: [{value: this.initialValue.code || '', disabled: true}], // Auto-generated, not required
       course: [initialCourseId, [Validators.required]],  // Required field
       gradeLevel: [this.initialValue.gradeLevel || 'Grade 9', [Validators.required]],
       schedule: this.fb.array((this.initialValue.schedule || [{ day: 'saturday', startTime: '10:00', endTime: '12:00' }]).map((s: any) => this.fb.group({

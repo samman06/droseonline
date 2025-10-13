@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const Counter = require('./Counter');
 
 const userSchema = new mongoose.Schema({
   // Personal Information
@@ -114,13 +115,33 @@ userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// Hash password before saving
+// Auto-generate codes and hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
   try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
+    // Generate student ID for students
+    if (this.isNew && this.role === 'student' && !this.academicInfo.studentId) {
+      const sequence = await Counter.getNextSequence('student');
+      this.academicInfo.studentId = `ST-${String(sequence).padStart(6, '0')}`;
+    }
+    
+    // Generate employee ID for teachers
+    if (this.isNew && this.role === 'teacher' && !this.academicInfo.employeeId) {
+      const sequence = await Counter.getNextSequence('teacher');
+      this.academicInfo.employeeId = `TE-${String(sequence).padStart(6, '0')}`;
+    }
+    
+    // Generate employee ID for admins
+    if (this.isNew && this.role === 'admin' && !this.academicInfo.employeeId) {
+      const sequence = await Counter.getNextSequence('admin');
+      this.academicInfo.employeeId = `AD-${String(sequence).padStart(6, '0')}`;
+    }
+    
+    // Hash password if modified
+    if (this.isModified('password')) {
+      const salt = await bcrypt.genSalt(12);
+      this.password = await bcrypt.hash(this.password, salt);
+    }
+    
     next();
   } catch (error) {
     next(error);

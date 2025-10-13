@@ -98,8 +98,9 @@ interface Teacher {
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="form-label">Employee ID *</label>
-                <input type="text" formControlName="employeeId" class="form-input" placeholder="EMP-001">
+                <label class="form-label">Employee ID <span class="text-xs text-gray-500">(Auto-generated)</span></label>
+                <input type="text" formControlName="employeeId" class="form-input bg-gray-100 cursor-not-allowed" placeholder="Auto-generated (e.g., TE-000001)" [disabled]="true">
+                <p class="text-xs text-gray-500 mt-1">Employee ID will be automatically generated when you save</p>
               </div>
               <div>
                 <label class="form-label">Hire Date *</label>
@@ -181,7 +182,7 @@ export class TeacherFormComponent implements OnInit {
         city: ['']
       }),
       academicInfo: this.fb.group({
-        employeeId: ['', Validators.required],
+        employeeId: [{value: '', disabled: true}], // Auto-generated, not required
         hireDate: ['', Validators.required]
       })
     });

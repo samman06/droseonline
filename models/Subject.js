@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const subjectSchema = new mongoose.Schema({
   name: {
@@ -9,7 +10,6 @@ const subjectSchema = new mongoose.Schema({
   },
   code: {
     type: String,
-    required: true,
     unique: true,
     uppercase: true,
     trim: true,
@@ -60,12 +60,24 @@ subjectSchema.index({ name: 1 });
 subjectSchema.index({ isActive: 1 });
 subjectSchema.index({ createdBy: 1 });
 
-// Pre-save middleware to ensure code is uppercase
-subjectSchema.pre('save', function(next) {
-  if (this.code) {
-    this.code = this.code.toUpperCase();
+// Pre-save middleware to auto-generate code and ensure uppercase
+subjectSchema.pre('save', async function(next) {
+  try {
+    // Auto-generate subject code if not provided
+    if (this.isNew && !this.code) {
+      const sequence = await Counter.getNextSequence('subject');
+      this.code = `SU-${String(sequence).padStart(6, '0')}`;
+    }
+    
+    // Ensure code is uppercase
+    if (this.code) {
+      this.code = this.code.toUpperCase();
+    }
+    
+    next();
+  } catch (error) {
+    next(error);
   }
-  next();
 });
 
 module.exports = mongoose.model('Subject', subjectSchema);

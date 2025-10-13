@@ -24,8 +24,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
             <input class="form-input" formControlName="name" placeholder="e.g., Mathematics" />
           </div>
           <div>
-            <label class="form-label">Code</label>
-            <input class="form-input" formControlName="code" placeholder="e.g., MATH-01" />
+            <label class="form-label">Code <span class="text-xs text-gray-500">(Auto-generated)</span></label>
+            <input class="form-input bg-gray-100 cursor-not-allowed" formControlName="code" placeholder="Auto-generated (e.g., SU-000001)" [disabled]="true" />
+            <p class="text-xs text-gray-500 mt-1">Code will be automatically generated when you save</p>
           </div>
 
           <!-- Grades removed; assignment happens on groups -->
@@ -67,7 +68,7 @@ export class SubjectFormComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       name: [this.initialValue.name || '', [Validators.required, Validators.minLength(2)]],
-      code: [this.initialValue.code || '', [Validators.required]],
+      code: [{value: this.initialValue.code || '', disabled: true}], // Auto-generated, not required
       // no gradeLevels
       // no totalMarks
     });
