@@ -32,6 +32,7 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
     const groups = await Group.find(query)
       .populate('teacher', 'firstName lastName fullName')
       .populate('subject', 'name code')
+      .populate('course', 'name code semester academicYear startDate endDate')
       .populate('classMonitor', 'firstName lastName fullName')
       .populate('createdBy', 'firstName lastName fullName')
       .populate({
@@ -73,6 +74,7 @@ router.get('/:id', authenticate, async (req, res) => {
     const group = await Group.findById(req.params.id)
       .populate('teacher', 'firstName lastName fullName email')
       .populate('subject', 'name code')
+      .populate('course', 'name code semester academicYear startDate endDate creditHours')
       .populate('classMonitor', 'firstName lastName fullName email')
       .populate('createdBy', 'firstName lastName fullName')
       .populate({

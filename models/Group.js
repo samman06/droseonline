@@ -30,6 +30,11 @@ const groupSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  // Course (optional - if group is part of a formal course)
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
   // Grade filter for enrollment (Egyptian grades)
   gradeLevel: {
     type: String,

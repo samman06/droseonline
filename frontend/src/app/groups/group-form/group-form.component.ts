@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
+import { CourseService } from '../../services/course.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
@@ -42,7 +43,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } fr
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="form-label">Teacher</label>
               <select class="form-input" formControlName="teacher">
@@ -57,8 +58,19 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } fr
                 <option *ngFor="let s of subjects" [value]="s.id || s._id">{{ s.name }} ({{ s.code }})</option>
               </select>
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="form-label">Grade</label>
+              <label class="form-label">Course <span class="text-xs text-gray-500">(Optional - for formal courses)</span></label>
+              <select class="form-input" formControlName="course">
+                <option value="">None (Standalone Group)</option>
+                <option *ngFor="let c of courses" [value]="c._id">{{ c.name }} - {{ c.code }} ({{ c.semester | titlecase }})</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">Link this group to a formal course if applicable</p>
+            </div>
+            <div>
+              <label class="form-label">Grade Level</label>
               <select class="form-input" formControlName="gradeLevel">
                 <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
               </select>
@@ -137,19 +149,28 @@ export class GroupFormComponent implements OnInit {
   readonly grades = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
   teachers: any[] = [];
   subjects: any[] = [];
+  courses: any[] = [];
 
-  constructor(private fb: FormBuilder, private teacherService: TeacherService, private subjectService: SubjectService, private router: Router) {}
+  constructor(
+    private fb: FormBuilder, 
+    private teacherService: TeacherService, 
+    private subjectService: SubjectService, 
+    private courseService: CourseService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     // Normalize initial IDs if objects were provided
     const initialTeacherId = this.initialValue.teacher?._id || this.initialValue.teacher || '';
     const initialSubjectId = this.initialValue.subject?._id || this.initialValue.subject || '';
+    const initialCourseId = this.initialValue.course?._id || this.initialValue.course || '';
 
     this.form = this.fb.group({
       name: [this.initialValue.name || '', [Validators.required, Validators.minLength(2)]],
       code: [this.initialValue.code || '', [Validators.required]],
       teacher: [initialTeacherId, [Validators.required]],
       subject: [initialSubjectId, [Validators.required]],
+      course: [initialCourseId],  // Optional field
       gradeLevel: [this.initialValue.gradeLevel || 'Grade 9', [Validators.required]],
       schedule: this.fb.array((this.initialValue.schedule || [{ day: 'saturday', startTime: '10:00', endTime: '12:00' }]).map((s: any) => this.fb.group({
         day: [s.day || 'saturday', Validators.required],
@@ -174,6 +195,13 @@ export class GroupFormComponent implements OnInit {
         this.subjects = Array.isArray(list) ? list : [];
       },
       error: err => { console.error('Failed to load subjects:', err); this.subjects = []; }
+    });
+    this.courseService.getCourses({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+      next: res => {
+        const list = res.data || [];
+        this.courses = Array.isArray(list) ? list : [];
+      },
+      error: err => { console.error('Failed to load courses:', err); this.courses = []; }
     });
   }
 

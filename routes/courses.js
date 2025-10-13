@@ -44,7 +44,7 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
     const courses = await Course.find(query)
       .populate('subject', 'name code credits type')
       .populate('teacher', 'firstName lastName fullName email')
-      .populate('groups', 'name code level semester currentEnrollment capacity')
+      .populate('groups', 'name code gradeLevel currentEnrollment capacity isActive')
       .populate('academicYear', 'name code isCurrent')
       .limit(limit * 1)
       .skip((page - 1) * limit)
@@ -144,7 +144,7 @@ router.get('/:id', authenticate, async (req, res) => {
     const course = await Course.findById(req.params.id)
       .populate('subject', 'name code credits type syllabus')
       .populate('teacher', 'firstName lastName fullName email academicInfo.department')
-      .populate('groups', 'name code level semester currentEnrollment capacity')
+      .populate('groups', 'name code gradeLevel schedule currentEnrollment capacity isActive')
       .populate('academicYear', 'name code startDate endDate isCurrent');
 
     if (!course) {

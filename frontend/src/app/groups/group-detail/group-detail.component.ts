@@ -34,15 +34,29 @@ import { ConfirmationService } from '../../services/confirmation.service';
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 class="text-xl font-semibold text-gray-900 mb-4">Overview</h2>
-          <div class="text-gray-700"><span class="font-semibold">Teacher:</span> {{ group?.teacher?.fullName || '—' }}</div>
-          <div class="text-gray-700"><span class="font-semibold">Subject:</span> {{ group?.subject?.name || '—' }} ({{ group?.subject?.code }})</div>
-          <div class="text-gray-700"><span class="font-semibold">Price/Session:</span> {{ group?.pricePerSession | currency:'EGP':'symbol-narrow' }}</div>
-          <div class="text-gray-700"><span class="font-semibold">Students:</span> {{ group?.currentEnrollment }}</div>
-          <div class="mt-3"><span class="font-semibold">Status:</span>
-            <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="group?.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
-              <span class="w-2 h-2 rounded-full mr-2" [class]="group?.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-              {{ group?.isActive ? 'Active' : 'Inactive' }}
-            </span>
+          <div class="space-y-2">
+            <div class="text-gray-700"><span class="font-semibold">Teacher:</span> {{ group?.teacher?.fullName || '—' }}</div>
+            <div class="text-gray-700"><span class="font-semibold">Subject:</span> {{ group?.subject?.name || '—' }} ({{ group?.subject?.code }})</div>
+            <div *ngIf="group?.course" class="text-gray-700 bg-blue-50 p-3 rounded-lg border border-blue-200">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
+                </svg>
+                <div>
+                  <p class="font-semibold text-blue-900">Linked Course</p>
+                  <p class="text-sm text-blue-700">{{ group?.course?.name }} ({{ group?.course?.code }})</p>
+                  <p class="text-xs text-blue-600">{{ group?.course?.semester | titlecase }} Semester</p>
+                </div>
+              </div>
+            </div>
+            <div class="text-gray-700"><span class="font-semibold">Price/Session:</span> {{ group?.pricePerSession | currency:'EGP':'symbol-narrow' }}</div>
+            <div class="text-gray-700"><span class="font-semibold">Students:</span> {{ group?.currentEnrollment }}</div>
+            <div class="mt-3"><span class="font-semibold">Status:</span>
+              <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="group?.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
+                <span class="w-2 h-2 rounded-full mr-2" [class]="group?.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
+                {{ group?.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
           </div>
         </div>
 

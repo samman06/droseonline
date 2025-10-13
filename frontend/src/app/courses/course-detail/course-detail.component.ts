@@ -164,6 +164,44 @@ import { AuthService } from '../../services/auth.service';
           </div>
         </div>
 
+        <!-- Groups -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Class Sections (Groups)</h2>
+            <span class="text-sm text-gray-600">{{ course?.groups?.length || 0 }} section(s)</span>
+          </div>
+
+          <div *ngIf="course?.groups && course.groups.length > 0" class="space-y-3">
+            <div *ngFor="let group of course.groups" 
+                 [routerLink]="['/dashboard/groups', group._id]"
+                 class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:shadow-md transition-all cursor-pointer border border-blue-200">
+              <div class="flex-1">
+                <h3 class="font-semibold text-gray-900">{{ group.name }}</h3>
+                <p class="text-sm text-gray-600">Code: {{ group.code }} • Grade: {{ group.gradeLevel }}</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <span *ngFor="let s of group.schedule" class="text-xs px-2 py-1 bg-white rounded-md border border-blue-200">
+                    {{ s.day | titlecase }} {{ s.startTime }}-{{ s.endTime }}
+                  </span>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <span class="text-sm font-medium text-blue-900">{{ group.currentEnrollment || 0 }} students</span>
+                <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-full" 
+                      [class]="group.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                  {{ group.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!course?.groups || course.groups.length === 0" class="text-center py-8 text-gray-500">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <p>No class sections created yet</p>
+          </div>
+        </div>
+
         <!-- Assignments -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div class="flex justify-between items-center mb-4">
