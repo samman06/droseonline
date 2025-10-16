@@ -229,6 +229,7 @@ const paginationSchema = Joi.object({
   search: Joi.string().max(100).optional(),
   // Additional filter parameters for students and teachers
   isActive: Joi.string().valid('true', 'false', '').optional().allow(''),
+  year: Joi.string().max(50).optional().allow(''),
   grade: Joi.string().max(50).optional().allow(''),
   currentYear: Joi.number().integer().min(1).max(6).optional(),
   groupId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),

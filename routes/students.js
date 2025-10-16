@@ -20,28 +20,54 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
     
     console.log('GET /api/students - Query params:', req.query);
     console.log('isActive param:', isActive, 'type:', typeof isActive);
+    console.log('year param:', year, 'type:', typeof year);
+    console.log('grade param:', grade, 'type:', typeof grade);
     
     // Build query for students only
     const query = { role: 'student' };
+    const andConditions = [];
     
     if (search) {
-      query.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { 'academicInfo.studentId': { $regex: search, $options: 'i' } }
-      ];
+      andConditions.push({
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { 'academicInfo.studentId': { $regex: search, $options: 'i' } }
+        ]
+      });
     }
     
     // Support both 'year' and 'currentYear' for backward compatibility, and new 'grade' filter
-    if (year) query['academicInfo.year'] = year;
-    if (grade) query['academicInfo.currentGrade'] = grade;
+    // Check both currentGrade and year fields since students might have grade in either field
+    if (year) {
+      andConditions.push({
+        $or: [
+          { 'academicInfo.year': year },
+          { 'academicInfo.currentGrade': year }
+        ]
+      });
+    }
+    if (grade) {
+      andConditions.push({
+        $or: [
+          { 'academicInfo.currentGrade': grade },
+          { 'academicInfo.year': grade }
+        ]
+      });
+    }
     if (currentYear) query['academicInfo.currentYear'] = parseInt(currentYear);
     if (isActive !== undefined && isActive !== '') {
       query.isActive = isActive === 'true';
       console.log('Applied isActive filter:', query.isActive);
     }
     if (groupId) query['academicInfo.groups'] = groupId;
+    
+    // Combine all conditions with $and if there are multiple $or conditions
+    if (andConditions.length > 0) {
+      query.$and = andConditions;
+      console.log('andConditions array:', JSON.stringify(andConditions, null, 2));
+    }
 
     console.log('Final MongoDB query:', JSON.stringify(query, null, 2));
 
@@ -143,8 +169,8 @@ router.put('/:id', authenticate, async (req, res) => {
 
     // Define allowed fields based on user role
     const allowedFields = req.user.role === 'admin' 
-      ? ['firstName', 'lastName', 'phoneNumber', 'dateOfBirth', 'address', 'academicInfo', 'isActive']
-      : ['firstName', 'lastName', 'phoneNumber', 'dateOfBirth', 'address'];
+      ? ['firstName', 'lastName', 'phoneNumber', 'dateOfBirth', 'address', 'parentContact', 'academicInfo', 'isActive']
+      : ['firstName', 'lastName', 'phoneNumber', 'dateOfBirth', 'address', 'parentContact'];
 
     const updates = {};
     Object.keys(req.body).forEach(key => {
@@ -695,6 +721,7 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
       phoneNumber,
       dateOfBirth,
       address,
+      parentContact,
       academicInfo,
       isActive = true
     } = req.body;
@@ -718,6 +745,7 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
       phoneNumber,
       dateOfBirth,
       address,
+      parentContact: parentContact || { primaryPhone: '', secondaryPhone: '' },
       academicInfo: {
         ...academicInfo,
         groups: [],

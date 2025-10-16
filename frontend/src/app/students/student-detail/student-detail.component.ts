@@ -156,20 +156,56 @@ interface Student {
                     <dt class="text-sm font-medium text-gray-500">City</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ student.address.city }}</dd>
                   </div>
-                  <div *ngIf="student.parentContact && student.parentContact.primaryPhone">
-                    <dt class="text-sm font-medium text-gray-500">Primary Parent Phone</dt>
+                </dl>
+              </div>
+            </div>
+
+            <!-- Parent Contact Information -->
+            <div class="card">
+              <div class="card-header bg-gradient-to-r from-purple-50 to-pink-50">
+                <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                  </svg>
+                  Parent Contact Information
+                </h2>
+              </div>
+              <div class="card-body">
+                <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500 flex items-center">
+                      <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                      </svg>
+                      Primary Parent Phone
+                    </dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                      <a [href]="'tel:' + student.parentContact.primaryPhone" class="text-blue-600 hover:text-blue-800">
-                        {{ student.parentContact.primaryPhone }}
-                      </a>
+                      <span *ngIf="student.parentContact?.primaryPhone; else noPrimary">
+                        <a [href]="'tel:' + student.parentContact!.primaryPhone" class="text-blue-600 hover:text-blue-800 font-medium">
+                          {{ student.parentContact!.primaryPhone }}
+                        </a>
+                      </span>
+                      <ng-template #noPrimary>
+                        <span class="text-gray-400 italic">Not provided</span>
+                      </ng-template>
                     </dd>
                   </div>
-                  <div *ngIf="student.parentContact && student.parentContact.secondaryPhone">
-                    <dt class="text-sm font-medium text-gray-500">Secondary Parent Phone</dt>
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500 flex items-center">
+                      <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                      </svg>
+                      Secondary Parent Phone
+                    </dt>
                     <dd class="mt-1 text-sm text-gray-900">
-                      <a [href]="'tel:' + student.parentContact.secondaryPhone" class="text-blue-600 hover:text-blue-800">
-                        {{ student.parentContact.secondaryPhone }}
-                      </a>
+                      <span *ngIf="student.parentContact?.secondaryPhone; else noSecondary">
+                        <a [href]="'tel:' + student.parentContact!.secondaryPhone" class="text-blue-600 hover:text-blue-800 font-medium">
+                          {{ student.parentContact!.secondaryPhone }}
+                        </a>
+                      </span>
+                      <ng-template #noSecondary>
+                        <span class="text-gray-400 italic">Not provided</span>
+                      </ng-template>
                     </dd>
                   </div>
                 </dl>

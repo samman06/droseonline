@@ -118,22 +118,30 @@ userSchema.virtual('fullName').get(function() {
 // Auto-generate codes and hash password before saving
 userSchema.pre('save', async function(next) {
   try {
+    // Ensure academicInfo exists
+    if (!this.academicInfo) {
+      this.academicInfo = {};
+    }
+    
     // Generate student ID for students
     if (this.isNew && this.role === 'student' && !this.academicInfo.studentId) {
       const sequence = await Counter.getNextSequence('student');
       this.academicInfo.studentId = `ST-${String(sequence).padStart(6, '0')}`;
+      this.markModified('academicInfo');
     }
     
     // Generate employee ID for teachers
     if (this.isNew && this.role === 'teacher' && !this.academicInfo.employeeId) {
       const sequence = await Counter.getNextSequence('teacher');
       this.academicInfo.employeeId = `TE-${String(sequence).padStart(6, '0')}`;
+      this.markModified('academicInfo');
     }
     
     // Generate employee ID for admins
     if (this.isNew && this.role === 'admin' && !this.academicInfo.employeeId) {
       const sequence = await Counter.getNextSequence('admin');
       this.academicInfo.employeeId = `AD-${String(sequence).padStart(6, '0')}`;
+      this.markModified('academicInfo');
     }
     
     // Hash password if modified
