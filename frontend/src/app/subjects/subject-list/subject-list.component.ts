@@ -30,11 +30,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path>
                   </svg>
-                  {{ subjects.length }} Total
-                </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                  {{ getActiveSubjectsCount() }} Active
+                    {{ subjects.length }} Subjects
                 </span>
               </div>
             </div>
@@ -76,102 +72,82 @@ import { ConfirmationService } from '../../services/confirmation.service';
             Search: {{ filters.search }}
             <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
-          <span *ngIf="filters.isActive" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Status: {{ filters.isActive === 'true' ? 'Active' : 'Inactive' }}
-            <button (click)="removeFilter('isActive')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
-          </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Search by Name or Code -->
-          <div>
-            <input 
-              type="text" 
-              [(ngModel)]="filters.search" 
-              (ngModelChange)="onSearchChange($event)" 
-              class="form-input" 
-              placeholder="🔍 Search by name or code..."
-            >
-          </div>
-          
-          <!-- Status Filter -->
-          <div>
-            <select 
-              [(ngModel)]="filters.isActive" 
-              (ngModelChange)="onFiltersChange()" 
-              class="form-select"
-            >
-              <option value="">All Status</option>
-              <option value="true">Active Only</option>
-              <option value="false">Inactive Only</option>
-            </select>
-          </div>
+        <!-- Search by Name or Code -->
+        <div>
+          <input 
+            type="text" 
+            [(ngModel)]="filters.search" 
+            (ngModelChange)="onSearchChange($event)" 
+            class="form-input" 
+            placeholder="🔍 Search by name or code..."
+          >
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3"></th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200" *ngIf="!isLoading">
-              <tr *ngFor="let subject of subjects">
-                <td class="px-6 py-4">
-                  <div class="text-sm font-medium text-gray-900">{{ subject.name }}</div>
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ subject.code }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span *ngIf="subject.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-2 border-green-300 shadow-sm hover:shadow-md transition-all duration-200">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="tracking-wide">ACTIVE</span>
-                  </span>
-                  <span *ngIf="!subject.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-red-50 to-orange-50 text-red-700 border-2 border-red-300 shadow-sm hover:shadow-md transition-all duration-200">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="tracking-wide">INACTIVE</span>
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div class="relative inline-block text-left">
-                    <button (click)="toggleDropdown(subject.id)" class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
-                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-                    </button>
-                    <div *ngIf="openDropdownId === subject.id" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div class="py-1">
-                        <button (click)="viewSubject(subject); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
-                          View Details
-                        </button>
-                        <button (click)="editSubject(subject); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150">
-                          Edit Subject
-                        </button>
-                        <button *ngIf="!subject.isActive" (click)="activate(subject); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-green-700 hover:bg-green-50 transition-colors duration-150">Activate</button>
-                        <button *ngIf="subject.isActive" (click)="deactivate(subject); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors duration-150">Deactivate</button>
-                        <div class="border-t border-gray-100"></div>
-                        <button (click)="deleteSubject(subject); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150">
-                          Delete Subject
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-            <tbody *ngIf="isLoading">
-              <tr>
-                <td colspan="4" class="px-6 py-8 text-center text-gray-500">Loading...</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="text-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+        <p class="mt-4 text-gray-500">Loading subjects...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && subjects.length === 0" class="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No subjects found</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by adding a new subject.</p>
+        <div class="mt-6">
+          <button (click)="navigateToCreate()" class="btn-primary">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Subject
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Layout -->
+      <div *ngIf="!isLoading && subjects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let subject of subjects" class="bg-white rounded-xl shadow-sm border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 overflow-hidden">
+          <!-- Card Header with Gradient -->
+          <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-white mb-1">{{ subject.name }}</h3>
+                <p class="text-sm text-indigo-100 font-mono">{{ subject.code }}</p>
+              </div>
+              <svg class="w-6 h-6 text-white opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          <div class="px-6 py-4 bg-gray-50 flex items-center justify-end space-x-2">
+            <button 
+              (click)="editSubject(subject)" 
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all duration-200"
+              title="Edit Subject"
+            >
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              Edit
+            </button>
+            <button 
+              (click)="deleteSubject(subject)" 
+              class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-all duration-200"
+              title="Delete Subject"
+            >
+              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Delete
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -186,12 +162,9 @@ import { ConfirmationService } from '../../services/confirmation.service';
 export class SubjectListComponent implements OnInit {
   subjects: any[] = [];
   isLoading = false;
-  openDropdownId: string | null = null;
   private searchDebounce: any;
 
-  filters: any = { search: '', isActive: '', limit: 100 };
-
-  // Grades removed
+  filters: any = { search: '', limit: 100 };
 
   constructor(private subjectService: SubjectService, private router: Router, private confirmation: ConfirmationService) {}
 
@@ -212,8 +185,6 @@ export class SubjectListComponent implements OnInit {
       error: _ => { this.isLoading = false; }
     });
   }
-
-  onFiltersChange(): void { this.loadSubjects(); }
   
   onSearchChange(value: string): void {
     if (this.searchDebounce) {
@@ -225,20 +196,20 @@ export class SubjectListComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.filters = { search: '', isActive: '', limit: 100 };
+    this.filters = { search: '', limit: 100 };
     this.loadSubjects();
   }
 
   hasActiveFilters(): boolean {
-    return !!(this.filters.search || this.filters.isActive);
+    return !!this.filters.search;
   }
 
-  removeFilter(key: 'search' | 'isActive'): void {
+  removeFilter(key: 'search'): void {
     (this.filters as any)[key] = '';
     this.loadSubjects();
   }
+
   navigateToCreate(): void { this.router.navigate(['/dashboard/subjects/new']); }
-  viewSubject(s: any): void { this.router.navigate(['/dashboard/subjects', s.id || s._id]); }
   editSubject(s: any): void { this.router.navigate(['/dashboard/subjects', s.id || s._id, 'edit']); }
 
   async deleteSubject(s: any): Promise<void> {
@@ -253,50 +224,17 @@ export class SubjectListComponent implements OnInit {
     this.subjectService.deleteSubject(s.id || s._id).subscribe({ next: _ => this.loadSubjects() });
   }
 
-  toggleDropdown(id: string): void { this.openDropdownId = this.openDropdownId === id ? null : id; }
-  closeDropdown(): void { this.openDropdownId = null; }
-
-  async activate(s: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({
-      title: 'Activate Subject',
-      message: `Activate ${s.name}?`,
-      confirmText: 'Yes, Activate',
-      cancelText: 'Cancel',
-      type: 'info'
-    });
-    if (!confirmed) return;
-    this.subjectService.activateSubject(s.id || s._id).subscribe({ next: _ => this.loadSubjects() });
-  }
-
-  async deactivate(s: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({
-      title: 'Deactivate Subject',
-      message: `Deactivate ${s.name}?`,
-      confirmText: 'Yes, Deactivate',
-      cancelText: 'Cancel',
-      type: 'warning'
-    });
-    if (!confirmed) return;
-    this.subjectService.deactivateSubject(s.id || s._id).subscribe({ next: _ => this.loadSubjects() });
-  }
-
-  // Statistics methods
-  getActiveSubjectsCount(): number {
-    return this.subjects.filter(subject => subject.isActive).length;
-  }
-
   // Export method
   exportSubjects(): void {
     if (this.subjects.length === 0) return;
     
     // Create CSV content
-    const headers = ['Subject Code', 'Subject Name', 'Status', 'Created Date'];
+    const headers = ['Subject Code', 'Subject Name', 'Created Date'];
     const csvContent = [
       headers.join(','),
       ...this.subjects.map(subject => [
         subject.code,
         `"${subject.name}"`,
-        subject.isActive ? 'Active' : 'Inactive',
         new Date(subject.createdAt || Date.now()).toLocaleDateString()
       ].join(','))
     ].join('\n');

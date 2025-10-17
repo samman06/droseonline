@@ -215,10 +215,6 @@ export const routes: Routes = [
             loadComponent: () => import('./subjects/subject-create/subject-create.component').then(m => m.SubjectCreateComponent)
           },
           {
-            path: ':id',
-            loadComponent: () => import('./subjects/subject-detail/subject-detail.component').then(m => m.SubjectDetailComponent)
-          },
-          {
             path: ':id/edit',
             loadComponent: () => import('./subjects/subject-edit/subject-edit.component').then(m => m.SubjectEditComponent)
           }

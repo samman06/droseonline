@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -50,7 +50,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
     .btn-secondary { @apply inline-flex items-center px-6 py-3 border-2 border-gray-300 text-sm font-semibold rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200; }
   `]
 })
-export class SubjectFormComponent implements OnInit {
+export class SubjectFormComponent implements OnInit, OnChanges {
   @Input() initialValue: any = {};
   @Input() title = 'Add Subject';
   @Input() subtitle = 'Create a new subject and assign grades';
@@ -67,10 +67,29 @@ export class SubjectFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      name: [this.initialValue.name || '', [Validators.required, Validators.minLength(2)]],
-      code: [{value: this.initialValue.code || '', disabled: true}], // Auto-generated, not required
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      code: [{value: '', disabled: true}], // Auto-generated, not required
       // no gradeLevels
       // no totalMarks
+    });
+    
+    // Initialize form with initial value if available
+    if (this.initialValue && Object.keys(this.initialValue).length > 0) {
+      this.updateFormValues();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Update form when initialValue changes
+    if (changes['initialValue'] && this.form && changes['initialValue'].currentValue) {
+      this.updateFormValues();
+    }
+  }
+
+  private updateFormValues(): void {
+    this.form.patchValue({
+      name: this.initialValue.name || '',
+      code: this.initialValue.code || ''
     });
   }
 
