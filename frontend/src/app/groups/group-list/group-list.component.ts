@@ -134,6 +134,7 @@ import { SubjectService } from '../../services/subject.service';
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Assignments</th>
                 <th class="px-6 py-3"></th>
               </tr>
             </thead>
@@ -152,6 +153,23 @@ import { SubjectService } from '../../services/subject.service';
                       </svg>
                       {{ s.day | titlecase }}: {{ s.startTime }}-{{ s.endTime }}
                     </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <div class="flex items-center justify-center space-x-2">
+                    <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200">
+                      <svg class="w-4 h-4 mr-1.5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                      </svg>
+                      <span class="font-bold text-purple-700">{{ g.assignmentCount?.total || 0 }}</span>
+                    </div>
+                    <div *ngIf="g.assignmentCount?.published > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-semibold" title="Published">
+                      {{ g.assignmentCount.published }} 📋
+                    </div>
+                    <div *ngIf="g.assignmentCount?.draft > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-700 text-xs font-semibold" title="Draft">
+                      {{ g.assignmentCount.draft }} ✏️
+                    </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -173,7 +191,7 @@ import { SubjectService } from '../../services/subject.service';
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">Loading...</td>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading...</td>
               </tr>
             </tbody>
           </table>
@@ -297,7 +315,7 @@ export class GroupListComponent implements OnInit {
     if (this.groups.length === 0) return;
     
     // Create CSV content
-    const headers = ['Group Name', 'Code', 'Teacher', 'Subject', 'Grade Level', 'Students'];
+    const headers = ['Group Name', 'Code', 'Teacher', 'Subject', 'Grade Level', 'Students', 'Assignments'];
     const csvContent = [
       headers.join(','),
       ...this.groups.map(group => [
@@ -306,7 +324,8 @@ export class GroupListComponent implements OnInit {
         `"${group.course?.teacher?.fullName || ''}"`,
         `"${group.course?.subject?.name || ''}"`,
         group.gradeLevel || '',
-        group.currentEnrollment || 0
+        group.currentEnrollment || 0,
+        group.assignmentCount?.total || 0
       ].join(','))
     ].join('\n');
 

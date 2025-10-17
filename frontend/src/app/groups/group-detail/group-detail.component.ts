@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group.service';
 import { StudentService } from '../../services/student.service';
@@ -10,7 +10,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-group-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="max-w-7xl mx-auto p-6 space-y-6">
       <!-- Back Button -->
@@ -182,6 +182,108 @@ import { ToastService } from '../../services/toast.service';
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                 </svg>
                 <span>{{ s.day | titlecase }}: {{ s.startTime }}-{{ s.endTime }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignments Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <svg class="w-6 h-6 text-white mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                  <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                </svg>
+                <h2 class="text-xl font-bold text-white">Assignments</h2>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-white/20 backdrop-blur-sm text-white text-sm font-semibold">
+                  {{ group?.assignmentStats?.total || 0 }} Total
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="p-6">
+            <div *ngIf="!group?.assignmentStats || group.assignmentStats.total === 0" class="text-center py-8">
+              <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <p class="text-gray-600 font-medium mb-2">No assignments yet</p>
+              <p class="text-sm text-gray-500">Create assignments for this group to get started</p>
+            </div>
+
+            <div *ngIf="group?.assignmentStats && group.assignmentStats.total > 0" class="space-y-4">
+              <!-- Assignment Stats Row -->
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-4 pb-4 border-b border-gray-200">
+                <div class="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div class="text-2xl font-bold text-green-700">{{ group.assignmentStats.published }}</div>
+                  <div class="text-xs text-green-600 font-medium mt-1">Published</div>
+                </div>
+                <div class="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div class="text-2xl font-bold text-yellow-700">{{ group.assignmentStats.draft }}</div>
+                  <div class="text-xs text-yellow-600 font-medium mt-1">Draft</div>
+                </div>
+                <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="text-2xl font-bold text-gray-700">{{ group.assignmentStats.closed }}</div>
+                  <div class="text-xs text-gray-600 font-medium mt-1">Closed</div>
+                </div>
+                <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div class="text-2xl font-bold text-blue-700">{{ group.assignmentStats.upcoming }}</div>
+                  <div class="text-xs text-blue-600 font-medium mt-1">Upcoming</div>
+                </div>
+                <div class="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div class="text-2xl font-bold text-red-700">{{ group.assignmentStats.overdue }}</div>
+                  <div class="text-xs text-red-600 font-medium mt-1">Overdue</div>
+                </div>
+              </div>
+
+              <!-- Assignments List -->
+              <div class="space-y-3">
+                <a *ngFor="let assignment of group.assignmentStats.assignments" 
+                     class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all duration-200 cursor-pointer"
+                     [routerLink]="['/dashboard/assignments', assignment._id]">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-3">
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold" 
+                            [ngClass]="{
+                              'bg-green-100 text-green-700': assignment.status === 'published',
+                              'bg-yellow-100 text-yellow-700': assignment.status === 'draft',
+                              'bg-gray-100 text-gray-700': assignment.status === 'closed'
+                            }">
+                        {{ assignment.status }}
+                      </span>
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-700">
+                        {{ assignment.type }}
+                      </span>
+                      <span class="text-xs text-gray-500 font-mono">{{ assignment.code }}</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mt-2">{{ assignment.title }}</h4>
+                    <div class="flex items-center space-x-4 mt-1 text-sm text-gray-600">
+                      <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ assignment.dueDate | date:'short' }}
+                      </span>
+                      <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                          <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ assignment.maxPoints }} pts
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </a>
               </div>
             </div>
           </div>
