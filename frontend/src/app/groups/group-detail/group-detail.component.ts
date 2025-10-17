@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group.service';
+import { StudentService } from '../../services/student.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-group-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="max-w-7xl mx-auto p-6 space-y-6">
       <!-- Back Button -->
@@ -196,9 +198,17 @@ import { ToastService } from '../../services/toast.service';
               </svg>
               <h2 class="text-xl font-bold text-white">Enrolled Students</h2>
             </div>
-            <span class="px-3 py-1 bg-white bg-opacity-20 rounded-lg text-white font-bold text-sm">
-              {{ group?.students?.length || 0 }}
-            </span>
+            <div class="flex items-center gap-3">
+              <span class="px-3 py-1 bg-white bg-opacity-20 rounded-lg text-white font-bold text-sm">
+                {{ group?.students?.length || 0 }}
+              </span>
+              <button (click)="openAddStudentModal()" class="btn-add-student">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Student
+              </button>
+            </div>
           </div>
         </div>
         
@@ -220,6 +230,7 @@ import { ToastService } from '../../services/toast.service';
                 <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student Phone</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Parent Phone</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Enrollment Date</th>
+                <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -257,9 +268,90 @@ import { ToastService } from '../../services/toast.service';
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                   {{ studentEnrollment?.enrollmentDate ? (studentEnrollment?.enrollmentDate | date:'MMM d, yyyy') : '—' }}
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                  <button (click)="removeStudent(studentEnrollment?.student?._id || studentEnrollment?.student?.id)" 
+                          class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-red-600 hover:bg-red-50 border border-red-300 hover:border-red-400 transition-all">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Remove
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div *ngIf="showAddStudentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+      <div class="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-auto" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 rounded-t-2xl">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+              </svg>
+              <h3 class="text-xl font-bold text-white">Add Student to Group</h3>
+            </div>
+            <button (click)="closeAddStudentModal()" class="text-white hover:text-gray-200 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Search and Select Student</label>
+            <input
+              type="text"
+              [(ngModel)]="studentSearchTerm"
+              (input)="searchStudents()"
+              placeholder="Search by name, email, or student ID..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
+          </div>
+
+          <div *ngIf="loadingStudents" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            <p class="text-gray-500 mt-2">Loading students...</p>
+          </div>
+
+          <div *ngIf="!loadingStudents && availableStudents.length === 0" class="text-center py-8">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <p class="text-gray-500">No available students found for grade {{ group?.gradeLevel }}</p>
+          </div>
+
+          <div *ngIf="!loadingStudents && availableStudents.length > 0" class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+            <div *ngFor="let student of availableStudents" 
+                 (click)="selectStudent(student)"
+                 class="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
+                {{ getInitials(student.firstName, student.lastName) }}
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">{{ student.fullName }}</p>
+                <p class="text-xs text-gray-500">{{ student.academicInfo?.studentId }} • {{ student.academicInfo?.currentGrade }}</p>
+              </div>
+              <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-gray-50 rounded-b-2xl flex justify-end">
+          <button (click)="closeAddStudentModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -268,13 +360,19 @@ import { ToastService } from '../../services/toast.service';
     .btn-clone-white { @apply inline-flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg bg-white bg-opacity-20 text-white hover:bg-opacity-30 backdrop-blur-sm border-2 border-white border-opacity-30 shadow-lg hover:shadow-xl transition-all duration-200; }
     .btn-edit-white { @apply inline-flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg bg-white bg-opacity-20 text-white hover:bg-opacity-30 backdrop-blur-sm border-2 border-white border-opacity-30 shadow-lg hover:shadow-xl transition-all duration-200; }
     .btn-danger-white { @apply inline-flex items-center px-4 py-2.5 text-sm font-semibold rounded-lg bg-red-500 bg-opacity-90 text-white hover:bg-opacity-100 backdrop-blur-sm border-2 border-red-600 shadow-lg hover:shadow-xl transition-all duration-200; }
+    .btn-add-student { @apply inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-white text-green-600 hover:bg-green-50 border-2 border-white shadow-md hover:shadow-lg transition-all duration-200; }
   `]
 })
 export class GroupDetailComponent implements OnInit {
   group: any;
+  showAddStudentModal = false;
+  availableStudents: any[] = [];
+  loadingStudents = false;
+  studentSearchTerm = '';
 
   constructor(
-    private groupService: GroupService, 
+    private groupService: GroupService,
+    private studentService: StudentService,
     private route: ActivatedRoute, 
     private router: Router, 
     private confirmation: ConfirmationService,
@@ -383,6 +481,112 @@ export class GroupDetailComponent implements OnInit {
     const first = firstName?.charAt(0)?.toUpperCase() || '';
     const last = lastName?.charAt(0)?.toUpperCase() || '';
     return `${first}${last}`;
+  }
+
+  openAddStudentModal(): void {
+    this.showAddStudentModal = true;
+    this.studentSearchTerm = '';
+    this.availableStudents = [];
+    // Automatically search for students when modal opens
+    this.searchStudents();
+  }
+
+  searchStudents(): void {
+    this.loadingStudents = true;
+    const params: any = {
+      year: this.group?.gradeLevel, // Filter by group's grade level
+      limit: 100
+    };
+    
+    if (this.studentSearchTerm) {
+      params.search = this.studentSearchTerm;
+    }
+
+    console.log('Searching students with params:', params);
+
+    this.studentService.getStudents(params).subscribe({
+      next: (res) => {
+        console.log('Students API response:', res);
+        console.log('Students data:', res.data?.students);
+        
+        // Filter out students already in the group
+        const enrolledStudentIds = this.group?.students?.map((s: any) => s.student?._id || s.student?.id) || [];
+        console.log('Already enrolled student IDs:', enrolledStudentIds);
+        
+        const allStudents = res.data?.students || [];
+        console.log('Total students from API:', allStudents.length);
+        
+        this.availableStudents = allStudents.filter(
+          (student: any) => !enrolledStudentIds.includes(student._id || student.id)
+        );
+        
+        console.log('Available students after filtering:', this.availableStudents.length);
+        this.loadingStudents = false;
+      },
+      error: (error) => {
+        console.error('Error loading students:', error);
+        this.toastService.error('Failed to load students');
+        this.loadingStudents = false;
+      }
+    });
+  }
+
+  selectStudent(student: any): void {
+    const studentId = student._id || student.id;
+    const groupId = this.group._id || this.group.id;
+    
+    this.groupService.addStudent(groupId, studentId).subscribe({
+      next: (res) => {
+        this.toastService.success(`${student.fullName} added to group successfully`);
+        this.closeAddStudentModal();
+        // Refresh group data
+        this.groupService.getGroup(groupId).subscribe({
+          next: res => this.group = res.data?.group
+        });
+      },
+      error: (error) => {
+        console.error('Error adding student:', error);
+        this.toastService.showApiError(error);
+      }
+    });
+  }
+
+  async removeStudent(studentId: string): Promise<void> {
+    const studentEnrollment = this.group?.students?.find((s: any) => 
+      (s.student?._id || s.student?.id) === studentId
+    );
+    const studentName = studentEnrollment?.student?.fullName || 'this student';
+    
+    const confirmed = await this.confirmation.confirm({
+      title: 'Remove Student',
+      message: `Remove ${studentName} from this group?`,
+      confirmText: 'Yes, Remove',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+    
+    if (!confirmed) return;
+    
+    const groupId = this.group._id || this.group.id;
+    this.groupService.removeStudent(groupId, studentId).subscribe({
+      next: () => {
+        this.toastService.success(`${studentName} removed from group`);
+        // Refresh group data
+        this.groupService.getGroup(groupId).subscribe({
+          next: res => this.group = res.data?.group
+        });
+      },
+      error: (error) => {
+        console.error('Error removing student:', error);
+        this.toastService.showApiError(error);
+      }
+    });
+  }
+
+  closeAddStudentModal(): void {
+    this.showAddStudentModal = false;
+    this.studentSearchTerm = '';
+    this.availableStudents = [];
   }
 }
 

@@ -64,10 +64,17 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
 
     const total = await Group.countDocuments(query);
 
+    // Filter to show only active students in each group
+    const groupsWithActiveStudents = groups.map(group => {
+      const groupObj = group.toObject();
+      groupObj.students = groupObj.students.filter(s => s.status === 'active');
+      return groupObj;
+    });
+
     res.json({
       success: true,
       data: {
-        groups,
+        groups: groupsWithActiveStudents,
         pagination: {
           total,
           pages: Math.ceil(total / limit),
@@ -113,9 +120,13 @@ router.get('/:id', authenticate, async (req, res) => {
       });
     }
 
+    // Filter to show only active students
+    const groupObj = group.toObject();
+    groupObj.students = groupObj.students.filter(s => s.status === 'active');
+
     res.json({
       success: true,
-      data: { group }
+      data: { group: groupObj }
     });
   } catch (error) {
     console.error('Get group error:', error);
@@ -348,10 +359,14 @@ router.post('/:id/students', authenticate, authorize('admin'), async (req, res) 
         select: 'firstName lastName fullName email academicInfo.studentId'
       });
 
+    // Filter to show only active students
+    const groupObj = updatedGroup.toObject();
+    groupObj.students = groupObj.students.filter(s => s.status === 'active');
+
     res.json({
       success: true,
       message: 'Student added to group successfully',
-      data: { group: updatedGroup }
+      data: { group: groupObj }
     });
   } catch (error) {
     console.error('Add student to group error:', error);
