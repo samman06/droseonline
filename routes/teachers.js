@@ -16,10 +16,11 @@ const router = express.Router();
 // @access  Private (Admin)
 router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, department, isActive } = req.query;
+    const { page = 1, limit = 10, search, department, isActive, subject } = req.query;
     
     console.log('GET /api/teachers - Query params:', req.query);
     console.log('isActive param:', isActive, 'type:', typeof isActive);
+    console.log('subject param:', subject, 'type:', typeof subject);
     
     const query = { role: 'teacher' };
     
@@ -36,6 +37,12 @@ router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema
     if (isActive !== undefined && isActive !== '') {
       query.isActive = isActive === 'true';
       console.log('Applied isActive filter:', query.isActive);
+    }
+    
+    // Filter by subject
+    if (subject) {
+      query['academicInfo.subjects'] = subject;
+      console.log('Applied subject filter:', subject);
     }
 
     console.log('Final MongoDB query:', JSON.stringify(query, null, 2));

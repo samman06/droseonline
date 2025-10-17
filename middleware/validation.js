@@ -244,6 +244,7 @@ const paginationSchema = Joi.object({
   groupId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   department: Joi.string().max(100).optional().allow(''),
   teacherId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
+  subject: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   subjectId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   courseId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   day: Joi.string().max(20).optional().allow(''),
