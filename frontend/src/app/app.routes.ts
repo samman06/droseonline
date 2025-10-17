@@ -178,6 +178,12 @@ export const routes: Routes = [
             loadComponent: () => import('./assignments/assignment-form/assignment-form.component').then(m => m.AssignmentFormComponent)
           },
           {
+            path: 'my-submissions',
+            canActivate: [RoleGuard],
+            data: { roles: ['student'] },
+            loadComponent: () => import('./assignments/my-submissions/my-submissions.component').then(m => m.MySubmissionsComponent)
+          },
+          {
             path: 'grade/:submissionId',
             canActivate: [RoleGuard],
             data: { roles: ['admin', 'teacher'] },
