@@ -15,6 +15,11 @@ const courseSchema = new mongoose.Schema({
     uppercase: true,
     trim: true
   },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: 500
+  },
   
   // Relationships
   subject: {
@@ -34,17 +39,17 @@ const courseSchema = new mongoose.Schema({
   academicYear: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'AcademicYear',
-    required: true
+    required: false
   },
   
   // Course Details
   startDate: {
     type: Date,
-    required: true
+    required: false
   },
   endDate: {
     type: Date,
-    required: true
+    required: false
   },
   
                                                                                                                         // Course Content

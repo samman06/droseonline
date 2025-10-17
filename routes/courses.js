@@ -86,24 +86,6 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(courseSch
       });
     }
 
-    // Verify academic year exists
-    const academicYear = await AcademicYear.findById(req.body.academicYear);
-    if (!academicYear) {
-      return res.status(404).json({
-        success: false,
-        message: 'Academic year not found'
-      });
-    }
-
-    // Check if course code already exists
-    const existingCourse = await Course.findOne({ code: req.body.code });
-    if (existingCourse) {
-      return res.status(400).json({
-        success: false,
-        message: 'Course with this code already exists'
-      });
-    }
-
     const courseData = {
       ...req.body,
       createdBy: req.user._id
@@ -119,9 +101,8 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(courseSch
 
     const populatedCourse = await Course.findById(course._id)
       .populate('subject', 'name code credits type')
-      .populate('teacher', 'firstName lastName fullName')
-      .populate('groups', 'name code level semester')
-      .populate('academicYear', 'name code');
+      .populate('teacher', 'firstName lastName fullName email')
+      .populate('groups', 'name code gradeLevel currentEnrollment capacity');
 
     res.status(201).json({
       success: true,
@@ -137,7 +118,9 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(courseSch
   }
 });
 
-// Other essential routes...
+// @route   GET /api/courses/:id
+// @desc    Get course by ID
+// @access  Private
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
@@ -162,6 +145,111 @@ router.get('/:id', authenticate, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching course'
+    });
+  }
+});
+
+// @route   PUT /api/courses/:id
+// @desc    Update course
+// @access  Private (Admin/Teacher who owns the course)
+router.put('/:id', authenticate, authorize('admin', 'teacher'), validate(courseSchema), async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if teacher is updating their own course
+    if (req.user.role === 'teacher' && course.teacher.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this course'
+      });
+    }
+
+    // Verify subject exists if being updated
+    if (req.body.subject) {
+      const subject = await Subject.findById(req.body.subject);
+      if (!subject) {
+        return res.status(404).json({
+          success: false,
+          message: 'Subject not found'
+        });
+      }
+    }
+
+    // Update course fields
+    const updateFields = [
+      'name', 'description', 'subject', 'teacher', 
+      'creditHours', 'maxStudents', 'startDate', 'endDate',
+      'assessmentStructure', 'syllabus', 'settings'
+    ];
+
+    updateFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        course[field] = req.body[field];
+      }
+    });
+
+    await course.save();
+
+    const updatedCourse = await Course.findById(course._id)
+      .populate('subject', 'name code credits type')
+      .populate('teacher', 'firstName lastName fullName email')
+      .populate('groups', 'name code gradeLevel currentEnrollment capacity')
+      .populate('academicYear', 'name code');
+
+    res.json({
+      success: true,
+      message: 'Course updated successfully',
+      data: { course: updatedCourse }
+    });
+  } catch (error) {
+    console.error('Update course error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating course'
+    });
+  }
+});
+
+// @route   DELETE /api/courses/:id
+// @desc    Delete course
+// @access  Private (Admin only)
+router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    // Check if course has groups
+    if (course.groups && course.groups.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete course with existing groups. Please delete or reassign groups first.'
+      });
+    }
+
+    await course.deleteOne();
+
+    res.json({
+      success: true,
+      message: 'Course deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete course error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting course'
     });
   }
 });

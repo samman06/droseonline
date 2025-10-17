@@ -79,7 +79,6 @@ const courseSchema = Joi.object({
   subject: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
   teacher: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
   groups: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).optional(),
-  academicYear: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
   startDate: Joi.date().optional(),
   endDate: Joi.date().greater(Joi.ref('startDate')).optional(),
   assessmentStructure: Joi.array().items(Joi.object({
@@ -244,7 +243,11 @@ const paginationSchema = Joi.object({
   currentYear: Joi.number().integer().min(1).max(6).optional(),
   groupId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   department: Joi.string().max(100).optional().allow(''),
-  subjectId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow('')
+  teacherId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
+  subjectId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
+  courseId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
+  day: Joi.string().max(20).optional().allow(''),
+  gradeLevel: Joi.string().max(50).optional().allow('')
 });
 
 const objectIdSchema = Joi.object({
