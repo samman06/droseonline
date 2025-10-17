@@ -27,7 +27,6 @@ export interface Assignment {
   allowLateSubmission: boolean;
   latePenalty?: number;
   status: 'draft' | 'published' | 'closed' | 'graded';
-  isVisible: boolean;
   resources?: any[];
   questions?: any[];
   rubric?: any[];

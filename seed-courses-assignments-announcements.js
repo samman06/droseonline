@@ -218,8 +218,7 @@ async function seedCoursesAssignmentsAnnouncements() {
           maxFileSize: 10,
           allowLateSubmission: type !== 'midterm' && type !== 'final',
           latePenalty: 10,
-          status: dueDate > new Date() ? 'published' : 'closed',
-          isVisible: true
+          status: dueDate > new Date() ? 'published' : 'closed'
         });
 
         // Add quiz questions for quiz assignments

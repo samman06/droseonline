@@ -175,10 +175,6 @@ const assignmentSchema = new mongoose.Schema({
     enum: ['draft', 'published', 'closed', 'graded'],
     default: 'draft'
   },
-  isVisible: {
-    type: Boolean,
-    default: true
-  },
   
   // Plagiarism Settings
   plagiarismCheck: {
