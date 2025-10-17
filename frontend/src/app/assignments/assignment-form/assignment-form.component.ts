@@ -495,6 +495,31 @@ export class AssignmentFormComponent implements OnInit {
           // Handle nested response structure
           this.groups = response.data.groups || response.data || [];
           console.log('Loaded groups:', this.groups.length);
+          
+          // Check if there's a pre-selected group from localStorage
+          const preSelectedGroupData = localStorage.getItem('preSelectedGroup');
+          if (preSelectedGroupData && !this.isEditMode) {
+            try {
+              const preSelectedGroup = JSON.parse(preSelectedGroupData);
+              const group = this.groups.find(g => (g._id || g.id) === preSelectedGroup.id);
+              
+              if (group) {
+                // Auto-select the group
+                this.selectedGroups = [group];
+                this.assignmentForm.patchValue({
+                  groups: [preSelectedGroup.id]
+                });
+                
+                this.toastService.success(`Group "${preSelectedGroup.name}" pre-selected`);
+              }
+              
+              // Clear the localStorage after use
+              localStorage.removeItem('preSelectedGroup');
+            } catch (error) {
+              console.error('Error parsing pre-selected group:', error);
+              localStorage.removeItem('preSelectedGroup');
+            }
+          }
         }
       },
       error: (error) => {

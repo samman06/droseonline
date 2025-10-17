@@ -202,6 +202,14 @@ import { ToastService } from '../../services/toast.service';
                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-white/20 backdrop-blur-sm text-white text-sm font-semibold">
                   {{ group?.assignmentStats?.total || 0 }} Total
                 </span>
+                <button 
+                  (click)="createAssignmentForGroup()"
+                  class="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 font-medium shadow-md transition-all transform hover:-translate-y-0.5">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  Create Assignment
+                </button>
               </div>
             </div>
           </div>
@@ -689,6 +697,22 @@ export class GroupDetailComponent implements OnInit {
     this.showAddStudentModal = false;
     this.studentSearchTerm = '';
     this.availableStudents = [];
+  }
+
+  createAssignmentForGroup(): void {
+    // Navigate to assignment creation form with this group pre-selected
+    const groupId = this.group._id || this.group.id;
+    const groupName = this.group.name;
+    
+    // Store the group selection in localStorage for the assignment form to pick up
+    localStorage.setItem('preSelectedGroup', JSON.stringify({
+      id: groupId,
+      name: groupName,
+      code: this.group.code,
+      gradeLevel: this.group.gradeLevel
+    }));
+    
+    this.router.navigate(['/dashboard/assignments/new']);
   }
 }
 
