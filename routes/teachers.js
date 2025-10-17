@@ -49,10 +49,41 @@ router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema
 
     const total = await User.countDocuments(query);
 
+    // Add course and group counts for each teacher
+    const Course = require('../models/Course');
+    const Group = require('../models/Group');
+    
+    const teachersWithCounts = await Promise.all(teachers.map(async (teacher) => {
+      const teacherObj = teacher.toObject();
+      
+      // Find all courses taught by this teacher
+      const courses = await Course.find({ teacher: teacher._id }).populate('subject', '_id name');
+      const courseCount = courses.length;
+      
+      // Get course IDs
+      const courseIds = courses.map(c => c._id);
+      
+      // Count groups assigned to this teacher's courses
+      const groupCount = await Group.countDocuments({ 
+        course: { $in: courseIds } 
+      });
+      
+      // Get unique subjects from courses
+      const uniqueSubjects = new Set(courses.map(c => c.subject?._id?.toString()).filter(Boolean));
+      
+      teacherObj.stats = {
+        coursesCount: courseCount,
+        subjectsCount: uniqueSubjects.size,
+        groupsCount: groupCount
+      };
+      
+      return teacherObj;
+    }));
+
     res.json({
       success: true,
       data: {
-        teachers,
+        teachers: teachersWithCounts,
         pagination: {
           total,
           pages: Math.ceil(total / limit),

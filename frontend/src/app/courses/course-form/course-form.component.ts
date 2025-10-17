@@ -129,33 +129,12 @@ import { AuthService } from '../../services/auth.service';
             <div>
               <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
                 <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                </svg>
-                Subject <span class="text-red-500 ml-1">*</span>
-              </label>
-              <select formControlName="subject" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all">
-                <option value="">Select a subject</option>
-                <option *ngFor="let subject of subjects" [value]="subject._id">
-                  {{ subject.name }} ({{ subject.code }})
-                </option>
-              </select>
-              <div *ngIf="courseForm.get('subject')?.invalid && courseForm.get('subject')?.touched" class="flex items-center text-red-600 text-sm mt-2">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                </svg>
-                Subject is required
-              </div>
-            </div>
-
-            <div>
-              <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
-                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
                 Teacher <span class="text-red-500 ml-1">*</span>
               </label>
-              <select formControlName="teacher" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all">
-                <option value="">Select a teacher</option>
+              <select formControlName="teacher" (change)="onTeacherChange()" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all">
+                <option value="">Select a teacher first</option>
                 <option *ngFor="let teacher of teachers" [value]="teacher._id">
                   {{ teacher.firstName }} {{ teacher.lastName }}
                 </option>
@@ -165,6 +144,44 @@ import { AuthService } from '../../services/auth.service';
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
                 Teacher is required
+              </div>
+            </div>
+
+            <div>
+              <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                Subject <span class="text-red-500 ml-1">*</span>
+              </label>
+              <div class="relative">
+                <select 
+                  formControlName="subject" 
+                  [disabled]="!selectedTeacherId || loadingSubjects"
+                  class="w-full px-4 py-3 rounded-lg border-2 transition-all"
+                  [ngClass]="!selectedTeacherId || loadingSubjects ? 'border-gray-200 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'">
+                  <option value="">{{ !selectedTeacherId ? 'Select teacher first' : (loadingSubjects ? 'Loading subjects...' : 'Select a subject') }}</option>
+                  <option *ngFor="let subject of subjects" [value]="subject._id">
+                    {{ subject.name }} ({{ subject.code }})
+                  </option>
+                </select>
+                <div *ngIf="!selectedTeacherId" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                  </svg>
+                </div>
+              </div>
+              <p *ngIf="!selectedTeacherId" class="flex items-center text-xs text-amber-600 mt-2">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                Please select a teacher to view available subjects
+              </p>
+              <div *ngIf="courseForm.get('subject')?.invalid && courseForm.get('subject')?.touched" class="flex items-center text-red-600 text-sm mt-2">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Subject is required
               </div>
             </div>
 
@@ -310,9 +327,11 @@ export class CourseFormComponent implements OnInit {
   courseId: string | null = null;
   loading = false;
   saving = false;
+  loadingSubjects = false;
   currentUser: any;
   subjects: any[] = [];
   teachers: any[] = [];
+  selectedTeacherId: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -328,7 +347,6 @@ export class CourseFormComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.currentUser;
     this.initForm();
-    this.loadSubjects();
     this.loadTeachers();
     
     this.courseId = this.route.snapshot.paramMap.get('id');
@@ -336,6 +354,46 @@ export class CourseFormComponent implements OnInit {
       this.isEditMode = true;
       this.loadCourse();
     }
+  }
+
+  onTeacherChange(): void {
+    const teacherId = this.courseForm.get('teacher')?.value;
+    
+    if (teacherId) {
+      this.selectedTeacherId = teacherId;
+      // Clear subject selection when teacher changes
+      this.courseForm.patchValue({ subject: '' });
+      // Load subjects for the selected teacher
+      this.loadSubjectsForTeacher(teacherId);
+    } else {
+      this.selectedTeacherId = '';
+      this.subjects = [];
+      this.courseForm.patchValue({ subject: '' });
+    }
+  }
+
+  loadSubjectsForTeacher(teacherId: string): void {
+    this.loadingSubjects = true;
+    this.teacherService.getTeacher(teacherId).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const teacher = response.data.teacher || response.data;
+          this.subjects = teacher.academicInfo?.subjects || [];
+          console.log('Loaded subjects for teacher:', this.subjects);
+          
+          if (this.subjects.length === 0) {
+            this.toastService.warning('This teacher has no subjects assigned', 'No Subjects');
+          }
+        }
+        this.loadingSubjects = false;
+      },
+      error: (error) => {
+        console.error('Failed to load teacher subjects', error);
+        this.toastService.error('Failed to load teacher subjects');
+        this.subjects = [];
+        this.loadingSubjects = false;
+      }
+    });
   }
 
   initForm(): void {
@@ -349,24 +407,6 @@ export class CourseFormComponent implements OnInit {
       maxStudents: [30],
       startDate: [''],
       endDate: ['']
-    });
-  }
-
-  loadSubjects(): void {
-    this.subjectService.getSubjects({ limit: 100 }).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          // Handle nested response structure
-          this.subjects = Array.isArray(response.data) 
-            ? response.data 
-            : (response.data.subjects || []);
-          console.log('Loaded subjects:', this.subjects);
-        }
-      },
-      error: (error) => {
-        console.error('Failed to load subjects', error);
-        this.toastService.error('Failed to load subjects');
-      }
     });
   }
 
@@ -422,19 +462,56 @@ export class CourseFormComponent implements OnInit {
             teacher: teacherId
           });
 
-          this.courseForm.patchValue({
-            name: course.name || '',
-            code: course.code || '',
-            description: course.description || '',
-            subject: subjectId || '',
-            teacher: teacherId || '',
-            creditHours: course.creditHours || 3,
-            maxStudents: course.maxStudents || 30,
-            startDate,
-            endDate
-          });
+          // Set teacher first and load their subjects
+          if (teacherId) {
+            this.selectedTeacherId = teacherId;
+            this.courseForm.patchValue({
+              teacher: teacherId
+            });
+            
+            // Load subjects for the teacher, then set the subject
+            this.teacherService.getTeacher(teacherId).subscribe({
+              next: (teacherResponse) => {
+                if (teacherResponse.success && teacherResponse.data) {
+                  const teacher = teacherResponse.data.teacher || teacherResponse.data;
+                  this.subjects = teacher.academicInfo?.subjects || [];
+                  
+                  // Now patch all form values including subject
+                  this.courseForm.patchValue({
+                    name: course.name || '',
+                    code: course.code || '',
+                    description: course.description || '',
+                    subject: subjectId || '',
+                    creditHours: course.creditHours || 3,
+                    maxStudents: course.maxStudents || 30,
+                    startDate,
+                    endDate
+                  });
+                }
+                this.loading = false;
+              },
+              error: (error) => {
+                console.error('Failed to load teacher subjects', error);
+                this.loading = false;
+              }
+            });
+          } else {
+            // No teacher, just patch the form
+            this.courseForm.patchValue({
+              name: course.name || '',
+              code: course.code || '',
+              description: course.description || '',
+              teacher: teacherId || '',
+              creditHours: course.creditHours || 3,
+              maxStudents: course.maxStudents || 30,
+              startDate,
+              endDate
+            });
+            this.loading = false;
+          }
+        } else {
+          this.loading = false;
         }
-        this.loading = false;
       },
       error: (error: any) => {
         this.toastService.showApiError(error);

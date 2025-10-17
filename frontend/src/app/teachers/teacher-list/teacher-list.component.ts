@@ -18,6 +18,11 @@ interface Teacher {
     subjects: any[];
     groups: any[];
   };
+  stats?: {
+    coursesCount: number;
+    subjectsCount: number;
+    groupsCount: number;
+  };
   isActive: boolean;
   createdAt: Date;
 }
@@ -194,12 +199,29 @@ interface Teacher {
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Teacher Information
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Assignments
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <div class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    Courses
+                  </div>
                 </th>
-                
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Hire Date
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <div class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Subjects
+                  </div>
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <div class="flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-1.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Groups
+                  </div>
                 </th>
                 <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                   Actions
@@ -242,32 +264,29 @@ interface Teacher {
                     </div>
                   </div>
                 </td>
+                <td class="px-6 py-5 text-center">
+                  <div class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-200">
+                    <span class="text-2xl font-bold text-indigo-700">{{ teacher.stats?.coursesCount || 0 }}</span>
+                  </div>
+                </td>
                 <td class="px-6 py-5">
-                  <div class="flex flex-col space-y-2">
-                    <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 text-xs font-semibold w-fit">
-                      <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                      </svg>
-                      <span>{{ teacher.academicInfo.subjects.length || 0 }} Subjects</span>
-                    </div>
-                    <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-purple-100 text-purple-800 text-xs font-semibold w-fit">
-                      <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                      </svg>
-                      <span>{{ teacher.academicInfo.groups.length || 0 }} Groups</span>
-                    </div>
+                  <div class="flex flex-wrap gap-2">
+                    <span *ngFor="let subject of teacher.academicInfo.subjects" 
+                          class="inline-flex items-center px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 text-xs font-semibold border border-blue-200">
+                      {{ subject.name }}
+                    </span>
+                    <span *ngIf="!teacher.academicInfo.subjects || teacher.academicInfo.subjects.length === 0"
+                          class="text-sm text-gray-400 italic">
+                      No subjects assigned
+                    </span>
                   </div>
                 </td>
-                
-                <td class="px-6 py-5 whitespace-nowrap">
-                  <div class="flex items-center text-sm text-gray-600">
-                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <span class="font-medium">{{ teacher.academicInfo.hireDate | date:'MMM d, y' }}</span>
+                <td class="px-6 py-5 text-center">
+                  <div class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200">
+                    <span class="text-2xl font-bold text-purple-700">{{ teacher.stats?.groupsCount || 0 }}</span>
                   </div>
                 </td>
-                <td class="px-6 py-5 whitespace-nowrap">
+                <td class="px-6 py-5 whitespace-nowrap text-center">
                   <div class="relative inline-block text-left">
                     <button 
                       (click)="toggleDropdown(teacher.id)"
@@ -711,18 +730,20 @@ export class TeacherListComponent implements OnInit {
   exportTeachers(): void {
     if (this.teachers.length === 0) return;
     
-    const headers = ['Employee ID', 'Name', 'Email', 'Subjects', 'Groups', 'Status', 'Hire Date'];
+    const headers = ['Employee ID', 'Name', 'Email', 'Courses', 'Subjects', 'Groups'];
     const csvContent = [
       headers.join(','),
-      ...this.teachers.map(teacher => [
-        teacher.academicInfo.employeeId,
-        `"${teacher.fullName}"`,
-        teacher.email,
-        teacher.academicInfo.subjects?.length || 0,
-        teacher.academicInfo.groups?.length || 0,
-        teacher.isActive ? 'Active' : 'Inactive',
-        new Date(teacher.academicInfo.hireDate).toLocaleDateString()
-      ].join(','))
+      ...this.teachers.map(teacher => {
+        const subjectNames = teacher.academicInfo.subjects?.map((s: any) => s.name).join('; ') || 'None';
+        return [
+          teacher.academicInfo.employeeId,
+          `"${teacher.fullName}"`,
+          teacher.email,
+          teacher.stats?.coursesCount || 0,
+          `"${subjectNames}"`,
+          teacher.stats?.groupsCount || 0
+        ].join(',');
+      })
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -787,3 +808,4 @@ export class TeacherListComponent implements OnInit {
     this.openDropdownId = null;
   }
 }
+
