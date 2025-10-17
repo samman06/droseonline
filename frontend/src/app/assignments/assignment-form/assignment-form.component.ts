@@ -12,20 +12,44 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   template: `
-    <div class="container mx-auto px-4 py-6 max-w-4xl">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? 'Edit' : 'Create' }} Assignment</h1>
-        <p class="text-gray-600 mt-1">{{ isEditMode ? 'Update assignment details' : 'Create a new assignment for students' }}</p>
+    <div class="container mx-auto px-4 py-6 max-w-5xl space-y-6">
+      <!-- Enhanced Header -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center space-x-4">
+          <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              {{ isEditMode ? 'Edit' : 'Create' }} Assignment
+            </h1>
+            <p class="text-gray-600 mt-1">{{ isEditMode ? 'Update assignment details and settings' : 'Create a new assignment for your students' }}</p>
+          </div>
+        </div>
       </div>
 
-      <div *ngIf="loading" class="flex justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
+        <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
+        <p class="mt-4 text-gray-600 font-medium">Loading...</p>
       </div>
 
       <form *ngIf="!loading" [formGroup]="assignmentForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Basic Information -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
+        <!-- Enhanced Basic Information -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 p-5">
+            <div class="flex items-center">
+              <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md mr-3">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900">Basic Information</h2>
+            </div>
+          </div>
+          <div class="p-6">
           
           <div class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -162,11 +186,22 @@ import { AuthService } from '../../services/auth.service';
               </div>
             </div>
           </div>
+          </div>
         </div>
 
-        <!-- Dates and Points -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Schedule & Grading</h2>
+        <!-- Enhanced Dates and Points -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-5">
+            <div class="flex items-center">
+              <div class="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md mr-3">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900">Schedule & Grading</h2>
+            </div>
+          </div>
+          <div class="p-6">
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -197,22 +232,34 @@ import { AuthService } from '../../services/auth.service';
               </div>
             </div>
           </div>
+          </div>
         </div>
 
-        <!-- Grading Rubric -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold text-gray-900">Grading Rubric</h2>
-            <button 
-              type="button" 
-              (click)="addRubricCriterion()"
-              class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              Add Criterion
-            </button>
+        <!-- Enhanced Grading Rubric -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200 p-5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg shadow-md mr-3">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-900">Grading Rubric</h2>
+              </div>
+              <button 
+                type="button" 
+                (click)="addRubricCriterion()"
+                class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg shadow-md transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Criterion
+              </button>
+            </div>
           </div>
+          <div class="p-6">
 
           <div formArrayName="rubric" class="space-y-3">
             <div *ngFor="let criterion of rubric.controls; let i = index" [formGroupName]="i" 
@@ -246,11 +293,22 @@ import { AuthService } from '../../services/auth.service';
           <div *ngIf="rubric.length === 0" class="text-center py-6 text-gray-500 text-sm">
             No rubric criteria added. Click "Add Criterion" to create grading criteria.
           </div>
+          </div>
         </div>
 
-        <!-- Submission Settings -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Submission Settings</h2>
+        <!-- Enhanced Submission Settings -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-5">
+            <div class="flex items-center">
+              <div class="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md mr-3">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900">Submission Settings</h2>
+            </div>
+          </div>
+          <div class="p-6">
           
           <div class="space-y-3">
             <label class="flex items-center">
@@ -282,40 +340,81 @@ import { AuthService } from '../../services/auth.service';
               <span class="ml-2 text-sm text-gray-700">Allow multiple submissions (students can resubmit)</span>
             </label>
           </div>
+          </div>
         </div>
 
-        <!-- Instructions -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Additional Instructions</h2>
-          <textarea 
-            formControlName="instructions"
-            rows="6"
-            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Enter detailed instructions, requirements, or guidelines for students..."></textarea>
+        <!-- Enhanced Instructions -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-gray-200 p-5">
+            <div class="flex items-center">
+              <div class="p-2 bg-gradient-to-br from-orange-500 to-yellow-600 rounded-lg shadow-md mr-3">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900">Additional Instructions</h2>
+            </div>
+          </div>
+          <div class="p-6">
+            <textarea 
+              formControlName="instructions"
+              rows="6"
+              class="w-full rounded-lg border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all"
+              placeholder="Enter detailed instructions, requirements, or guidelines for students..."></textarea>
+            <p class="text-xs text-gray-500 mt-2">
+              <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+              Provide clear and detailed instructions to help students understand requirements and expectations.
+            </p>
+          </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex justify-end gap-3">
-          <button 
-            type="button" 
-            (click)="cancel()"
-            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
-            Cancel
-          </button>
-          <button 
-            *ngIf="!isEditMode"
-            type="button" 
-            (click)="saveDraft()"
-            [disabled]="saving"
-            class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50">
-            Save as Draft
-          </button>
-          <button 
-            type="submit" 
-            [disabled]="saving || assignmentForm.invalid"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ saving ? 'Saving...' : (isEditMode ? 'Update Assignment' : 'Publish Assignment') }}
-          </button>
+        <!-- Enhanced Action Buttons -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p class="text-sm text-gray-600">
+              <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+              {{ isEditMode ? 'Update the assignment details' : 'Create and publish your assignment' }}
+            </p>
+            <div class="flex gap-3">
+              <button 
+                type="button" 
+                (click)="cancel()"
+                class="inline-flex items-center px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 font-medium transition-all transform hover:-translate-y-0.5 shadow-sm">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Cancel
+              </button>
+              <button 
+                *ngIf="!isEditMode"
+                type="button" 
+                (click)="saveDraft()"
+                [disabled]="saving"
+                class="inline-flex items-center px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all transform hover:-translate-y-0.5 shadow-md">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                </svg>
+                Save as Draft
+              </button>
+              <button 
+                type="submit" 
+                [disabled]="saving || assignmentForm.invalid"
+                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all transform hover:-translate-y-0.5 shadow-lg">
+                <svg *ngIf="!saving" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <svg *ngIf="saving" class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ saving ? 'Saving...' : (isEditMode ? 'Update Assignment' : 'Publish Assignment') }}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </div>
