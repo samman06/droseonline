@@ -503,7 +503,8 @@ router.get('/:id', authenticate, async (req, res) => {
 
     const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' })
       .select('-password')
-      .populate('academicInfo.subjects', 'name code credits type level');
+      .populate('academicInfo.subjects', 'name code credits type level')
+      .populate('academicInfo.groups', 'name code gradeLevel schedule students');
 
     if (!teacher) {
       return res.status(404).json({
@@ -512,14 +513,29 @@ router.get('/:id', authenticate, async (req, res) => {
       });
     }
 
+    // Get groups from courses taught by this teacher
+    const Course = require('../models/Course');
+    const Group = require('../models/Group');
+    
+    const teacherCourses = await Course.find({ teacher: req.params.id }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+    
+    const groups = await Group.find({ course: { $in: courseIds } })
+      .select('name code gradeLevel schedule students')
+      .sort({ name: 1 });
+
     // Get teacher statistics
     const stats = await getTeacherStatistics(teacher._id);
+
+    // Merge groups into teacher object
+    const teacherObj = teacher.toObject();
+    teacherObj.academicInfo.groups = groups;
 
     res.json({
       success: true,
       data: { 
         teacher: {
-          ...teacher.toObject(),
+          ...teacherObj,
           statistics: stats
         }
       }
