@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } fr
 import { Router, RouterModule } from '@angular/router';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
+import { ToastService } from '../../services/toast.service';
 
 interface Teacher {
   id?: string;
@@ -191,6 +192,7 @@ export class TeacherFormComponent implements OnInit {
     private fb: FormBuilder,
     private teacherService: TeacherService,
     private subjectService: SubjectService,
+    private toastService: ToastService,
     private router: Router
   ) {}
 
@@ -270,11 +272,15 @@ export class TeacherFormComponent implements OnInit {
 
       request.subscribe({
         next: () => {
-          alert(`Teacher ${this.isEditMode ? 'updated' : 'created'} successfully!`);
+          if (this.isEditMode) {
+            this.toastService.showUpdateSuccess('Teacher');
+          } else {
+            this.toastService.showCreateSuccess('Teacher');
+          }
           this.router.navigate(['/dashboard/teachers']);
         },
         error: (error) => {
-          alert(error.error?.message || 'Failed to save teacher');
+          this.toastService.showApiError(error);
           this.isSubmitting = false;
         }
       });
