@@ -28,11 +28,20 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
         <div class="p-8 space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="form-label">Name</label>
-              <input class="form-input" formControlName="name" placeholder="e.g., Physics Group A" />
+              <label class="form-label">
+                Name 
+                <span class="text-xs text-gray-500 font-normal">(Auto-generated)</span>
+              </label>
+              <input class="form-input bg-gray-100 cursor-not-allowed" formControlName="name" placeholder="Auto-generated (e.g., Math - Grade 10 - Sat/Wed)" [disabled]="true" />
+              <p class="text-xs text-gray-500 mt-1">
+                <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                Generated from course subject, grade level, and schedule days
+              </p>
             </div>
             <div>
-              <label class="form-label">Code <span class="text-xs text-gray-500">(Auto-generated)</span></label>
+              <label class="form-label">Code <span class="text-xs text-gray-500 font-normal">(Auto-generated)</span></label>
               <input class="form-input bg-gray-100 cursor-not-allowed" formControlName="code" placeholder="Auto-generated (e.g., GR-000001)" [disabled]="true" />
               <p class="text-xs text-gray-500 mt-1">Code will be automatically generated when you save</p>
             </div>
@@ -212,7 +221,7 @@ export class GroupFormComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     // Initialize form with default values
     this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
+      name: [{value: '', disabled: true}], // Auto-generated, disabled like code
       code: [{value: '', disabled: true}], // Auto-generated, not required
       course: ['', [Validators.required]],  // Required field
       gradeLevel: ['Grade 9', [Validators.required]],
@@ -226,11 +235,18 @@ export class GroupFormComponent implements OnInit, OnChanges {
     // Watch for course changes to update selected course and check conflicts
     this.form.get('course')?.valueChanges.pipe(distinctUntilChanged()).subscribe((courseId) => {
       this.selectedCourse = this.courses.find(c => c._id === courseId);
+      this.autoGenerateGroupName();
       this.checkScheduleConflicts();
     });
     
-    // Watch for schedule changes to check for conflicts
+    // Watch for grade level changes to auto-generate name
+    this.form.get('gradeLevel')?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => {
+      this.autoGenerateGroupName();
+    });
+    
+    // Watch for schedule changes to check for conflicts and update name
     this.form.get('schedule')?.valueChanges.pipe(debounceTime(500)).subscribe(() => {
+      this.autoGenerateGroupName();
       this.checkScheduleConflicts();
     });
     
@@ -297,9 +313,8 @@ export class GroupFormComponent implements OnInit, OnChanges {
     // Extract course ID
     const courseId = this.initialValue.course?._id || this.initialValue.course || '';
     
-    // Update basic form fields
+    // Update basic form fields (don't set name, it will be auto-generated)
     this.form.patchValue({
-      name: this.initialValue.name || '',
       code: this.initialValue.code || '',
       course: courseId,
       gradeLevel: this.initialValue.gradeLevel || 'Grade 9',
@@ -319,11 +334,52 @@ export class GroupFormComponent implements OnInit, OnChanges {
     if (courseId && this.courses.length > 0) {
       this.selectedCourse = this.courses.find(c => c._id === courseId);
     }
+    
+    // Auto-generate the name based on course, grade, and schedule
+    // This ensures the name is always current in edit mode
+    this.autoGenerateGroupName();
   }
 
   get schedule(): FormArray { return this.form.get('schedule') as FormArray; }
   addSlot(): void { this.schedule.push(this.createScheduleSlot()); }
   removeSlot(i: number): void { this.schedule.removeAt(i); }
+
+  autoGenerateGroupName(): void {
+    // Get the required data
+    const course = this.selectedCourse;
+    const gradeLevel = this.form.get('gradeLevel')?.value;
+    const scheduleArray = this.form.get('schedule')?.value || [];
+    
+    // Check if we have enough data to generate a name
+    if (!course || !course.subject || !gradeLevel || scheduleArray.length === 0) {
+      return;
+    }
+    
+    // Extract subject name
+    const subjectName = course.subject.name || 'Subject';
+    
+    // Get unique days from schedule (abbreviated: Sat, Mon, etc.)
+    const dayAbbreviations: { [key: string]: string } = {
+      'monday': 'Mon',
+      'tuesday': 'Tue',
+      'wednesday': 'Wed',
+      'thursday': 'Thu',
+      'friday': 'Fri',
+      'saturday': 'Sat',
+      'sunday': 'Sun'
+    };
+    
+    const uniqueDays = [...new Set(scheduleArray.map((slot: any) => slot.day))];
+    const daysList = uniqueDays
+      .map((day: any) => dayAbbreviations[day.toLowerCase()] || day)
+      .join('/');
+    
+    // Generate the name: "Subject - Grade - Days"
+    const generatedName = `${subjectName} - ${gradeLevel} - ${daysList}`;
+    
+    // Always update the name field (it's disabled, so user can't edit it anyway)
+    this.form.patchValue({ name: generatedName }, { emitEvent: false });
+  }
 
   checkScheduleConflicts(): void {
     const courseId = this.form.get('course')?.value;
@@ -389,7 +445,8 @@ export class GroupFormComponent implements OnInit, OnChanges {
     }
     
     this.submitting = true;
-    this.save.emit(this.form.value);
+    // Use getRawValue() to include disabled fields (name and code)
+    this.save.emit(this.form.getRawValue());
   }
 
   goBack(): void { this.router.navigate(['/dashboard/groups']); }
