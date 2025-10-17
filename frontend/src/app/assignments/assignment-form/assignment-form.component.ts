@@ -28,17 +28,32 @@ import { AuthService } from '../../services/auth.service';
           <h2 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h2>
           
           <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Title <span class="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                formControlName="title"
-                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Enter assignment title">
-              <div *ngIf="assignmentForm.get('title')?.invalid && assignmentForm.get('title')?.touched" class="text-red-500 text-sm mt-1">
-                Title is required
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Title <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  formControlName="title"
+                  class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Enter assignment title">
+                <div *ngIf="assignmentForm.get('title')?.invalid && assignmentForm.get('title')?.touched" class="text-red-500 text-sm mt-1">
+                  Title is required
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Code <span class="text-xs text-gray-500">(Auto-generated)</span>
+                </label>
+                <input 
+                  type="text" 
+                  formControlName="code"
+                  class="w-full rounded-lg border-gray-300 bg-gray-100 cursor-not-allowed shadow-sm"
+                  placeholder="Auto-generated (e.g., AS-000001)"
+                  [disabled]="true">
+                <p class="text-xs text-gray-500 mt-1">Code will be automatically generated when you save</p>
               </div>
             </div>
 
@@ -276,6 +291,7 @@ export class AssignmentFormComponent implements OnInit {
 
   initForm(): void {
     this.assignmentForm = this.fb.group({
+      code: [{value: '', disabled: true}], // Auto-generated, not required
       title: ['', [Validators.required]],
       description: ['', [Validators.required, Validators.minLength(20)]],
       type: ['homework', Validators.required],

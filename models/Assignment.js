@@ -1,7 +1,13 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const assignmentSchema = new mongoose.Schema({
   // Basic Information
+  code: {
+    type: String,
+    unique: true,
+    sparse: true // Allows null during creation before pre-save generates it
+  },
   title: {
     type: String,
     required: true,
@@ -281,7 +287,17 @@ assignmentSchema.methods.getEligibleStudents = async function() {
 };
 
 // Pre-save validation
-assignmentSchema.pre('save', function(next) {
+assignmentSchema.pre('save', async function(next) {
+  // Generate code if not exists (for new assignments)
+  if (this.isNew && !this.code) {
+    try {
+      const sequence = await Counter.getNextSequence('assignment');
+      this.code = `AS-${String(sequence).padStart(6, '0')}`;
+    } catch (error) {
+      return next(error);
+    }
+  }
+  
   // Validate due date
   if (this.dueDate <= this.assignedDate) {
     return next(new Error('Due date must be after assigned date'));

@@ -102,6 +102,7 @@ const courseSchema = Joi.object({
 
 // Assignment validation schemas
 const assignmentSchema = Joi.object({
+  code: Joi.string().optional(), // Auto-generated, not required
   title: Joi.string().trim().min(2).max(200).required(),
   description: Joi.string().trim().min(10).max(2000).required(),
   instructions: Joi.string().max(5000).optional(),
