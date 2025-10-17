@@ -32,11 +32,7 @@ import { SubjectService } from '../../services/subject.service';
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
                   </svg>
-                  {{ groups.length }} Total
-                </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                  {{ getActiveGroupsCount() }} Active
+                  {{ groups.length }} Groups
                 </span>
               </div>
             </div>
@@ -90,13 +86,9 @@ import { SubjectService } from '../../services/subject.service';
             Grade: {{ filters.gradeLevel }}
             <button (click)="removeFilter('gradeLevel')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
-          <span *ngIf="filters.isActive" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Status: {{ filters.isActive === 'true' ? 'Active' : 'Inactive' }}
-            <button (click)="removeFilter('isActive')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
-          </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Search -->
           <div>
             <input 
@@ -130,15 +122,6 @@ import { SubjectService } from '../../services/subject.service';
               <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
             </select>
           </div>
-          
-          <!-- Status Filter -->
-          <div>
-            <select class="form-select" [(ngModel)]="filters.isActive" (ngModelChange)="onFiltersChange()">
-              <option value="">All Status</option>
-              <option value="true">Active Only</option>
-              <option value="false">Inactive Only</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -151,35 +134,25 @@ import { SubjectService } from '../../services/subject.service';
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th class="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200" *ngIf="!isLoading">
               <tr *ngFor="let g of groups">
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ g.name }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ g.teacher?.fullName || '—' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ g.subject?.name || '—' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">
-                  <div class="flex flex-wrap gap-1">
-                    <span *ngFor="let s of g.schedule" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                      {{ s.day | titlecase }} {{ s.startTime }}-{{ s.endTime }}
+                <td class="px-6 py-4 text-sm text-gray-600">{{ g.course?.teacher?.fullName || '—' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-600">{{ g.course?.subject?.name || '—' }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-wrap gap-1.5">
+                    <span *ngFor="let s of g.schedule" 
+                          class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
+                          [ngClass]="getDayColorClass(s.day)">
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ s.day | titlecase }}: {{ s.startTime }}-{{ s.endTime }}
                     </span>
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span *ngIf="g.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-2 border-green-300 shadow-sm hover:shadow-md transition-all duration-200">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="tracking-wide">ACTIVE</span>
-                  </span>
-                  <span *ngIf="!g.isActive" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-red-50 to-orange-50 text-red-700 border-2 border-red-300 shadow-sm hover:shadow-md transition-all duration-200">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="tracking-wide">INACTIVE</span>
-                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div class="relative inline-block text-left">
@@ -190,8 +163,6 @@ import { SubjectService } from '../../services/subject.service';
                       <div class="py-1">
                         <button (click)="viewGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">View Details</button>
                         <button (click)="editGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150">Edit Group</button>
-                        <button *ngIf="!g.isActive" (click)="activate(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-green-700 hover:bg-green-50 transition-colors duration-150">Activate</button>
-                        <button *ngIf="g.isActive" (click)="deactivate(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50 transition-colors duration-150">Deactivate</button>
                         <div class="border-t border-gray-100"></div>
                         <button (click)="deleteGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150">Delete Group</button>
                       </div>
@@ -202,7 +173,7 @@ import { SubjectService } from '../../services/subject.service';
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading...</td>
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500">Loading...</td>
               </tr>
             </tbody>
           </table>
@@ -223,7 +194,7 @@ export class GroupListComponent implements OnInit {
   openDropdownId: string | null = null;
   private searchDebounce: any;
 
-  filters: any = { search: '', teacherId: '', subjectId: '', gradeLevel: '', isActive: '' };
+  filters: any = { search: '', teacherId: '', subjectId: '', gradeLevel: '' };
   readonly grades = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
 
   teachers: any[] = [];
@@ -239,10 +210,10 @@ export class GroupListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadGroups();
-    this.teacherService.getTeachers({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+    this.teacherService.getTeachers({ page: 1, limit: 100 }).subscribe({
       next: res => { const list = res.data?.teachers || res.data || []; this.teachers = Array.isArray(list) ? list : []; }
     });
-    this.subjectService.getSubjects({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+    this.subjectService.getSubjects({ page: 1, limit: 100 }).subscribe({
       next: res => { const list = res.data?.subjects || res.data || []; this.subjects = Array.isArray(list) ? list : []; }
     });
   }
@@ -272,15 +243,15 @@ export class GroupListComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.filters = { search: '', teacherId: '', subjectId: '', gradeLevel: '', isActive: '' };
+    this.filters = { search: '', teacherId: '', subjectId: '', gradeLevel: '' };
     this.loadGroups();
   }
 
   hasActiveFilters(): boolean {
-    return !!(this.filters.search || this.filters.teacherId || this.filters.subjectId || this.filters.gradeLevel || this.filters.isActive);
+    return !!(this.filters.search || this.filters.teacherId || this.filters.subjectId || this.filters.gradeLevel);
   }
 
-  removeFilter(key: 'search' | 'teacherId' | 'subjectId' | 'gradeLevel' | 'isActive'): void {
+  removeFilter(key: 'search' | 'teacherId' | 'subjectId' | 'gradeLevel'): void {
     (this.filters as any)[key] = '';
     this.loadGroups();
   }
@@ -306,34 +277,19 @@ export class GroupListComponent implements OnInit {
 
   toggleDropdown(id: string): void { this.openDropdownId = this.openDropdownId === id ? null : id; }
   closeDropdown(): void { this.openDropdownId = null; }
-
-  async activate(g: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({ 
-      title: 'Activate Group', 
-      message: `Activate ${g.name}?`, 
-      confirmText: 'Yes, Activate', 
-      cancelText: 'Cancel', 
-      type: 'info' 
-    });
-    if (!confirmed) return;
-    this.groupService.toggleStatus(g.id || g._id).subscribe({ next: _ => this.loadGroups() });
-  }
-
-  async deactivate(g: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({ 
-      title: 'Deactivate Group', 
-      message: `Deactivate ${g.name}?`, 
-      confirmText: 'Yes, Deactivate', 
-      cancelText: 'Cancel', 
-      type: 'warning' 
-    });
-    if (!confirmed) return;
-    this.groupService.toggleStatus(g.id || g._id).subscribe({ next: _ => this.loadGroups() });
-  }
-
-  // Statistics methods
-  getActiveGroupsCount(): number {
-    return this.groups.filter(group => group.isActive).length;
+  
+  getDayColorClass(day: string): string {
+    const dayLower = day.toLowerCase();
+    const colorMap: {[key: string]: string} = {
+      'sunday': 'bg-purple-100 text-purple-800 border border-purple-300',
+      'monday': 'bg-blue-100 text-blue-800 border border-blue-300',
+      'tuesday': 'bg-green-100 text-green-800 border border-green-300',
+      'wednesday': 'bg-yellow-100 text-yellow-800 border border-yellow-300',
+      'thursday': 'bg-orange-100 text-orange-800 border border-orange-300',
+      'friday': 'bg-red-100 text-red-800 border border-red-300',
+      'saturday': 'bg-pink-100 text-pink-800 border border-pink-300'
+    };
+    return colorMap[dayLower] || 'bg-gray-100 text-gray-800 border border-gray-300';
   }
 
   // Export method
@@ -341,17 +297,16 @@ export class GroupListComponent implements OnInit {
     if (this.groups.length === 0) return;
     
     // Create CSV content
-    const headers = ['Group Name', 'Code', 'Teacher', 'Subject', 'Grade Level', 'Students', 'Status'];
+    const headers = ['Group Name', 'Code', 'Teacher', 'Subject', 'Grade Level', 'Students'];
     const csvContent = [
       headers.join(','),
       ...this.groups.map(group => [
         `"${group.name}"`,
         group.code || '',
-        `"${group.teacher?.fullName || ''}"`,
-        `"${group.subject?.name || ''}"`,
+        `"${group.course?.teacher?.fullName || ''}"`,
+        `"${group.course?.subject?.name || ''}"`,
         group.gradeLevel || '',
-        group.currentEnrollment || 0,
-        group.isActive ? 'Active' : 'Inactive'
+        group.currentEnrollment || 0
       ].join(','))
     ].join('\n');
 

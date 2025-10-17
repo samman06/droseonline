@@ -47,48 +47,58 @@ const updateProfileSchema = Joi.object({
 // Subject validation schemas (Simplified for Egyptian Education System)
 const subjectSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
-  code: Joi.string().trim().max(10).required()
+  code: Joi.string().trim().max(10).optional() // Auto-generated
 });
 
 // Group validation schemas
 const groupSchema = Joi.object({
   name: Joi.string().trim().min(2).max(100).required(),
-  code: Joi.string().trim().required(),
+  code: Joi.string().trim().optional(), // Auto-generated
   description: Joi.string().max(500).optional(),
-  academicYear: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-  level: Joi.string().valid('freshman', 'sophomore', 'junior', 'senior', 'graduate').required(),
-  semester: Joi.string().valid('fall', 'spring', 'summer').required(),
-  capacity: Joi.number().min(1).max(100).required(),
-  classMonitor: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
+  course: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(), // Reference to Course
+  gradeLevel: Joi.string().valid(
+    'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
+    'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'
+  ).required(),
   schedule: Joi.array().items(Joi.object({
     day: Joi.string().valid('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday').required(),
     startTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
     endTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
-    subject: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
-    teacher: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
     room: Joi.string().max(50).optional()
-  })).optional()
+  })).optional(),
+  pricePerSession: Joi.number().min(0).optional(),
+  students: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).optional(),
+  createdBy: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional()
 });
 
 // Course validation schemas
 const courseSchema = Joi.object({
   name: Joi.string().trim().min(2).max(150).required(),
-  code: Joi.string().trim().required(),
+  code: Joi.string().trim().optional(), // Auto-generated
+  description: Joi.string().max(500).optional(),
   subject: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
   teacher: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
   groups: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).optional(),
   academicYear: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-  semester: Joi.string().valid('fall', 'spring', 'summer').required(),
-  startDate: Joi.date().required(),
-  endDate: Joi.date().greater(Joi.ref('startDate')).required(),
-  maxEnrollment: Joi.number().min(1).max(200).optional(),
-  schedule: Joi.array().items(Joi.object({
-    day: Joi.string().valid('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday').required(),
-    startTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
-    endTime: Joi.string().pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
-    room: Joi.string().max(50).optional(),
-    type: Joi.string().valid('lecture', 'lab', 'tutorial', 'seminar').optional()
-  })).optional()
+  startDate: Joi.date().optional(),
+  endDate: Joi.date().greater(Joi.ref('startDate')).optional(),
+  assessmentStructure: Joi.array().items(Joi.object({
+    type: Joi.string().required(),
+    weight: Joi.number().min(0).max(100).required(),
+    maxMarks: Joi.number().min(0).required()
+  })).optional(),
+  syllabus: Joi.object({
+    overview: Joi.string().optional(),
+    objectives: Joi.array().items(Joi.string()).optional(),
+    topics: Joi.array().items(Joi.string()).optional(),
+    gradingPolicy: Joi.string().optional(),
+    materials: Joi.array().optional()
+  }).optional(),
+  settings: Joi.object({
+    allowSelfEnrollment: Joi.boolean().optional(),
+    requireApproval: Joi.boolean().optional(),
+    isVisible: Joi.boolean().optional()
+  }).optional()
 });
 
 // Assignment validation schemas

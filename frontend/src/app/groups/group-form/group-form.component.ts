@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges, Output } from '@angular/core';
 import { CourseService } from '../../services/course.service';
 import { GroupService } from '../../services/group.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
@@ -19,17 +20,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="px-8 py-6 border-b border-gray-200 flex items-center justify-between">
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900">Group Information</h2>
-            <p class="mt-1 text-sm text-gray-600">Fill in the required details below</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="form.value.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
-              <span class="w-2 h-2 rounded-full mr-2" [class]="form.value.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-              {{ form.value.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
+        <div class="px-8 py-6 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">Group Information</h2>
+          <p class="mt-1 text-sm text-gray-600">Fill in the required details below</p>
         </div>
 
         <div class="p-8 space-y-6">
@@ -66,6 +59,13 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
             </div>
           </div>
 
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="form-label">Price Per Session (EGP)</label>
+              <input type="number" class="form-input" formControlName="pricePerSession" placeholder="e.g., 150" />
+            </div>
+          </div>
+
           <!-- Display course info when selected -->
           <div *ngIf="selectedCourse" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 class="text-sm font-semibold text-blue-900 mb-2">Course Information</h3>
@@ -81,11 +81,28 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
             </div>
           </div>
 
-          <div>
-            <label class="form-label">Weekly Schedule</label>
+          <!-- Weekly Schedule Section with Enhanced Styling -->
+          <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-3">
+                <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-gray-900">Weekly Schedule</h3>
+                  <p class="text-xs text-gray-600">Set up class timings for each day</p>
+                </div>
+              </div>
+              <button type="button" (click)="addSlot()" class="btn-secondary inline-flex items-center text-sm shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add Time Slot
+              </button>
+            </div>
             
             <!-- Schedule Conflict Warning -->
-            <div *ngIf="scheduleConflicts.length > 0" class="mb-3 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+            <div *ngIf="scheduleConflicts.length > 0" class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm">
               <div class="flex items-start">
                 <svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -102,7 +119,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
               </div>
             </div>
 
-            <div *ngIf="checkingConflicts" class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            <div *ngIf="checkingConflicts" class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 shadow-sm">
               <div class="flex items-center">
                 <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -113,36 +130,34 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
             </div>
             
             <div formArrayName="schedule" class="space-y-3">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3" *ngFor="let s of schedule.controls; let i = index" [formGroupName]="i">
-                <select class="form-input" formControlName="day">
-                  <option *ngFor="let d of days" [value]="d">{{ d | titlecase }}</option>
-                </select>
-                <input class="form-input" formControlName="startTime" placeholder="Start HH:MM" />
-                <div class="flex items-center gap-2">
-                  <input class="form-input" formControlName="endTime" placeholder="End HH:MM" />
-                  <button type="button" (click)="removeSlot(i)" class="px-3 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50">Remove</button>
+              <div *ngFor="let s of schedule.controls; let i = index" [formGroupName]="i" 
+                   class="bg-white rounded-lg p-4 border border-indigo-200 shadow-sm hover:shadow-md transition-all duration-200">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                  <div class="md:col-span-4">
+                    <label class="text-xs font-medium text-gray-600 mb-1 block">Day</label>
+                    <select class="form-input" formControlName="day">
+                      <option *ngFor="let d of days" [value]="d">{{ d | titlecase }}</option>
+                    </select>
+                  </div>
+                  <div class="md:col-span-3">
+                    <label class="text-xs font-medium text-gray-600 mb-1 block">Start Time</label>
+                    <input type="time" class="form-input" formControlName="startTime" placeholder="09:00" />
+                  </div>
+                  <div class="md:col-span-3">
+                    <label class="text-xs font-medium text-gray-600 mb-1 block">End Time</label>
+                    <input type="time" class="form-input" formControlName="endTime" placeholder="11:00" />
+                  </div>
+                  <div class="md:col-span-2">
+                    <button type="button" (click)="removeSlot(i)" 
+                            class="w-full px-3 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-all duration-200 flex items-center justify-center">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="mt-3">
-              <button type="button" (click)="addSlot()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Add Slot
-              </button>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label class="form-label">Price Per Session (EGP)</label>
-              <input type="number" class="form-input" formControlName="pricePerSession" />
-            </div>
-            <div>
-              <label class="form-label">Status</label>
-              <select class="form-input" formControlName="isActive">
-                <option [value]="true">Active</option>
-                <option [value]="false">Inactive</option>
-              </select>
             </div>
           </div>
         </div>
@@ -167,7 +182,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
     .btn-secondary { @apply inline-flex items-center px-6 py-3 border-2 border-gray-300 text-sm font-semibold rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200; }
   `]
 })
-export class GroupFormComponent implements OnInit {
+export class GroupFormComponent implements OnInit, OnChanges {
   @Input() initialValue: any = {};
   @Input() title = 'Add Group';
   @Input() subtitle = 'Create a weekly group with teacher, subject, and grade';
@@ -190,40 +205,23 @@ export class GroupFormComponent implements OnInit {
     private courseService: CourseService,
     private groupService: GroupService,
     private toastService: ToastService,
+    private confirmation: ConfirmationService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    // Normalize initial IDs if objects were provided
-    const initialCourseId = this.initialValue.course?._id || this.initialValue.course || '';
-
+    // Initialize form with default values
     this.form = this.fb.group({
-      name: [this.initialValue.name || '', [Validators.required, Validators.minLength(2)]],
-      code: [{value: this.initialValue.code || '', disabled: true}], // Auto-generated, not required
-      course: [initialCourseId, [Validators.required]],  // Required field
-      gradeLevel: [this.initialValue.gradeLevel || 'Grade 9', [Validators.required]],
-      schedule: this.fb.array((this.initialValue.schedule || [{ day: 'saturday', startTime: '10:00', endTime: '12:00' }]).map((s: any) => this.fb.group({
-        day: [s.day || 'saturday', Validators.required],
-        startTime: [s.startTime || '10:00', Validators.required],
-        endTime: [s.endTime || '12:00', Validators.required]
-      }))),
-      pricePerSession: [this.initialValue.pricePerSession ?? 0, [Validators.min(0)]],
-      isActive: [this.initialValue.isActive ?? true]
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      code: [{value: '', disabled: true}], // Auto-generated, not required
+      course: ['', [Validators.required]],  // Required field
+      gradeLevel: ['Grade 9', [Validators.required]],
+      schedule: this.fb.array([this.createScheduleSlot()]),
+      pricePerSession: [0, [Validators.min(0)]]
     });
 
     // Load courses with teacher and subject info
-    this.courseService.getCourses({ isActive: 'true', page: 1, limit: 100 }).subscribe({
-      next: res => {
-        const list = res.data || [];
-        this.courses = Array.isArray(list) ? list : [];
-        
-        // If editing, find and set the selected course
-        if (initialCourseId && this.courses.length > 0) {
-          this.selectedCourse = this.courses.find(c => c._id === initialCourseId);
-        }
-      },
-      error: err => { console.error('Failed to load courses:', err); this.courses = []; }
-    });
+    this.loadCourses();
 
     // Watch for course changes to update selected course and check conflicts
     this.form.get('course')?.valueChanges.pipe(distinctUntilChanged()).subscribe((courseId) => {
@@ -235,10 +233,96 @@ export class GroupFormComponent implements OnInit {
     this.form.get('schedule')?.valueChanges.pipe(debounceTime(500)).subscribe(() => {
       this.checkScheduleConflicts();
     });
+    
+    // Populate form if initialValue is already available
+    if (this.initialValue && Object.keys(this.initialValue).length > 0) {
+      this.updateFormValues();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Update form when initialValue changes (async data loading)
+    if (changes['initialValue'] && this.form && changes['initialValue'].currentValue) {
+      const current = changes['initialValue'].currentValue;
+      if (current && Object.keys(current).length > 0) {
+        this.updateFormValues();
+      }
+    }
+  }
+
+  private loadCourses(): void {
+    this.courseService.getCourses({ page: 1, limit: 100 }).subscribe({
+      next: res => {
+        if (res.success) {
+          // Handle different response structures
+          if (res.data && (res.data as any).courses) {
+            this.courses = (res.data as any).courses;
+          } else if (Array.isArray(res.data)) {
+            this.courses = res.data;
+          } else {
+            this.courses = [];
+          }
+          
+          console.log('Loaded courses:', this.courses.length);
+          
+          // If we have initial data, update selected course
+          const initialCourseId = this.initialValue?.course?._id || this.initialValue?.course;
+          if (initialCourseId && this.courses.length > 0) {
+            this.selectedCourse = this.courses.find(c => c._id === initialCourseId);
+            console.log('Selected course:', this.selectedCourse);
+          }
+        } else {
+          this.courses = [];
+        }
+      },
+      error: err => { 
+        console.error('Failed to load courses:', err); 
+        this.courses = []; 
+        this.toastService.error('Failed to load courses');
+      }
+    });
+  }
+
+  private createScheduleSlot(slot?: any): FormGroup {
+    return this.fb.group({
+      day: [slot?.day || 'saturday', Validators.required],
+      startTime: [slot?.startTime || '10:00', Validators.required],
+      endTime: [slot?.endTime || '12:00', Validators.required]
+    });
+  }
+
+  private updateFormValues(): void {
+    if (!this.initialValue) return;
+    
+    // Extract course ID
+    const courseId = this.initialValue.course?._id || this.initialValue.course || '';
+    
+    // Update basic form fields
+    this.form.patchValue({
+      name: this.initialValue.name || '',
+      code: this.initialValue.code || '',
+      course: courseId,
+      gradeLevel: this.initialValue.gradeLevel || 'Grade 9',
+      pricePerSession: this.initialValue.pricePerSession ?? 0
+    });
+    
+    // Update schedule array
+    if (this.initialValue.schedule && Array.isArray(this.initialValue.schedule) && this.initialValue.schedule.length > 0) {
+      const scheduleArray = this.form.get('schedule') as FormArray;
+      scheduleArray.clear();
+      this.initialValue.schedule.forEach((slot: any) => {
+        scheduleArray.push(this.createScheduleSlot(slot));
+      });
+    }
+    
+    // Update selected course if courses are already loaded
+    if (courseId && this.courses.length > 0) {
+      this.selectedCourse = this.courses.find(c => c._id === courseId);
+    }
   }
 
   get schedule(): FormArray { return this.form.get('schedule') as FormArray; }
-  addSlot(): void { this.schedule.push(this.fb.group({ day: 'saturday', startTime: '10:00', endTime: '12:00' })); }
+  addSlot(): void { this.schedule.push(this.createScheduleSlot()); }
   removeSlot(i: number): void { this.schedule.removeAt(i); }
 
   checkScheduleConflicts(): void {
@@ -285,13 +369,22 @@ export class GroupFormComponent implements OnInit {
     });
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.form.invalid) return;
     
     if (this.scheduleConflicts.length > 0) {
-      const confirmed = confirm(
-        `⚠️ Warning: This schedule conflicts with ${this.scheduleConflicts.length} other group(s).\n\nDo you want to proceed anyway?`
-      );
+      const conflictList = this.scheduleConflicts
+        .map(c => `• ${c.groupName} (${c.groupCode}) - ${c.day}: ${c.time}`)
+        .join('\n');
+      
+      const confirmed = await this.confirmation.confirm({
+        title: 'Schedule Conflict Warning',
+        message: `This schedule conflicts with ${this.scheduleConflicts.length} other group(s):\n\n${conflictList}\n\nDo you want to proceed anyway?`,
+        confirmText: 'Yes, Proceed',
+        cancelText: 'No, Cancel',
+        type: 'warning'
+      });
+      
       if (!confirmed) return;
     }
     

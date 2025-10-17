@@ -103,7 +103,7 @@ router.get('/:id', authenticate, async (req, res) => {
       .populate('createdBy', 'firstName lastName fullName')
       .populate({
         path: 'students.student',
-        select: 'firstName lastName fullName email dateOfBirth academicInfo.studentId academicInfo.currentGrade'
+        select: 'firstName lastName fullName phoneNumber parentContact academicInfo'
       });
 
     if (!group) {
@@ -131,19 +131,14 @@ router.get('/:id', authenticate, async (req, res) => {
 // @access  Private (Admin)
 router.post('/', authenticate, authorize('admin'), validate(groupSchema), async (req, res) => {
   try {
-    // Check if group code already exists
-    const existingGroup = await Group.findOne({ code: req.body.code });
-    if (existingGroup) {
-      return res.status(400).json({
-        success: false,
-        message: 'Group with this code already exists'
+    // Verify course exists
+    const Course = require('../models/Course');
+    const course = await Course.findById(req.body.course).populate('teacher subject');
+    if (!course) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Course not found' 
       });
-    }
-
-    // Ensure teacher and subject exist
-    const teacher = await User.findOne({ _id: req.body.teacher, role: 'teacher' });
-    if (!teacher) {
-      return res.status(400).json({ success: false, message: 'Teacher not found' });
     }
 
     const groupData = {
@@ -155,9 +150,14 @@ router.post('/', authenticate, authorize('admin'), validate(groupSchema), async 
     await group.save();
 
     const populatedGroup = await Group.findById(group._id)
-      .populate('teacher', 'firstName lastName fullName')
-      .populate('subject', 'name code')
-      .populate('classMonitor', 'firstName lastName fullName')
+      .populate({
+        path: 'course',
+        populate: [
+          { path: 'teacher', select: 'firstName lastName fullName' },
+          { path: 'subject', select: 'name code' }
+        ]
+      })
+      .populate('students', 'firstName lastName fullName academicInfo.studentId')
       .populate('createdBy', 'firstName lastName fullName');
 
     res.status(201).json({
@@ -189,21 +189,16 @@ router.put('/:id', authenticate, authorize('admin'), validate(groupSchema), asyn
       });
     }
 
-    // Check if code is being changed and if new code already exists
-    if (req.body.code && req.body.code !== group.code) {
-      const existingGroup = await Group.findOne({ code: req.body.code });
-      if (existingGroup) {
-        return res.status(400).json({
-          success: false,
-          message: 'Group with this code already exists'
+    // Verify course exists if changed
+    if (req.body.course) {
+      const Course = require('../models/Course');
+      const course = await Course.findById(req.body.course);
+      if (!course) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Course not found' 
         });
       }
-    }
-
-    // Verify teacher and subject if changed
-    if (req.body.teacher) {
-      const teacher = await User.findOne({ _id: req.body.teacher, role: 'teacher' });
-      if (!teacher) return res.status(400).json({ success: false, message: 'Teacher not found' });
     }
 
     const updatedGroup = await Group.findByIdAndUpdate(
@@ -211,9 +206,14 @@ router.put('/:id', authenticate, authorize('admin'), validate(groupSchema), asyn
       req.body,
       { new: true, runValidators: true }
     )
-    .populate('teacher', 'firstName lastName fullName')
-    .populate('subject', 'name code')
-    .populate('classMonitor', 'firstName lastName fullName')
+    .populate({
+      path: 'course',
+      populate: [
+        { path: 'teacher', select: 'firstName lastName fullName' },
+        { path: 'subject', select: 'name code' }
+      ]
+    })
+    .populate('students', 'firstName lastName fullName academicInfo.studentId')
     .populate('createdBy', 'firstName lastName fullName');
 
     res.json({
