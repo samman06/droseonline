@@ -93,6 +93,23 @@ export class AssignmentService {
     return this.api.delete(this.ASSIGNMENTS_ENDPOINT, id);
   }
 
+  // Bulk Operations
+  bulkDeleteAssignments(assignmentIds: string[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/${this.ASSIGNMENTS_ENDPOINT}/bulk-delete`, { assignmentIds });
+  }
+
+  bulkPublishAssignments(assignmentIds: string[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/${this.ASSIGNMENTS_ENDPOINT}/bulk-publish`, { assignmentIds });
+  }
+
+  bulkCloseAssignments(assignmentIds: string[]): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.API_URL}/${this.ASSIGNMENTS_ENDPOINT}/bulk-close`, { assignmentIds });
+  }
+
+  cloneAssignment(id: string): Observable<ApiResponse<Assignment>> {
+    return this.http.post<ApiResponse<Assignment>>(`${this.API_URL}/${this.ASSIGNMENTS_ENDPOINT}/${id}/clone`, {});
+  }
+
   // Assignment Status Management
   publishAssignment(id: string): Observable<ApiResponse<Assignment>> {
     return this.api.post(`${this.ASSIGNMENTS_ENDPOINT}/${id}/publish`, {});

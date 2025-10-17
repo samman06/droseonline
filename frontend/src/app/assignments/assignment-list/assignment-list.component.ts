@@ -57,10 +57,62 @@ import { AuthService } from '../../services/auth.service';
         </div>
       </div>
 
+      <!-- Bulk Actions Bar -->
+      <div *ngIf="canCreateAssignment && selectedAssignments.size > 0" class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg border border-purple-300 p-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="text-white font-semibold">
+              {{ selectedAssignments.size }} assignment(s) selected
+            </div>
+            <button (click)="selectedAssignments.clear()" class="text-white hover:text-purple-200 text-sm font-medium transition-colors">
+              Clear Selection
+            </button>
+          </div>
+          <div class="flex space-x-2">
+            <button 
+              (click)="bulkPublish()" 
+              [disabled]="bulkActionInProgress"
+              class="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md transition-all transform hover:-translate-y-0.5">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Publish
+            </button>
+            <button 
+              (click)="bulkClose()" 
+              [disabled]="bulkActionInProgress"
+              class="inline-flex items-center px-4 py-2 bg-white text-orange-600 rounded-lg hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md transition-all transform hover:-translate-y-0.5">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              Close
+            </button>
+            <button 
+              (click)="bulkDelete()" 
+              [disabled]="bulkActionInProgress"
+              class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md transition-all transform hover:-translate-y-0.5">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Enhanced Filters & View Toggle -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold text-gray-700">Filters & View</h3>
+          <div class="flex items-center space-x-4">
+            <h3 class="text-sm font-semibold text-gray-700">Filters & View</h3>
+            <label *ngIf="canCreateAssignment && assignments.length > 0" class="flex items-center cursor-pointer">
+              <input type="checkbox" 
+                     [checked]="isAllSelected()"
+                     (change)="toggleSelectAll()"
+                     class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+              <span class="ml-2 text-sm text-gray-600">Select All</span>
+            </label>
+          </div>
           <div class="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
             <button 
               (click)="viewMode = 'grid'"
@@ -147,11 +199,20 @@ import { AuthService } from '../../services/auth.service';
       <div *ngIf="!loading && assignments.length > 0 && viewMode === 'grid'" 
            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div *ngFor="let assignment of assignments" 
-             class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group">
+             class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group"
+             [class.ring-2]="isSelected(assignment._id!)"
+             [class.ring-purple-500]="isSelected(assignment._id!)">
           <!-- Card Header with Gradient -->
-          <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-4">
+          <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-4 relative">
+            <!-- Checkbox for selection (teachers/admins only) -->
+            <input *ngIf="canCreateAssignment" 
+                   type="checkbox" 
+                   [checked]="isSelected(assignment._id!)"
+                   (change)="toggleSelectAssignment(assignment._id!)"
+                   (click)="$event.stopPropagation()"
+                   class="absolute top-3 left-3 w-5 h-5 text-purple-600 bg-white border-gray-300 rounded focus:ring-purple-500 cursor-pointer z-10">
             <div class="flex items-start justify-between">
-              <span [class]="getTypeClass(assignment.type)">
+              <span [class]="getTypeClass(assignment.type)" [class.ml-8]="canCreateAssignment">
                 {{ assignment.type }}
               </span>
               <span *ngIf="isOverdue(assignment)" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
@@ -203,6 +264,14 @@ import { AuthService } from '../../services/auth.service';
                       class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                 Edit
               </button>
+              <button *ngIf="canEdit(assignment)" 
+                      (click)="cloneAssignment(assignment._id!)"
+                      class="px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                      title="Clone Assignment">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+              </button>
               <button *ngIf="isStudent && canSubmit(assignment)"
                       [routerLink]="['/dashboard/assignments', assignment._id, 'submit']"
                       class="flex-1 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg transition-all shadow-sm">
@@ -216,8 +285,17 @@ import { AuthService } from '../../services/auth.service';
       <!-- List View -->
       <div *ngIf="!loading && assignments.length > 0 && viewMode === 'list'" class="space-y-4">
         <div *ngFor="let assignment of assignments" 
-             class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-300 overflow-hidden">
-          <div class="p-6">
+             class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-300 overflow-hidden relative"
+             [class.ring-2]="isSelected(assignment._id!)"
+             [class.ring-purple-500]="isSelected(assignment._id!)">
+          <!-- Checkbox for selection (teachers/admins only) -->
+          <input *ngIf="canCreateAssignment" 
+                 type="checkbox" 
+                 [checked]="isSelected(assignment._id!)"
+                 (change)="toggleSelectAssignment(assignment._id!)"
+                 (click)="$event.stopPropagation()"
+                 class="absolute top-6 left-6 w-5 h-5 text-purple-600 bg-white border-gray-300 rounded focus:ring-purple-500 cursor-pointer z-10">
+          <div class="p-6" [class.pl-14]="canCreateAssignment">
             <div class="flex justify-between items-start">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-3">
@@ -292,6 +370,14 @@ import { AuthService } from '../../services/auth.service';
                         class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                   Edit
                 </button>
+                <button *ngIf="canEdit(assignment)" 
+                        (click)="cloneAssignment(assignment._id!)"
+                        class="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors whitespace-nowrap">
+                  <svg class="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  Clone
+                </button>
                 <button *ngIf="isStudent && canSubmit(assignment)"
                         [routerLink]="['/dashboard/assignments', assignment._id, 'submit']"
                         class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg transition-all shadow-sm">
@@ -341,6 +427,10 @@ export class AssignmentListComponent implements OnInit {
     status: '',
     search: ''
   };
+
+  // Bulk selection
+  selectedAssignments: Set<string> = new Set();
+  bulkActionInProgress = false;
 
   constructor(
     private assignmentService: AssignmentService,
@@ -471,6 +561,141 @@ export class AssignmentListComponent implements OnInit {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
+    });
+  }
+
+  // Bulk selection methods
+  toggleSelectAll(): void {
+    if (this.selectedAssignments.size === this.assignments.length) {
+      this.selectedAssignments.clear();
+    } else {
+      this.assignments.forEach(a => this.selectedAssignments.add(a._id!));
+    }
+  }
+
+  toggleSelectAssignment(assignmentId: string): void {
+    if (this.selectedAssignments.has(assignmentId)) {
+      this.selectedAssignments.delete(assignmentId);
+    } else {
+      this.selectedAssignments.add(assignmentId);
+    }
+  }
+
+  isSelected(assignmentId: string): boolean {
+    return this.selectedAssignments.has(assignmentId);
+  }
+
+  isAllSelected(): boolean {
+    return this.assignments.length > 0 && this.selectedAssignments.size === this.assignments.length;
+  }
+
+  bulkDelete(): void {
+    if (this.selectedAssignments.size === 0) {
+      this.toastService.warning('Please select assignments to delete');
+      return;
+    }
+
+    this.bulkActionInProgress = true;
+    const assignmentIds = Array.from(this.selectedAssignments);
+
+    this.assignmentService.bulkDeleteAssignments(assignmentIds).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const { deleted, failed, totalRequested } = response.data;
+          if (deleted.length > 0) {
+            this.toastService.success(`Deleted ${deleted.length} of ${totalRequested} assignment(s)`);
+          }
+          if (failed.length > 0) {
+            const failedReasons = failed.map((f: any) => `${f.title || f.id}: ${f.reason}`).join(', ');
+            this.toastService.warning(`Failed to delete ${failed.length}: ${failedReasons}`);
+          }
+          this.selectedAssignments.clear();
+          this.loadAssignments();
+        }
+        this.bulkActionInProgress = false;
+      },
+      error: (error) => {
+        this.toastService.showApiError(error);
+        this.bulkActionInProgress = false;
+      }
+    });
+  }
+
+  bulkPublish(): void {
+    if (this.selectedAssignments.size === 0) {
+      this.toastService.warning('Please select assignments to publish');
+      return;
+    }
+
+    this.bulkActionInProgress = true;
+    const assignmentIds = Array.from(this.selectedAssignments);
+
+    this.assignmentService.bulkPublishAssignments(assignmentIds).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const { published, failed, totalRequested } = response.data;
+          if (published.length > 0) {
+            this.toastService.success(`Published ${published.length} of ${totalRequested} assignment(s)`);
+          }
+          if (failed.length > 0) {
+            const failedReasons = failed.map((f: any) => `${f.title || f.id}: ${f.reason}`).join(', ');
+            this.toastService.warning(`Failed to publish ${failed.length}: ${failedReasons}`);
+          }
+          this.selectedAssignments.clear();
+          this.loadAssignments();
+        }
+        this.bulkActionInProgress = false;
+      },
+      error: (error) => {
+        this.toastService.showApiError(error);
+        this.bulkActionInProgress = false;
+      }
+    });
+  }
+
+  bulkClose(): void {
+    if (this.selectedAssignments.size === 0) {
+      this.toastService.warning('Please select assignments to close');
+      return;
+    }
+
+    this.bulkActionInProgress = true;
+    const assignmentIds = Array.from(this.selectedAssignments);
+
+    this.assignmentService.bulkCloseAssignments(assignmentIds).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const { closed, failed, totalRequested } = response.data;
+          if (closed.length > 0) {
+            this.toastService.success(`Closed ${closed.length} of ${totalRequested} assignment(s)`);
+          }
+          if (failed.length > 0) {
+            const failedReasons = failed.map((f: any) => `${f.title || f.id}: ${f.reason}`).join(', ');
+            this.toastService.warning(`Failed to close ${failed.length}: ${failedReasons}`);
+          }
+          this.selectedAssignments.clear();
+          this.loadAssignments();
+        }
+        this.bulkActionInProgress = false;
+      },
+      error: (error) => {
+        this.toastService.showApiError(error);
+        this.bulkActionInProgress = false;
+      }
+    });
+  }
+
+  cloneAssignment(assignmentId: string): void {
+    this.assignmentService.cloneAssignment(assignmentId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.success('Assignment cloned successfully');
+          this.loadAssignments();
+        }
+      },
+      error: (error) => {
+        this.toastService.showApiError(error);
+      }
     });
   }
 }
