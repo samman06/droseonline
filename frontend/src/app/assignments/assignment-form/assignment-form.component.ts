@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AssignmentService } from '../../services/assignment.service';
-import { CourseService } from '../../services/course.service';
+import { GroupService } from '../../services/group.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -88,14 +88,77 @@ import { AuthService } from '../../services/auth.service';
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Course
+                  Groups <span class="text-red-500">*</span>
                 </label>
-                <select formControlName="course" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                  <option value="">Select a course</option>
-                  <option *ngFor="let course of courses" [value]="course._id">
-                    {{ course.name }} ({{ course.code }})
-                  </option>
-                </select>
+                
+                <!-- Custom Multi-Select Dropdown -->
+                <div class="relative">
+                  <button
+                    type="button"
+                    (click)="toggleGroupsDropdown()"
+                    class="w-full px-4 py-2.5 text-left bg-white border-2 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all flex items-center justify-between"
+                    [ngClass]="{'border-red-500': assignmentForm.get('groups')?.invalid && assignmentForm.get('groups')?.touched}">
+                    <span class="text-gray-700">
+                      <span *ngIf="selectedGroups.length === 0" class="text-gray-400">Select groups...</span>
+                      <span *ngIf="selectedGroups.length > 0">{{ selectedGroups.length }} group(s) selected</span>
+                    </span>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform" [class.rotate-180]="showGroupsDropdown" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </button>
+                  
+                  <!-- Dropdown Menu -->
+                  <div *ngIf="showGroupsDropdown" class="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                    <div *ngIf="groups.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
+                      No groups available
+                    </div>
+                    <div *ngFor="let group of groups" 
+                         (click)="toggleGroupSelection(group)"
+                         class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
+                      <label class="flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          [checked]="isGroupSelected(group._id)"
+                          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                          (click)="$event.stopPropagation()">
+                        <div class="ml-3 flex-1">
+                          <div class="text-sm font-medium text-gray-900">{{ group.name }}</div>
+                          <div class="text-xs text-gray-500">{{ group.code }} • {{ group.gradeLevel }}</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Selected Groups Display -->
+                <div *ngIf="selectedGroups.length > 0" class="mt-2 flex flex-wrap gap-2">
+                  <span *ngFor="let group of selectedGroups" 
+                        class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-100 text-blue-800 text-sm font-medium border border-blue-200">
+                    {{ group.name }} ({{ group.code }})
+                    <button 
+                      type="button"
+                      (click)="removeGroupSelection(group._id)"
+                      class="ml-2 text-blue-600 hover:text-blue-800 focus:outline-none">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  </span>
+                </div>
+                
+                <p class="text-xs text-gray-500 mt-2">
+                  <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                  Click to select multiple groups. All groups must belong to the same course.
+                </p>
+                
+                <div *ngIf="assignmentForm.get('groups')?.invalid && assignmentForm.get('groups')?.touched" class="flex items-center text-red-600 text-sm mt-2">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  At least one group is required
+                </div>
               </div>
             </div>
           </div>
@@ -265,12 +328,14 @@ export class AssignmentFormComponent implements OnInit {
   loading = false;
   saving = false;
   currentUser: any;
-  courses: any[] = [];
+  groups: any[] = [];
+  selectedGroups: any[] = [];
+  showGroupsDropdown = false;
 
   constructor(
     private fb: FormBuilder,
     private assignmentService: AssignmentService,
-    private courseService: CourseService,
+    private groupService: GroupService,
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
@@ -280,7 +345,7 @@ export class AssignmentFormComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.currentUser;
     this.initForm();
-    this.loadCourses();
+    this.loadGroups();
     
     this.assignmentId = this.route.snapshot.paramMap.get('id');
     if (this.assignmentId) {
@@ -295,7 +360,7 @@ export class AssignmentFormComponent implements OnInit {
       title: ['', [Validators.required]],
       description: ['', [Validators.required, Validators.minLength(20)]],
       type: ['homework', Validators.required],
-      course: [''],
+      groups: [[], [Validators.required, Validators.minLength(1)]], // Groups are required
       dueDate: ['', Validators.required],
       maxPoints: [100, [Validators.required, Validators.min(1)]],
       rubric: this.fb.array([]),
@@ -324,16 +389,50 @@ export class AssignmentFormComponent implements OnInit {
     this.rubric.removeAt(index);
   }
 
-  loadCourses(): void {
-    this.courseService.getCourses({ limit: 100 }).subscribe({
+  loadGroups(): void {
+    this.groupService.getGroups({ page: 1, limit: 100 }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.courses = response.data;
+          // Handle nested response structure
+          this.groups = response.data.groups || response.data || [];
+          console.log('Loaded groups:', this.groups.length);
         }
       },
       error: (error) => {
-        console.error('Failed to load courses', error);
+        console.error('Failed to load groups', error);
+        this.toastService.error('Failed to load groups');
       }
+    });
+  }
+
+  toggleGroupsDropdown(): void {
+    this.showGroupsDropdown = !this.showGroupsDropdown;
+  }
+
+  toggleGroupSelection(group: any): void {
+    const index = this.selectedGroups.findIndex(g => g._id === group._id);
+    if (index > -1) {
+      // Remove group
+      this.selectedGroups.splice(index, 1);
+    } else {
+      // Add group
+      this.selectedGroups.push(group);
+    }
+    // Update form control
+    this.assignmentForm.patchValue({
+      groups: this.selectedGroups.map(g => g._id)
+    });
+  }
+
+  isGroupSelected(groupId: string): boolean {
+    return this.selectedGroups.some(g => g._id === groupId);
+  }
+
+  removeGroupSelection(groupId: string): void {
+    this.selectedGroups = this.selectedGroups.filter(g => g._id !== groupId);
+    // Update form control
+    this.assignmentForm.patchValue({
+      groups: this.selectedGroups.map(g => g._id)
     });
   }
 

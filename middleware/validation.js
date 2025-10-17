@@ -106,8 +106,9 @@ const assignmentSchema = Joi.object({
   title: Joi.string().trim().min(2).max(200).required(),
   description: Joi.string().trim().min(10).max(2000).required(),
   instructions: Joi.string().max(5000).optional(),
-  course: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-  groups: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).optional(),
+  groups: Joi.array().items(Joi.string().regex(/^[0-9a-fA-F]{24}$/)).min(1).required(), // At least one group required
+  course: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional(), // Course derived from groups
+  teacher: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional(), // Teacher derived from course
   type: Joi.string().valid('homework', 'quiz', 'midterm', 'final', 'project', 'presentation', 'lab', 'essay', 'other').required(),
   category: Joi.string().valid('individual', 'group', 'pair').optional(),
   maxPoints: Joi.number().min(1).max(1000).required(),

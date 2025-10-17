@@ -25,20 +25,21 @@ const assignmentSchema = new mongoose.Schema({
   },
   
   // Relationships
-  course: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Course',
-    required: true
-  },
-  teacher: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   groups: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Group'
+    ref: 'Group',
+    required: true
   }],
+  // Course is derived from groups (for backward compatibility and easy querying)
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  },
+  // Teacher is derived from course (auto-populated)
+  teacher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   
   // Assignment Details
   type: {
@@ -295,6 +296,26 @@ assignmentSchema.pre('save', async function(next) {
       this.code = `AS-${String(sequence).padStart(6, '0')}`;
     } catch (error) {
       return next(error);
+    }
+  }
+  
+  // Auto-populate course and teacher from groups
+  if (this.groups && this.groups.length > 0 && !this.course) {
+    try {
+      const Group = mongoose.model('Group');
+      const group = await Group.findById(this.groups[0]).populate('course');
+      if (group && group.course) {
+        this.course = group.course._id || group.course;
+        // Get teacher from course
+        const Course = mongoose.model('Course');
+        const course = await Course.findById(this.course);
+        if (course && course.teacher) {
+          this.teacher = course.teacher;
+        }
+      }
+    } catch (error) {
+      console.error('Error auto-populating course/teacher:', error);
+      // Don't fail the save, just log the error
     }
   }
   

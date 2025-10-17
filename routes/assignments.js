@@ -192,8 +192,46 @@ router.get('/:id', authenticate, async (req, res) => {
 // @access  Private (Teacher/Admin)
 router.post('/', authenticate, authorize('teacher', 'admin'), validate(assignmentSchema), async (req, res) => {
   try {
-    // Verify course exists and user has access
-    const course = await Course.findById(req.body.course);
+    // Verify groups exist
+    const Group = require('../models/Group');
+    const groups = await Group.find({ _id: { $in: req.body.groups } }).populate('course');
+    
+    if (!groups || groups.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No valid groups found'
+      });
+    }
+
+    if (groups.length !== req.body.groups.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'One or more groups not found'
+      });
+    }
+
+    // Get course from first group
+    const firstGroup = groups[0];
+    if (!firstGroup.course) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected group does not have an associated course'
+      });
+    }
+
+    // Verify all groups belong to the same course
+    const courseIds = groups.map(g => g.course._id?.toString() || g.course.toString());
+    const uniqueCourseIds = [...new Set(courseIds)];
+    if (uniqueCourseIds.length > 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'All groups must belong to the same course'
+      });
+    }
+
+    const courseId = uniqueCourseIds[0];
+    const course = await Course.findById(courseId);
+    
     if (!course) {
       return res.status(404).json({
         success: false,
@@ -211,8 +249,8 @@ router.post('/', authenticate, authorize('teacher', 'admin'), validate(assignmen
 
     const assignmentData = {
       ...req.body,
-      teacher: req.user._id,
-      groups: req.body.groups || course.groups // Use provided groups or default to course groups
+      course: courseId,
+      teacher: course.teacher
     };
 
     const assignment = new Assignment(assignmentData);
@@ -228,7 +266,7 @@ router.post('/', authenticate, authorize('teacher', 'admin'), validate(assignmen
         }
       })
       .populate('teacher', 'firstName lastName fullName')
-      .populate('groups', 'name code');
+      .populate('groups', 'name code gradeLevel');
 
     res.status(201).json({
       success: true,
