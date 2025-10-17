@@ -30,23 +30,14 @@ import { AuthService } from '../../services/auth.service';
 
       <!-- Filters -->
       <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-            <select [(ngModel)]="filters.isActive" (change)="loadCourses()" 
-                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <option value="">All</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
-            </select>
-          </div>
-          <div>
+        <div class="flex items-center gap-4">
+          <div class="flex-1">
             <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
             <input type="text" [(ngModel)]="filters.search" (input)="onSearchChange()" 
                    placeholder="Search courses..." 
                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
-          <div class="flex items-end">
+          <div>
             <button (click)="resetFilters()" 
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               Reset
@@ -61,17 +52,12 @@ import { AuthService } from '../../services/auth.service';
 
       <div *ngIf="!loading && courses.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div *ngFor="let course of courses" 
-             class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border-l-4"
-             [class.border-green-500]="course.isActive"
-             [class.border-gray-300]="!course.isActive">
+             class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border-l-4 border-indigo-500">
           <div class="flex justify-between items-start mb-4">
             <div class="flex-1">
               <h3 class="text-lg font-bold text-gray-900">{{ course.name }}</h3>
               <p class="text-sm text-gray-600">{{ course.code }}</p>
             </div>
-            <span [class]="getStatusClass(course.isActive)">
-              {{ course.isActive ? 'Active' : 'Inactive' }}
-            </span>
           </div>
           
           <div class="space-y-2 text-sm text-gray-600 mb-4">
@@ -126,7 +112,6 @@ export class CourseListComponent implements OnInit {
   searchTimeout: any;
 
   filters = {
-    isActive: '',
     search: ''
   };
 
@@ -155,7 +140,6 @@ export class CourseListComponent implements OnInit {
       limit: this.pagination.limit
     };
 
-    if (this.filters.isActive) params.isActive = this.filters.isActive;
     if (this.filters.search) params.search = this.filters.search;
 
     this.courseService.getCourses(params).subscribe({
@@ -188,7 +172,7 @@ export class CourseListComponent implements OnInit {
   }
 
   resetFilters(): void {
-    this.filters = { isActive: '', search: '' };
+    this.filters = { search: '' };
     this.pagination.page = 1;
     this.loadCourses();
   }
@@ -202,9 +186,4 @@ export class CourseListComponent implements OnInit {
     return course.teacher === this.currentUser?._id;
   }
 
-  getStatusClass(isActive: boolean): string {
-    return isActive 
-      ? 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800'
-      : 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800';
-  }
 }

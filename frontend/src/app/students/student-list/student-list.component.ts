@@ -21,7 +21,6 @@ interface Student {
     enrollmentDate: Date;
     groups: any[];
   };
-  isActive: boolean;
   createdAt: Date;
 }
 
@@ -51,10 +50,6 @@ interface Student {
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                   </svg>
                   {{ pagination.total }} Total
-                </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                  <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                  {{ getActiveStudentsCount() }} Active
                 </span>
               </div>
             </div>
@@ -210,18 +205,6 @@ interface Student {
             </div>
           </div>
           <div class="flex space-x-2">
-            <button (click)="bulkActivate()" class="btn-outline text-green-600 border-green-300 hover:bg-green-50">
-              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              Activate
-            </button>
-            <button (click)="bulkDeactivate()" class="btn-outline text-yellow-600 border-yellow-300 hover:bg-yellow-50">
-              <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              Deactivate
-            </button>
             <button (click)="bulkDelete()" class="btn-outline text-red-600 border-red-300 hover:bg-red-50">
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -541,7 +524,7 @@ export class StudentListComponent implements OnInit {
   }
 
   loadTeachers(): void {
-    this.teacherService.getTeachers({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+    this.teacherService.getTeachers({ page: 1, limit: 100 }).subscribe({
       next: (res) => {
         const list = res.data?.teachers || res.data || [];
         this.teachers = Array.isArray(list) ? list : [];
@@ -551,7 +534,7 @@ export class StudentListComponent implements OnInit {
   }
 
   loadSubjects(): void {
-    this.subjectService.getSubjects({ isActive: 'true', page: 1, limit: 100 }).subscribe({
+    this.subjectService.getSubjects({ page: 1, limit: 100 }).subscribe({
       next: (res) => {
         const list = res.data?.subjects || res.data || [];
         this.subjects = Array.isArray(list) ? list : [];
@@ -716,58 +699,6 @@ export class StudentListComponent implements OnInit {
   }
 
   // Bulk operations
-  async bulkActivate(): Promise<void> {
-    if (this.selectedStudents.length === 0) return;
-    
-    const confirmed = await this.confirmationService.confirm({
-      title: 'Activate Students',
-      message: `Are you sure you want to activate ${this.selectedStudents.length} student(s)? They will be able to access the system and enroll in courses.`,
-      confirmText: 'Yes, Activate',
-      cancelText: 'Cancel',
-      type: 'info'
-    });
-
-    if (confirmed) {
-      this.studentService.bulkAction('activate', this.selectedStudents).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.loadStudents();
-            this.clearSelection();
-          }
-        },
-        error: (error) => {
-          console.error('Error activating students:', error);
-        }
-      });
-    }
-  }
-
-  async bulkDeactivate(): Promise<void> {
-    if (this.selectedStudents.length === 0) return;
-    
-    const confirmed = await this.confirmationService.confirm({
-      title: 'Deactivate Students',
-      message: `Are you sure you want to deactivate ${this.selectedStudents.length} student(s)? They will temporarily lose access to the system.`,
-      confirmText: 'Yes, Deactivate',
-      cancelText: 'Cancel',
-      type: 'warning'
-    });
-
-    if (confirmed) {
-      this.studentService.bulkAction('deactivate', this.selectedStudents).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.loadStudents();
-            this.clearSelection();
-          }
-        },
-        error: (error) => {
-          console.error('Error deactivating students:', error);
-        }
-      });
-    }
-  }
-
   async bulkDelete(): Promise<void> {
     if (this.selectedStudents.length === 0) return;
     
@@ -837,7 +768,7 @@ export class StudentListComponent implements OnInit {
     if (this.students.length === 0) return;
     
     // Create CSV content
-    const headers = ['Student ID', 'Name', 'Email', 'Grade', 'Status', 'Enrollment Date'];
+    const headers = ['Student ID', 'Name', 'Email', 'Grade', 'Enrollment Date'];
     const csvContent = [
       headers.join(','),
       ...this.students.map(student => [
@@ -845,7 +776,6 @@ export class StudentListComponent implements OnInit {
         `"${student.fullName}"`,
         student.email,
         student.academicInfo.currentGrade || student.academicInfo.year,
-        student.isActive ? 'Active' : 'Inactive',
         new Date(student.academicInfo.enrollmentDate).toLocaleDateString()
       ].join(','))
     ].join('\n');
@@ -889,8 +819,4 @@ export class StudentListComponent implements OnInit {
     this.toastService.info(`CSV import functionality will be implemented. Found ${lines.length - 1} rows to process.`, 'Import Preview');
   }
 
-  // Statistics methods
-  getActiveStudentsCount(): number {
-    return this.students.filter(student => student.isActive).length;
-  }
 }
