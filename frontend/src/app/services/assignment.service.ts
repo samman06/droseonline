@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 
 export interface Assignment {
   _id?: string;
+  code?: string;
   title: string;
   description: string;
   instructions?: string;
