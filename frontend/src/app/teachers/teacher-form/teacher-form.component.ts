@@ -1,8 +1,9 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TeacherService } from '../../services/teacher.service';
+import { SubjectService } from '../../services/subject.service';
 
 interface Teacher {
   id?: string;
@@ -15,10 +16,17 @@ interface Teacher {
   academicInfo: {
     employeeId: string;
     hireDate: Date;
-    subjects?: string[];
+    subjects?: any[];
     groups?: string[];
   };
   isActive: boolean;
+}
+
+interface Subject {
+  _id: string;
+  id?: string;
+  name: string;
+  code: string;
 }
 
 @Component({
@@ -106,13 +114,32 @@ interface Teacher {
                 <label class="form-label">Hire Date *</label>
                 <input type="date" formControlName="hireDate" class="form-input">
               </div>
-            </div>
-            <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <div class="flex items-start">
-                <svg class="w-5 h-5 text-blue-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <p class="text-sm text-blue-800">Subjects and groups can be assigned after creating the teacher profile.</p>
+              <div class="md:col-span-2">
+                <label class="form-label">Subjects <span class="text-xs text-gray-500">(Select subjects this teacher can teach)</span></label>
+                <div *ngIf="isLoadingSubjects" class="text-sm text-gray-500">Loading subjects...</div>
+                <div *ngIf="!isLoadingSubjects && subjects.length === 0" class="text-sm text-amber-600 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  No subjects available. Please create subjects first.
+                </div>
+                <div *ngIf="!isLoadingSubjects && subjects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto p-4 border border-gray-300 rounded-lg bg-gray-50">
+                  <label *ngFor="let subject of subjects" class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-all cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      [checked]="isSubjectSelected(subject._id || subject.id || '')"
+                      (change)="toggleSubject(subject._id || subject.id || '')"
+                      class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 mr-3"
+                    >
+                    <div class="flex-1">
+                      <div class="text-sm font-semibold text-gray-900">{{ subject.name }}</div>
+                      <div class="text-xs text-gray-500 font-mono">{{ subject.code }}</div>
+                    </div>
+                  </label>
+                </div>
+                <div *ngIf="selectedSubjectIds.length > 0" class="mt-2 flex flex-wrap gap-2">
+                  <span *ngFor="let subjectId of selectedSubjectIds" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    {{ getSubjectName(subjectId) }}
+                    <button type="button" (click)="toggleSubject(subjectId)" class="ml-2 text-indigo-600 hover:text-indigo-800 font-bold">×</button>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -156,18 +183,38 @@ export class TeacherFormComponent implements OnInit {
 
   teacherForm!: FormGroup;
   isSubmitting = false;
+  subjects: Subject[] = [];
+  selectedSubjectIds: string[] = [];
+  isLoadingSubjects = false;
 
   constructor(
     private fb: FormBuilder,
     private teacherService: TeacherService,
+    private subjectService: SubjectService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadSubjects();
     if (this.teacher && this.isEditMode) {
       this.populateForm(this.teacher);
     }
+  }
+
+  loadSubjects(): void {
+    this.isLoadingSubjects = true;
+    this.subjectService.getSubjects({ isActive: true, page: 1, limit: 100 }).subscribe({
+      next: (response: any) => {
+        if (response.success && response.data) {
+          this.subjects = response.data.subjects || response.data || [];
+        }
+        this.isLoadingSubjects = false;
+      },
+      error: () => {
+        this.isLoadingSubjects = false;
+      }
+    });
   }
 
   initializeForm(): void {
@@ -197,12 +244,25 @@ export class TeacherFormComponent implements OnInit {
         hireDate: teacher.academicInfo.hireDate ? new Date(teacher.academicInfo.hireDate).toISOString().split('T')[0] : ''
       }
     });
+    
+    // Pre-select subjects when editing
+    if (teacher.academicInfo?.subjects && Array.isArray(teacher.academicInfo.subjects)) {
+      this.selectedSubjectIds = teacher.academicInfo.subjects.map((s: any) => 
+        typeof s === 'string' ? s : (s._id || s.id)
+      );
+    }
   }
 
   onSubmit(): void {
     if (this.teacherForm.valid) {
       this.isSubmitting = true;
-      const teacherData = this.teacherForm.value;
+      const teacherData = {
+        ...this.teacherForm.value,
+        academicInfo: {
+          ...this.teacherForm.value.academicInfo,
+          subjects: this.selectedSubjectIds
+        }
+      };
 
       const request = this.isEditMode && this.teacher?.id
         ? this.teacherService.updateTeacher(this.teacher.id, teacherData)
@@ -227,6 +287,24 @@ export class TeacherFormComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/dashboard/teachers']);
+  }
+
+  toggleSubject(subjectId: string): void {
+    const index = this.selectedSubjectIds.indexOf(subjectId);
+    if (index > -1) {
+      this.selectedSubjectIds.splice(index, 1);
+    } else {
+      this.selectedSubjectIds.push(subjectId);
+    }
+  }
+
+  isSubjectSelected(subjectId: string): boolean {
+    return this.selectedSubjectIds.includes(subjectId);
+  }
+
+  getSubjectName(subjectId: string): string {
+    const subject = this.subjects.find(s => (s._id || s.id) === subjectId);
+    return subject ? `${subject.name} (${subject.code})` : 'Unknown';
   }
 }
 
