@@ -6,6 +6,7 @@ import { StudentService } from '../../services/student.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
+import { ToastService } from '../../services/toast.service';
 
 interface Student {
   id: string;
@@ -529,7 +530,8 @@ export class StudentListComponent implements OnInit {
     private router: Router,
     private confirmationService: ConfirmationService,
     private teacherService: TeacherService,
-    private subjectService: SubjectService
+    private subjectService: SubjectService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -884,7 +886,7 @@ export class StudentListComponent implements OnInit {
     console.log('CSV Import - Headers:', headers);
     console.log('CSV Import - Lines:', lines.length - 1);
     
-    alert(`CSV import functionality will be implemented. Found ${lines.length - 1} rows to process.`);
+    this.toastService.info(`CSV import functionality will be implemented. Found ${lines.length - 1} rows to process.`, 'Import Preview');
   }
 
   // Statistics methods

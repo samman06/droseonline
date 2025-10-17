@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StudentFormComponent } from '../student-form/student-form.component';
 import { StudentService } from '../../services/student.service';
+import { ToastService } from '../../services/toast.service';
 
 interface Student {
   id?: string;
@@ -70,7 +71,8 @@ export class StudentEditComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private studentService: StudentService
+    private studentService: StudentService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -111,23 +113,23 @@ export class StudentEditComponent implements OnInit {
 
   onStudentUpdate(studentData: Student): void {
     if (!this.studentId) {
-      alert('Student ID is missing');
+      this.toastService.error('Student ID is missing');
       return;
     }
 
     this.studentService.updateStudent(this.studentId, studentData).subscribe({
       next: (response) => {
         if (response.success) {
+          this.toastService.showUpdateSuccess('Student');
           // Navigate to the student detail page
           this.router.navigate(['/dashboard/students', this.studentId]);
-          // TODO: Show success toast
         } else {
-          alert('Failed to update student: ' + (response.message || 'Unknown error'));
+          this.toastService.error(response.message || 'Failed to update student');
         }
       },
       error: (error) => {
         console.error('Error updating student:', error);
-        alert('Failed to update student');
+        this.toastService.showApiError(error);
       }
     });
   }

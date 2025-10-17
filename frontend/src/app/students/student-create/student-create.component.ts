@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { StudentFormComponent } from '../student-form/student-form.component';
 import { StudentService } from '../../services/student.service';
+import { ToastService } from '../../services/toast.service';
 
 interface Student {
   id?: string;
@@ -44,13 +45,15 @@ interface Student {
 export class StudentCreateComponent {
   constructor(
     private router: Router,
-    private studentService: StudentService
+    private studentService: StudentService,
+    private toastService: ToastService
   ) {}
 
   onStudentCreate(studentData: Student): void {
     this.studentService.createStudent(studentData).subscribe({
       next: (response) => {
         if (response.success) {
+          this.toastService.showCreateSuccess('Student');
           // Navigate to the student detail page
           const studentId = response.data.student?.id || response.data.student?._id;
           if (studentId) {
@@ -58,14 +61,13 @@ export class StudentCreateComponent {
           } else {
             this.router.navigate(['/dashboard/students']);
           }
-          // TODO: Show success toast
         } else {
-          alert('Failed to create student: ' + (response.message || 'Unknown error'));
+          this.toastService.error(response.message || 'Failed to create student');
         }
       },
       error: (error) => {
         console.error('Error creating student:', error);
-        alert('Failed to create student');
+        this.toastService.showApiError(error);
       }
     });
   }

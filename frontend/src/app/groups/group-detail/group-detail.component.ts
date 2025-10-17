@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GroupService } from '../../services/group.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-group-detail',
@@ -90,7 +91,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
 export class GroupDetailComponent implements OnInit {
   group: any;
 
-  constructor(private groupService: GroupService, private route: ActivatedRoute, private router: Router, private confirmation: ConfirmationService) {}
+  constructor(
+    private groupService: GroupService, 
+    private route: ActivatedRoute, 
+    private router: Router, 
+    private confirmation: ConfirmationService,
+    private toastService: ToastService
+  ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
@@ -146,7 +153,7 @@ export class GroupDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to clone group:', error);
-        alert('Failed to clone group. Please try again.');
+        this.toastService.showApiError(error);
       }
     });
   }
