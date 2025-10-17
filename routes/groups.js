@@ -2,6 +2,7 @@ const express = require('express');
 const Group = require('../models/Group');
 const User = require('../models/User');
 const AcademicYear = require('../models/AcademicYear');
+const Assignment = require('../models/Assignment');
 const { authenticate, authorize } = require('../middleware/auth');
 const { validate, validateQuery, groupSchema, paginationSchema } = require('../middleware/validation');
 
@@ -64,10 +65,37 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
 
     const total = await Group.countDocuments(query);
 
-    // Filter to show only active students in each group
+    // Get assignment counts for all groups
+    const groupIds = groups.map(g => g._id);
+    const assignmentCounts = await Assignment.aggregate([
+      { $match: { groups: { $in: groupIds } } },
+      { $unwind: '$groups' },
+      { $match: { groups: { $in: groupIds } } },
+      { 
+        $group: { 
+          _id: '$groups', 
+          count: { $sum: 1 },
+          published: { $sum: { $cond: [{ $eq: ['$status', 'published'] }, 1, 0] } },
+          draft: { $sum: { $cond: [{ $eq: ['$status', 'draft'] }, 1, 0] } }
+        } 
+      }
+    ]);
+
+    // Create a map of group ID to assignment count
+    const assignmentCountMap = {};
+    assignmentCounts.forEach(item => {
+      assignmentCountMap[item._id.toString()] = {
+        total: item.count,
+        published: item.published,
+        draft: item.draft
+      };
+    });
+
+    // Filter to show only active students and add assignment counts
     const groupsWithActiveStudents = groups.map(group => {
       const groupObj = group.toObject();
       groupObj.students = groupObj.students.filter(s => s.status === 'active');
+      groupObj.assignmentCount = assignmentCountMap[group._id.toString()] || { total: 0, published: 0, draft: 0 };
       return groupObj;
     });
 
@@ -123,6 +151,24 @@ router.get('/:id', authenticate, async (req, res) => {
     // Filter to show only active students
     const groupObj = group.toObject();
     groupObj.students = groupObj.students.filter(s => s.status === 'active');
+
+    // Get assignment statistics for this group
+    const assignments = await Assignment.find({ groups: req.params.id })
+      .select('title code type status dueDate maxPoints')
+      .sort({ dueDate: -1 });
+
+    const now = new Date();
+    const assignmentStats = {
+      total: assignments.length,
+      published: assignments.filter(a => a.status === 'published').length,
+      draft: assignments.filter(a => a.status === 'draft').length,
+      closed: assignments.filter(a => a.status === 'closed').length,
+      upcoming: assignments.filter(a => a.status === 'published' && new Date(a.dueDate) > now).length,
+      overdue: assignments.filter(a => a.status === 'published' && new Date(a.dueDate) < now).length,
+      assignments: assignments // Include the list of assignments
+    };
+
+    groupObj.assignmentStats = assignmentStats;
 
     res.json({
       success: true,
