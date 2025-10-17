@@ -385,6 +385,95 @@ router.delete('/:id', authenticate, checkTeacherAccess, async (req, res) => {
   }
 });
 
+// @route   POST /api/assignments/bulk-delete
+// @desc    Delete multiple assignments
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/bulk-delete', authenticate, async (req, res) => {
+  try {
+    const { assignmentIds } = req.body;
+
+    if (!assignmentIds || !Array.isArray(assignmentIds) || assignmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an array of assignment IDs'
+      });
+    }
+
+    const results = {
+      deleted: [],
+      failed: [],
+      totalRequested: assignmentIds.length
+    };
+
+    for (const assignmentId of assignmentIds) {
+      try {
+        const assignment = await Assignment.findById(assignmentId);
+        
+        if (!assignment) {
+          results.failed.push({
+            id: assignmentId,
+            reason: 'Assignment not found'
+          });
+          continue;
+        }
+
+        // Check authorization
+        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: 'You do not have permission to delete this assignment'
+          });
+          continue;
+        }
+
+        // Check if there are submissions
+        const submissionCount = await Submission.countDocuments({ assignment: assignmentId });
+        
+        if (submissionCount > 0) {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: `Cannot delete. Has ${submissionCount} submission(s)`
+          });
+          continue;
+        }
+
+        // Delete the assignment
+        await Assignment.findByIdAndDelete(assignmentId);
+        
+        results.deleted.push({
+          id: assignmentId,
+          code: assignment.code,
+          title: assignment.title
+        });
+      } catch (error) {
+        console.error(`Error deleting assignment ${assignmentId}:`, error);
+        results.failed.push({
+          id: assignmentId,
+          reason: 'Error during deletion'
+        });
+      }
+    }
+
+    const message = `Deleted ${results.deleted.length} of ${results.totalRequested} assignment(s)`;
+    
+    res.json({
+      success: true,
+      message,
+      data: results
+    });
+  } catch (error) {
+    console.error('Bulk delete assignments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting assignments'
+    });
+  }
+});
+
 // @route   POST /api/assignments/:id/publish
 // @desc    Publish assignment
 // @access  Private (Teacher/Admin - Owner only)
@@ -427,6 +516,287 @@ router.post('/:id/publish', authenticate, checkTeacherAccess, async (req, res) =
     res.status(500).json({
       success: false,
       message: 'Server error while publishing assignment'
+    });
+  }
+});
+
+// @route   POST /api/assignments/:id/close
+// @desc    Close assignment (no more submissions accepted)
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/:id/close', authenticate, checkTeacherAccess, async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id);
+    
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    if (assignment.status === 'closed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Assignment is already closed'
+      });
+    }
+
+    assignment.status = 'closed';
+    await assignment.save();
+
+    res.json({
+      success: true,
+      message: 'Assignment closed successfully',
+      data: { assignment }
+    });
+  } catch (error) {
+    console.error('Close assignment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while closing assignment'
+    });
+  }
+});
+
+// @route   POST /api/assignments/bulk-publish
+// @desc    Publish multiple assignments
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/bulk-publish', authenticate, async (req, res) => {
+  try {
+    const { assignmentIds } = req.body;
+
+    if (!assignmentIds || !Array.isArray(assignmentIds) || assignmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an array of assignment IDs'
+      });
+    }
+
+    const results = {
+      published: [],
+      failed: [],
+      totalRequested: assignmentIds.length
+    };
+
+    for (const assignmentId of assignmentIds) {
+      try {
+        const assignment = await Assignment.findById(assignmentId);
+        
+        if (!assignment) {
+          results.failed.push({
+            id: assignmentId,
+            reason: 'Assignment not found'
+          });
+          continue;
+        }
+
+        // Check authorization
+        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: 'You do not have permission to publish this assignment'
+          });
+          continue;
+        }
+
+        if (assignment.status === 'published') {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: 'Already published'
+          });
+          continue;
+        }
+
+        // Validate assignment before publishing
+        if (assignment.type === 'quiz' && assignment.questions.length === 0) {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: 'Cannot publish quiz without questions'
+          });
+          continue;
+        }
+
+        // Publish the assignment
+        assignment.status = 'published';
+        await assignment.save();
+        
+        results.published.push({
+          id: assignmentId,
+          code: assignment.code,
+          title: assignment.title
+        });
+      } catch (error) {
+        console.error(`Error publishing assignment ${assignmentId}:`, error);
+        results.failed.push({
+          id: assignmentId,
+          reason: 'Error during publishing'
+        });
+      }
+    }
+
+    const message = `Published ${results.published.length} of ${results.totalRequested} assignment(s)`;
+    
+    res.json({
+      success: true,
+      message,
+      data: results
+    });
+  } catch (error) {
+    console.error('Bulk publish assignments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while publishing assignments'
+    });
+  }
+});
+
+// @route   POST /api/assignments/bulk-close
+// @desc    Close multiple assignments
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/bulk-close', authenticate, async (req, res) => {
+  try {
+    const { assignmentIds } = req.body;
+
+    if (!assignmentIds || !Array.isArray(assignmentIds) || assignmentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an array of assignment IDs'
+      });
+    }
+
+    const results = {
+      closed: [],
+      failed: [],
+      totalRequested: assignmentIds.length
+    };
+
+    for (const assignmentId of assignmentIds) {
+      try {
+        const assignment = await Assignment.findById(assignmentId);
+        
+        if (!assignment) {
+          results.failed.push({
+            id: assignmentId,
+            reason: 'Assignment not found'
+          });
+          continue;
+        }
+
+        // Check authorization
+        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: 'You do not have permission to close this assignment'
+          });
+          continue;
+        }
+
+        if (assignment.status === 'closed') {
+          results.failed.push({
+            id: assignmentId,
+            code: assignment.code,
+            title: assignment.title,
+            reason: 'Already closed'
+          });
+          continue;
+        }
+
+        // Close the assignment
+        assignment.status = 'closed';
+        await assignment.save();
+        
+        results.closed.push({
+          id: assignmentId,
+          code: assignment.code,
+          title: assignment.title
+        });
+      } catch (error) {
+        console.error(`Error closing assignment ${assignmentId}:`, error);
+        results.failed.push({
+          id: assignmentId,
+          reason: 'Error during closing'
+        });
+      }
+    }
+
+    const message = `Closed ${results.closed.length} of ${results.totalRequested} assignment(s)`;
+    
+    res.json({
+      success: true,
+      message,
+      data: results
+    });
+  } catch (error) {
+    console.error('Bulk close assignments error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while closing assignments'
+    });
+  }
+});
+
+// @route   POST /api/assignments/:id/clone
+// @desc    Clone an assignment (create a duplicate)
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/:id/clone', authenticate, checkTeacherAccess, async (req, res) => {
+  try {
+    const originalAssignment = await Assignment.findById(req.params.id);
+    
+    if (!originalAssignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    // Create a copy of the assignment (excluding _id, code, status, timestamps)
+    const clonedData = {
+      title: `${originalAssignment.title} (Copy)`,
+      description: originalAssignment.description,
+      type: originalAssignment.type,
+      course: originalAssignment.course,
+      teacher: originalAssignment.teacher,
+      groups: originalAssignment.groups,
+      dueDate: originalAssignment.dueDate,
+      maxPoints: originalAssignment.maxPoints,
+      instructions: originalAssignment.instructions,
+      rubric: originalAssignment.rubric,
+      allowLateSubmissions: originalAssignment.allowLateSubmissions,
+      latePenalty: originalAssignment.latePenalty,
+      requireFileUpload: originalAssignment.requireFileUpload,
+      allowMultipleSubmissions: originalAssignment.allowMultipleSubmissions,
+      questions: originalAssignment.questions,
+      status: 'draft' // Always start cloned assignments as draft
+    };
+
+    const clonedAssignment = new Assignment(clonedData);
+    await clonedAssignment.save();
+
+    // Populate the response
+    await clonedAssignment.populate([
+      { path: 'course', select: 'name code' },
+      { path: 'teacher', select: 'firstName lastName fullName' },
+      { path: 'groups', select: 'name code gradeLevel' }
+    ]);
+
+    res.status(201).json({
+      success: true,
+      message: 'Assignment cloned successfully',
+      data: { assignment: clonedAssignment }
+    });
+  } catch (error) {
+    console.error('Clone assignment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while cloning assignment'
     });
   }
 });
