@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group.service';
 import { StudentService } from '../../services/student.service';
+import { AttendanceService } from '../../services/attendance.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { ToastService } from '../../services/toast.service';
 
@@ -182,6 +183,25 @@ import { ToastService } from '../../services/toast.service';
                       [class.bg-gray-100]="activeTab !== 'assignments'"
                       [class.text-gray-600]="activeTab !== 'assignments'">
                   {{ group?.assignmentStats?.total || 0 }}
+                </span>
+              </button>
+              <button 
+                (click)="activeTab = 'attendance'; loadAttendanceData()"
+                [class.border-indigo-600]="activeTab === 'attendance'"
+                [class.text-indigo-600]="activeTab === 'attendance'"
+                [class.border-transparent]="activeTab !== 'attendance'"
+                [class.text-gray-500]="activeTab !== 'attendance'"
+                class="group inline-flex items-center px-6 py-4 border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'attendance'" [class.text-gray-400]="activeTab !== 'attendance'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Attendance
+                <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
+                      [class.bg-indigo-100]="activeTab === 'attendance'"
+                      [class.text-indigo-600]="activeTab === 'attendance'"
+                      [class.bg-gray-100]="activeTab !== 'attendance'"
+                      [class.text-gray-600]="activeTab !== 'attendance'">
+                  {{ attendanceStats?.totalSessions || 0 }}
                 </span>
               </button>
             </nav>
@@ -474,6 +494,167 @@ import { ToastService } from '../../services/toast.service';
                 </div>
               </div>
             </div>
+
+            <!-- Attendance Tab -->
+            <div *ngIf="activeTab === 'attendance'">
+              <!-- Loading State -->
+              <div *ngIf="loadingAttendance" class="flex justify-center items-center py-12">
+                <div class="text-center">
+                  <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600 mx-auto mb-4"></div>
+                  <p class="text-gray-600">Loading attendance data...</p>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div *ngIf="!loadingAttendance">
+                <!-- Header with Quick Action -->
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 class="text-lg font-bold text-gray-900">Attendance Overview</h3>
+                    <p class="text-sm text-gray-600 mt-1">Track and manage attendance for this group</p>
+                  </div>
+                  <button 
+                    (click)="markAttendance()"
+                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Mark Attendance
+                  </button>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="p-2 bg-blue-500 rounded-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-blue-900">{{ attendanceStats?.totalSessions || 0 }}</div>
+                    <div class="text-sm font-medium text-blue-700">Total Sessions</div>
+                  </div>
+
+                  <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="p-2 bg-green-500 rounded-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-green-900">{{ attendanceStats?.averageRate || 0 }}%</div>
+                    <div class="text-sm font-medium text-green-700">Average Attendance</div>
+                  </div>
+
+                  <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border border-yellow-200">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="p-2 bg-yellow-500 rounded-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-yellow-900">{{ attendanceStats?.latestDate || 'N/A' }}</div>
+                    <div class="text-sm font-medium text-yellow-700">Latest Session</div>
+                  </div>
+
+                  <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="p-2 bg-purple-500 rounded-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-purple-900">{{ attendanceStats?.averagePresent || 0 }}</div>
+                    <div class="text-sm font-medium text-purple-700">Avg. Students Present</div>
+                  </div>
+                </div>
+
+                <!-- Recent Attendance Sessions -->
+                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                    <h4 class="text-lg font-semibold text-gray-900">Recent Sessions</h4>
+                  </div>
+                  
+                  <div *ngIf="recentAttendance.length === 0" class="text-center py-12">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <p class="text-gray-600 font-medium">No attendance records yet</p>
+                    <p class="text-sm text-gray-500 mt-1">Mark attendance to start tracking</p>
+                    <button 
+                      (click)="markAttendance()"
+                      class="mt-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-all">
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                      </svg>
+                      Mark First Session
+                    </button>
+                  </div>
+
+                  <div *ngIf="recentAttendance.length > 0" class="divide-y divide-gray-200">
+                    <div *ngFor="let session of recentAttendance" 
+                         class="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                         (click)="viewAttendance(session._id)">
+                      <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-3 mb-2">
+                            <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
+                              {{ session.code || 'N/A' }}
+                            </span>
+                            <span *ngIf="session.isLocked" class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+                              🔒 Locked
+                            </span>
+                            <span *ngIf="!session.isLocked" class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                              🔓 Open
+                            </span>
+                          </div>
+                          <div class="text-sm text-gray-900 font-medium mb-1">
+                            {{ formatDate(session.session.date) }}
+                          </div>
+                          <div class="text-xs text-gray-500">
+                            {{ session.records?.length || 0 }} students • 
+                            {{ calculateRate(session) }}% attendance rate
+                          </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4">
+                          <!-- Quick Stats -->
+                          <div class="flex items-center gap-2 text-sm">
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                              {{ countPresent(session) }} P
+                            </span>
+                            <span class="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
+                              {{ countAbsent(session) }} A
+                            </span>
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
+                              {{ countLate(session) }} L
+                            </span>
+                          </div>
+                          
+                          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- View All Button -->
+                  <div *ngIf="recentAttendance.length > 0" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <button 
+                      (click)="viewAllAttendance()"
+                      class="w-full text-center text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors">
+                      View All Attendance Records →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -566,10 +747,16 @@ export class GroupDetailComponent implements OnInit {
   loadingStudents = false;
   studentSearchTerm = '';
   activeTab = 'overview'; // New property for tab navigation
+  
+  // Attendance properties
+  attendanceStats: any = null;
+  recentAttendance: any[] = [];
+  loadingAttendance = false;
 
   constructor(
     private groupService: GroupService,
     private studentService: StudentService,
+    private attendanceService: AttendanceService,
     private route: ActivatedRoute, 
     private router: Router, 
     private confirmation: ConfirmationService,
@@ -800,6 +987,112 @@ export class GroupDetailComponent implements OnInit {
     }));
     
     this.router.navigate(['/dashboard/assignments/new']);
+  }
+
+  // Attendance methods
+  loadAttendanceData(): void {
+    if (this.loadingAttendance) return; // Prevent duplicate calls
+    
+    this.loadingAttendance = true;
+    const groupId = this.group._id || this.group.id;
+    
+    // Fetch attendance records for this group
+    this.attendanceService.getAttendances({ group: groupId, limit: 10, sort: '-session.date' }).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.recentAttendance = response.data.attendances || [];
+          this.calculateAttendanceStats();
+        }
+        this.loadingAttendance = false;
+      },
+      error: (error) => {
+        console.error('Error loading attendance:', error);
+        this.toastService.error('Failed to load attendance data');
+        this.loadingAttendance = false;
+      }
+    });
+  }
+
+  calculateAttendanceStats(): void {
+    if (this.recentAttendance.length === 0) {
+      this.attendanceStats = {
+        totalSessions: 0,
+        averageRate: 0,
+        latestDate: 'N/A',
+        averagePresent: 0
+      };
+      return;
+    }
+
+    const totalSessions = this.recentAttendance.length;
+    let totalRate = 0;
+    let totalPresent = 0;
+
+    this.recentAttendance.forEach(session => {
+      const rate = this.calculateRate(session);
+      totalRate += rate;
+      totalPresent += this.countPresent(session);
+    });
+
+    const latestSession = this.recentAttendance[0];
+    const latestDate = latestSession?.session?.date 
+      ? new Date(latestSession.session.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : 'N/A';
+
+    this.attendanceStats = {
+      totalSessions,
+      averageRate: Math.round(totalRate / totalSessions),
+      latestDate,
+      averagePresent: Math.round(totalPresent / totalSessions)
+    };
+  }
+
+  calculateRate(session: any): number {
+    if (!session.records || session.records.length === 0) return 0;
+    const present = session.records.filter((r: any) => r.status === 'present' || r.status === 'late').length;
+    return Math.round((present / session.records.length) * 100);
+  }
+
+  countPresent(session: any): number {
+    if (!session.records) return 0;
+    return session.records.filter((r: any) => r.status === 'present').length;
+  }
+
+  countAbsent(session: any): number {
+    if (!session.records) return 0;
+    return session.records.filter((r: any) => r.status === 'absent').length;
+  }
+
+  countLate(session: any): number {
+    if (!session.records) return 0;
+    return session.records.filter((r: any) => r.status === 'late').length;
+  }
+
+  formatDate(date: any): string {
+    if (!date) return 'N/A';
+    return new Date(date).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  }
+
+  markAttendance(): void {
+    const groupId = this.group._id || this.group.id;
+    this.router.navigate(['/dashboard/attendance/mark'], { 
+      queryParams: { groupId } 
+    });
+  }
+
+  viewAttendance(attendanceId: string): void {
+    this.router.navigate(['/dashboard/attendance', attendanceId]);
+  }
+
+  viewAllAttendance(): void {
+    const groupId = this.group._id || this.group.id;
+    this.router.navigate(['/dashboard/attendance'], { 
+      queryParams: { group: groupId } 
+    });
   }
 }
 
