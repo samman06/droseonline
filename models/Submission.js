@@ -53,14 +53,29 @@ const submissionSchema = new mongoose.Schema({
   
   // Quiz Submissions
   quizAnswers: [{
-    questionId: mongoose.Schema.Types.ObjectId,
-    answer: String,
+    questionId: mongoose.Schema.Types.ObjectId, // For backward compatibility
+    questionIndex: Number, // Index in the questions array
+    selectedOptionIndex: Number, // Index of selected option (0-3)
+    answer: String, // For backward compatibility and text answers
     isCorrect: Boolean,
     pointsEarned: {
       type: Number,
       default: 0
     }
   }],
+  
+  // Quiz Metadata
+  quizMetadata: {
+    startTime: Date,
+    endTime: Date,
+    timeSpent: Number, // in seconds
+    timeLimitExceeded: {
+      type: Boolean,
+      default: false
+    },
+    questionsOrder: [Number], // Stores the order questions were shown (if shuffled)
+    optionsOrder: [[Number]] // Stores the order options were shown for each question (if shuffled)
+  },
   
   // Submission Details
   submittedAt: {
@@ -289,9 +304,27 @@ submissionSchema.methods.autoGradeQuiz = async function() {
   
   // Grade each answer
   this.quizAnswers.forEach(answer => {
-    const question = assignment.questions.id(answer.questionId);
+    // Support both old (questionId) and new (questionIndex) formats
+    let question;
+    
+    if (answer.questionIndex !== undefined) {
+      question = assignment.questions[answer.questionIndex];
+    } else if (answer.questionId) {
+      question = assignment.questions.id(answer.questionId);
+    }
+    
     if (question) {
-      if (question.type === 'multiple_choice' || question.type === 'true_false') {
+      if (question.type === 'multiple_choice') {
+        // New format: compare selectedOptionIndex with correctAnswerIndex
+        if (answer.selectedOptionIndex !== undefined && question.correctAnswerIndex !== undefined) {
+          answer.isCorrect = answer.selectedOptionIndex === question.correctAnswerIndex;
+        } 
+        // Old format: compare answer string with correctAnswer
+        else if (answer.answer && question.correctAnswer) {
+          answer.isCorrect = answer.answer === question.correctAnswer;
+        }
+        answer.pointsEarned = answer.isCorrect ? question.points : 0;
+      } else if (question.type === 'true_false') {
         answer.isCorrect = answer.answer === question.correctAnswer;
         answer.pointsEarned = answer.isCorrect ? question.points : 0;
       } else {

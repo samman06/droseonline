@@ -108,21 +108,30 @@ const assignmentSchema = new mongoose.Schema({
   // Quiz/Test Specific Settings
   quizSettings: {
     timeLimit: Number, // in minutes
+    resultsVisibility: {
+      type: String,
+      enum: ['immediate', 'after_deadline', 'manual', 'never'],
+      default: 'after_deadline'
+    },
+    resultsReleased: {
+      type: Boolean,
+      default: false // For manual release by teacher
+    },
     questionsPerPage: {
       type: Number,
       default: 1
     },
-    randomizeQuestions: {
+    shuffleQuestions: {
+      type: Boolean,
+      default: false
+    },
+    shuffleOptions: {
       type: Boolean,
       default: false
     },
     allowBacktrack: {
       type: Boolean,
       default: true
-    },
-    showResultsImmediately: {
-      type: Boolean,
-      default: false
     },
     maxAttempts: {
       type: Number,
@@ -134,16 +143,52 @@ const assignmentSchema = new mongoose.Schema({
   questions: [{
     type: {
       type: String,
-      enum: ['multiple_choice', 'true_false', 'short_answer', 'essay', 'fill_blank']
+      enum: ['multiple_choice', 'true_false', 'short_answer', 'essay', 'fill_blank'],
+      default: 'multiple_choice'
     },
-    question: String,
-    options: [String], // for multiple choice
-    correctAnswer: String,
+    question: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    options: {
+      type: [String],
+      validate: {
+        validator: function(options) {
+          // For MCQ, must have exactly 4 options
+          if (this.type === 'multiple_choice') {
+            return options && options.length === 4;
+          }
+          return true;
+        },
+        message: 'Multiple choice questions must have exactly 4 options'
+      }
+    },
+    correctAnswerIndex: {
+      type: Number,
+      min: 0,
+      max: 3,
+      validate: {
+        validator: function(index) {
+          // Only validate for MCQ
+          if (this.type === 'multiple_choice') {
+            return index >= 0 && index <= 3;
+          }
+          return true;
+        },
+        message: 'Correct answer index must be between 0 and 3'
+      }
+    },
+    correctAnswer: String, // For other question types (kept for backward compatibility)
     points: {
       type: Number,
-      default: 1
+      default: 1,
+      min: 1
     },
-    explanation: String
+    explanation: {
+      type: String,
+      trim: true
+    }
   }],
   
   // Rubric for grading
@@ -282,6 +327,28 @@ assignmentSchema.methods.getEligibleStudents = async function() {
   );
   
   return uniqueStudents;
+};
+
+// Method to check if quiz results should be visible
+assignmentSchema.methods.canViewResults = function() {
+  if (this.type !== 'quiz') return true;
+  if (!this.quizSettings) return false;
+  
+  const visibility = this.quizSettings.resultsVisibility;
+  const now = new Date();
+  
+  switch (visibility) {
+    case 'immediate':
+      return true;
+    case 'after_deadline':
+      return now > this.dueDate;
+    case 'manual':
+      return this.quizSettings.resultsReleased;
+    case 'never':
+      return false;
+    default:
+      return false;
+  }
 };
 
 // Pre-save validation
