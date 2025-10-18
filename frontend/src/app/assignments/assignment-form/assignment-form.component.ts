@@ -203,7 +203,7 @@ import { AuthService } from '../../services/auth.service';
           </div>
           <div class="p-6">
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 Due Date <span class="text-red-500">*</span>
@@ -230,6 +230,23 @@ import { AuthService } from '../../services/auth.service';
               <div *ngIf="assignmentForm.get('maxPoints')?.invalid && assignmentForm.get('maxPoints')?.touched" class="text-red-500 text-sm mt-1">
                 Max points is required (minimum 1)
               </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Weightage (%) <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                formControlName="weightage"
+                min="0"
+                max="100"
+                class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                placeholder="10">
+              <div *ngIf="assignmentForm.get('weightage')?.invalid && assignmentForm.get('weightage')?.touched" class="text-red-500 text-sm mt-1">
+                Weightage is required (0-100%)
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Weight in final grade calculation</p>
             </div>
           </div>
           </div>
@@ -444,13 +461,14 @@ export class AssignmentFormComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.currentUser;
     this.initForm();
-    this.loadGroups();
     
     this.assignmentId = this.route.snapshot.paramMap.get('id');
     if (this.assignmentId) {
       this.isEditMode = true;
-      this.loadAssignment();
     }
+    
+    // Load groups first, then load assignment if in edit mode
+    this.loadGroups();
   }
 
   initForm(): void {
@@ -462,7 +480,8 @@ export class AssignmentFormComponent implements OnInit {
       groups: [[], [Validators.required, Validators.minLength(1)]], // Groups are required
       dueDate: ['', Validators.required],
       maxPoints: [100, [Validators.required, Validators.min(1)]],
-      rubric: this.fb.array([]),
+      weightage: [10, [Validators.required, Validators.min(0), Validators.max(100)]], // Weightage for grade calculation
+        rubric: this.fb.array([]),
       allowLateSubmissions: [true],
       latePenalty: [10],
       requireFileUpload: [false],
@@ -520,6 +539,11 @@ export class AssignmentFormComponent implements OnInit {
               localStorage.removeItem('preSelectedGroup');
             }
           }
+          
+          // Load assignment data AFTER groups are loaded (if in edit mode)
+          if (this.isEditMode && this.assignmentId) {
+            this.loadAssignment();
+          }
         }
       },
       error: (error) => {
@@ -568,28 +592,64 @@ export class AssignmentFormComponent implements OnInit {
       next: (response: any) => {
         if (response.success && response.data) {
           const assignment = response.data;
+          console.log('Loaded assignment data:', assignment);
           
           // Format due date for datetime-local input
           const dueDate = assignment.dueDate 
             ? new Date(assignment.dueDate).toISOString().slice(0, 16) 
             : '';
 
+          // Set code field separately (it's disabled, so patchValue won't work)
+          if (assignment.code) {
+            this.assignmentForm.get('code')?.setValue(assignment.code);
+          }
+
           this.assignmentForm.patchValue({
-            title: assignment.title,
-            description: assignment.description,
-            type: assignment.type,
-            course: assignment.course,
-            dueDate,
-            maxPoints: assignment.maxPoints,
-            allowLateSubmissions: assignment.allowLateSubmissions,
+            title: assignment.title || '',
+            description: assignment.description || '',
+            type: assignment.type || 'homework',
+            dueDate: dueDate,
+            maxPoints: assignment.maxPoints || 100,
+            weightage: assignment.weightage || 10,
+            allowLateSubmissions: assignment.allowLateSubmissions !== undefined ? assignment.allowLateSubmissions : true,
             latePenalty: assignment.latePenalty || 10,
-            requireFileUpload: assignment.requireFileUpload,
-            allowMultipleSubmissions: assignment.allowMultipleSubmissions,
-            instructions: assignment.instructions
+            requireFileUpload: assignment.requireFileUpload || false,
+            allowMultipleSubmissions: assignment.allowMultipleSubmissions !== undefined ? assignment.allowMultipleSubmissions : true,
+            instructions: assignment.instructions || ''
           });
+
+          console.log('Form values after patch:', this.assignmentForm.value);
+
+          // Load and populate groups
+          if (assignment.groups && assignment.groups.length > 0) {
+            console.log('Assignment groups:', assignment.groups);
+            
+            // Extract group IDs (handle both populated and non-populated groups)
+            const groupIds = assignment.groups.map((g: any) => g._id || g);
+            console.log('Extracted group IDs:', groupIds);
+            
+            // Set the form control value
+            this.assignmentForm.patchValue({
+              groups: groupIds
+            });
+            
+            // Populate selectedGroups array with full group objects for display
+            // If groups are populated objects, use them directly
+            if (assignment.groups[0] && typeof assignment.groups[0] === 'object' && assignment.groups[0].name) {
+              this.selectedGroups = assignment.groups;
+              console.log('Using populated groups:', this.selectedGroups);
+            } else {
+              // If groups are just IDs, find them in the loaded groups array
+              this.selectedGroups = this.groups.filter(g => 
+                groupIds.includes(g._id || g.id)
+              );
+              console.log('Matched groups from loaded list:', this.selectedGroups);
+            }
+          }
 
           // Load rubric criteria
           if (assignment.rubric && assignment.rubric.length > 0) {
+            console.log('Loading rubric criteria:', assignment.rubric.length);
             assignment.rubric.forEach((criterion: any) => {
               const criterionGroup = this.fb.group({
                 name: [criterion.name, Validators.required],
@@ -599,10 +659,17 @@ export class AssignmentFormComponent implements OnInit {
               this.rubric.push(criterionGroup);
             });
           }
+          
+          console.log('Final form state:', {
+            valid: this.assignmentForm.valid,
+            value: this.assignmentForm.value,
+            selectedGroups: this.selectedGroups.length
+          });
         }
         this.loading = false;
       },
       error: (error: any) => {
+        console.error('Error loading assignment:', error);
         this.toastService.showApiError(error);
         this.loading = false;
         this.router.navigate(['/dashboard/assignments']);
@@ -667,9 +734,10 @@ export class AssignmentFormComponent implements OnInit {
       title: formValue.title,
       description: formValue.description,
       type: formValue.type,
-      course: formValue.course || undefined,
+      groups: formValue.groups, // Required: array of group IDs
       dueDate: formValue.dueDate,
       maxPoints: formValue.maxPoints,
+      weightage: formValue.weightage, // Required: percentage weight in final grade (0-100)
       rubric: formValue.rubric,
       allowLateSubmissions: formValue.allowLateSubmissions,
       latePenalty: formValue.allowLateSubmissions ? formValue.latePenalty : 0,
