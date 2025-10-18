@@ -361,12 +361,29 @@ router.post('/', authenticate, validation.validate(createAttendanceSchema), asyn
   try {
     const { groupId, sessionDate, scheduleIndex, records, sessionNotes, isCompleted } = req.body;
 
-    // Verify group exists
-    const group = await Group.findById(groupId).populate('students');
+    // Verify group exists and populate course with teacher and subject
+    const group = await Group.findById(groupId)
+      .populate('students')
+      .populate({
+        path: 'course',
+        populate: [
+          { path: 'teacher', select: '_id fullName' },
+          { path: 'subject', select: '_id name' }
+        ]
+      });
+    
     if (!group) {
       return res.status(404).json({ 
         success: false,
         message: 'Group not found' 
+      });
+    }
+
+    // Ensure course with teacher and subject exists
+    if (!group.course || !group.course.teacher || !group.course.subject) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Group must have a course with teacher and subject assigned' 
       });
     }
 
@@ -400,8 +417,8 @@ router.post('/', authenticate, validation.validate(createAttendanceSchema), asyn
         date: new Date(sessionDate),
         scheduleIndex
       },
-      teacher: group.teacher,
-      subject: group.subject,
+      teacher: group.course.teacher._id,
+      subject: group.course.subject._id,
       records: attendanceRecords,
       sessionNotes: sessionNotes || '',
       isCompleted: isCompleted || false,
@@ -818,7 +835,13 @@ router.get('/statistics/dashboard', authenticate, async (req, res) => {
     // Populate group details
     const Group = require('../models/Group');
     for (let stat of groupStats) {
-      const group = await Group.findById(stat._id).populate('course');
+      const group = await Group.findById(stat._id).populate({
+        path: 'course',
+        populate: [
+          { path: 'teacher', select: 'fullName email' },
+          { path: 'subject', select: 'name code' }
+        ]
+      });
       stat.group = group;
     }
 
