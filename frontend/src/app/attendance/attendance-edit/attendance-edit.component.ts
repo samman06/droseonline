@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { AttendanceService } from '../../services/attendance.service';
+import { AttendanceService, Attendance } from '../../services/attendance.service';
+import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -11,294 +12,335 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-l-4 border-indigo-600">
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Attendance</h1>
-              <p class="text-gray-600" *ngIf="attendance">{{ attendance.group?.name }} - {{ attendance.session.date | date:'fullDate' }}</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <!-- Lock/Unlock Indicator -->
-              <div *ngIf="attendance" class="flex items-center gap-2">
-                <span 
-                  *ngIf="attendance.isLocked"
-                  class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full bg-red-100 text-red-800"
-                >
-                  <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                  </svg>
-                  Locked
-                </span>
-                <button 
-                  *ngIf="attendance.isLocked && isAdmin"
-                  (click)="unlockSession()"
-                  class="px-3 py-1.5 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700"
-                  title="Admin: Unlock this session"
-                >
-                  🔓 Unlock
-                </button>
-              </div>
-              <button 
-                (click)="goBack()"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-              >
-                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                Back
-              </button>
-            </div>
-          </div>
-          <!-- Locked Warning -->
-          <div *ngIf="attendance && attendance.isLocked && !isAdmin" class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p class="text-sm text-yellow-800">
-              ⚠️ This session is locked. Only administrators can make changes.
-            </p>
-          </div>
-        </div>
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        
+        <!-- Breadcrumb Navigation -->
+        <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">Attendance</a>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <a *ngIf="attendance" [routerLink]="['/attendance', attendance._id]" class="hover:text-purple-600 transition-colors">Details</a>
+          <svg *ngIf="attendance" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-gray-900 font-medium">Edit</span>
+        </nav>
 
         <!-- Loading State -->
-        <div *ngIf="isLoading" class="bg-white rounded-xl shadow-lg p-12 text-center">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p class="mt-4 text-gray-600">Loading attendance...</p>
+        <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+          <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600 font-medium">Loading attendance...</p>
+          </div>
         </div>
 
         <!-- Error State -->
         <div *ngIf="error && !isLoading" class="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 mb-6">
           <div class="flex items-center">
-            <svg class="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-6 h-6 text-red-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
             </svg>
             <p class="text-red-800 font-medium">{{ error }}</p>
           </div>
         </div>
 
-        <!-- Edit Form -->
-        <div *ngIf="!isLoading && !error && attendance" class="bg-white rounded-xl shadow-lg overflow-hidden">
-          <!-- Session Info -->
-          <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <p class="text-indigo-100 text-sm">Teacher</p>
-                <p class="font-semibold">{{ attendance.teacher?.fullName }}</p>
-              </div>
-              <div>
-                <p class="text-indigo-100 text-sm">Session Date</p>
-                <p class="font-semibold">{{ attendance.session.date | date:'fullDate' }}</p>
-              </div>
-              <div>
-                <p class="text-indigo-100 text-sm">Total Students</p>
-                <p class="font-semibold">{{ attendance.records.length }}</p>
-              </div>
-              <div>
-                <p class="text-indigo-100 text-sm">Attendance Rate</p>
-                <p class="font-semibold">{{ attendance.stats?.rate || 0 }}%</p>
+        <!-- Main Edit Form -->
+        <div *ngIf="!isLoading && !error && attendance">
+          <!-- Hero Section -->
+          <div class="relative bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 rounded-2xl shadow-2xl p-8 mb-8 overflow-hidden">
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-40 h-40 bg-white opacity-5 rounded-full"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+            
+            <div class="relative z-10">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-3">
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
+                      {{ attendance.code || 'N/A' }}
+                    </span>
+                    <span *ngIf="attendance.isLocked" 
+                          class="px-3 py-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
+                      🔒 Locked
+                    </span>
+                    <span *ngIf="!attendance.isLocked" 
+                          class="px-3 py-1 bg-green-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
+                      🔓 Unlocked
+                    </span>
+                  </div>
+                  <h1 class="text-4xl font-bold text-white mb-2">Edit Attendance</h1>
+                  <p class="text-purple-100 text-lg mb-4">{{ attendance.group?.name }} - {{ formatDate(attendance.session.date) }}</p>
+                  <div class="flex flex-wrap gap-4 text-sm text-purple-100">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                      </svg>
+                      <span>{{ attendance.teacher?.fullName }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                      </svg>
+                      <span>{{ attendance.subject?.name }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Real-time Stats -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                  <div class="text-center">
+                    <div class="text-5xl font-bold text-white mb-2">{{ attendanceRate }}%</div>
+                    <div class="text-purple-100 text-sm">Attendance Rate</div>
+                    <div class="mt-3 flex items-center justify-center gap-2 text-xs text-purple-100">
+                      <span class="px-2 py-1 bg-green-500/30 rounded">{{ getStatusCount('present') }} Present</span>
+                      <span class="px-2 py-1 bg-yellow-500/30 rounded">{{ getStatusCount('late') }} Late</span>
+                    </div>
+                    <div *ngIf="hasChanges" class="mt-3 text-xs text-yellow-200 font-medium">
+                      ⚠️ {{ changeCount }} change(s) pending
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Quick Actions -->
-          <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div class="flex flex-wrap gap-3">
-                <button 
-                  (click)="markAllAs('present')"
-                  [disabled]="!canEdit"
-                  class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  ✓ Mark All Present
-                </button>
-                <button 
-                  (click)="markAllAs('absent')"
-                  [disabled]="!canEdit"
-                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  ✗ Mark All Absent
-                </button>
-                <button 
-                  (click)="invertSelection()"
-                  [disabled]="!canEdit"
-                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  ⇄ Invert
-                </button>
-              </div>
-              <div class="flex items-center gap-2">
-                <label class="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="enableKeyboardShortcuts"
-                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span class="ml-2 text-sm text-gray-700">Keyboard Shortcuts</span>
-                </label>
+          <!-- Lock Warning (if locked and not admin) -->
+          <div *ngIf="attendance.isLocked && !isAdmin" class="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+              <svg class="w-6 h-6 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+              </svg>
+              <div>
+                <p class="text-yellow-800 font-medium">This attendance session is locked</p>
+                <p class="text-yellow-700 text-sm mt-1">Only administrators can edit locked sessions</p>
               </div>
             </div>
           </div>
 
-          <!-- Students List -->
-          <div class="p-6">
-            <div class="space-y-3">
-              <div *ngFor="let record of attendance.records; let i = index" 
-                   [attr.data-index]="i"
-                   (keydown)="handleKeyPress($event, i)"
-                   class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus-within:ring-2 focus-within:ring-indigo-500">
-                <div class="flex items-start gap-4">
-                  <!-- Student Info -->
+          <!-- Quick Actions Bar -->
+          <div *ngIf="!attendance.isLocked || isAdmin" class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold text-gray-900">Quick Actions</h2>
+              <div class="text-sm text-gray-600">
+                Students: <span class="font-semibold">{{ students.length }}</span>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <button 
+                (click)="markAllPresent()"
+                class="px-6 py-3 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 transition-colors duration-200 flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Mark All Present
+              </button>
+              <button 
+                (click)="markAllAbsent()"
+                class="px-6 py-3 bg-red-100 text-red-700 font-medium rounded-lg hover:bg-red-200 transition-colors duration-200 flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Mark All Absent
+              </button>
+              <button 
+                (click)="resetChanges()"
+                [disabled]="!hasChanges"
+                class="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Reset Changes
+              </button>
+            </div>
+          </div>
+
+          <!-- Students Grid -->
+          <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Student Attendance Records</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div *ngFor="let student of students; let i = index" 
+                   class="bg-gradient-to-br from-gray-50 to-white border-2 rounded-xl p-4 hover:shadow-lg transition-all duration-200"
+                   [ngClass]="{
+                     'border-green-300 bg-green-50/50': student.status === 'present',
+                     'border-red-300 bg-red-50/50': student.status === 'absent',
+                     'border-yellow-300 bg-yellow-50/50': student.status === 'late',
+                     'border-blue-300 bg-blue-50/50': student.status === 'excused',
+                     'border-gray-200': !student.status,
+                     'ring-2 ring-purple-400': student.changed
+                   }">
+                
+                <!-- Student Header -->
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="flex-shrink-0 h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span class="text-purple-600 font-bold text-lg">{{ getInitials(student.student?.fullName || 'N/A') }}</span>
+                  </div>
                   <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-gray-900 truncate">{{ i + 1 }}. {{ record.student?.fullName }}</p>
-                    <p class="text-sm text-gray-500">{{ record.student?.academicInfo?.studentId || 'N/A' }}</p>
-                  </div>
-
-                  <!-- Status Buttons -->
-                  <div class="flex items-center gap-2">
-                    <button 
-                      (click)="setStatus(i, 'present')"
-                      [disabled]="!canEdit"
-                      [class]="record.status === 'present' 
-                        ? 'bg-green-600 text-white ring-2 ring-green-600 ring-offset-1' 
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-green-50'"
-                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      ✓ Present
-                    </button>
-                    <button 
-                      (click)="setStatus(i, 'late')"
-                      [disabled]="!canEdit"
-                      [class]="record.status === 'late' 
-                        ? 'bg-yellow-600 text-white ring-2 ring-yellow-600 ring-offset-1' 
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-yellow-50'"
-                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      ⏰ Late
-                    </button>
-                    <button 
-                      (click)="setStatus(i, 'absent')"
-                      [disabled]="!canEdit"
-                      [class]="record.status === 'absent' 
-                        ? 'bg-red-600 text-white ring-2 ring-red-600 ring-offset-1' 
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-red-50'"
-                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      ✗ Absent
-                    </button>
-                    <button 
-                      (click)="setStatus(i, 'excused')"
-                      [disabled]="!canEdit"
-                      [class]="record.status === 'excused' 
-                        ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-1' 
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-blue-50'"
-                      class="px-3 py-1.5 text-xs font-medium rounded-lg focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      📋 Excused
-                    </button>
+                    <h3 class="text-sm font-semibold text-gray-900 truncate">{{ student.student?.fullName || 'N/A' }}</h3>
+                    <p class="text-xs text-gray-500">
+                      {{ student.changed ? '🔄 Modified' : (student.status ? '✓ Recorded' : 'Not marked') }}
+                    </p>
                   </div>
                 </div>
 
-                <!-- Late Minutes Input -->
-                <div *ngIf="record.status === 'late'" class="mt-3 flex items-center gap-2">
-                  <label class="text-sm font-medium text-gray-700 whitespace-nowrap">Minutes Late:</label>
+                <!-- Original Status (if changed) -->
+                <div *ngIf="student.changed && student.originalStatus" class="mb-2 p-2 bg-gray-100 rounded text-xs">
+                  <span class="text-gray-600">Was:</span>
+                  <span class="font-medium ml-1" 
+                        [ngClass]="{
+                          'text-green-700': student.originalStatus === 'present',
+                          'text-red-700': student.originalStatus === 'absent',
+                          'text-yellow-700': student.originalStatus === 'late',
+                          'text-blue-700': student.originalStatus === 'excused'
+                        }">
+                    {{ student.originalStatus | titlecase }}
+                  </span>
+                </div>
+
+                <!-- Status Buttons -->
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <button 
+                    (click)="setStatus(i, 'present')"
+                    [disabled]="!!(attendance.isLocked && !isAdmin)"
+                    [ngClass]="{
+                      'bg-green-500 text-white shadow-lg': student.status === 'present',
+                      'bg-green-50 text-green-700 hover:bg-green-100': student.status !== 'present'
+                    }"
+                    class="px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Present
+                  </button>
+                  <button 
+                    (click)="setStatus(i, 'absent')"
+                    [disabled]="!!(attendance.isLocked && !isAdmin)"
+                    [ngClass]="{
+                      'bg-red-500 text-white shadow-lg': student.status === 'absent',
+                      'bg-red-50 text-red-700 hover:bg-red-100': student.status !== 'absent'
+                    }"
+                    class="px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Absent
+                  </button>
+                  <button 
+                    (click)="setStatus(i, 'late')"
+                    [disabled]="!!(attendance.isLocked && !isAdmin)"
+                    [ngClass]="{
+                      'bg-yellow-500 text-white shadow-lg': student.status === 'late',
+                      'bg-yellow-50 text-yellow-700 hover:bg-yellow-100': student.status !== 'late'
+                    }"
+                    class="px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Late
+                  </button>
+                  <button 
+                    (click)="setStatus(i, 'excused')"
+                    [disabled]="!!(attendance.isLocked && !isAdmin)"
+                    [ngClass]="{
+                      'bg-blue-500 text-white shadow-lg': student.status === 'excused',
+                      'bg-blue-50 text-blue-700 hover:bg-blue-100': student.status !== 'excused'
+                    }"
+                    class="px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Excused
+                  </button>
+                </div>
+
+                <!-- Late Minutes (if late) -->
+                <div *ngIf="student.status === 'late'" class="mb-2">
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Minutes Late</label>
                   <input 
-                    type="number" 
-                    [(ngModel)]="record.minutesLate"
-                    [disabled]="!canEdit"
+                    type="number"
+                    [(ngModel)]="student.minutesLate"
+                    (ngModelChange)="trackChange(i)"
+                    [disabled]="!!(attendance.isLocked && !isAdmin)"
                     min="0"
-                    max="240"
                     placeholder="0"
-                    class="w-24 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                  <span class="text-xs text-gray-500">minutes</span>
-                </div>
-
-                <!-- Notes Input -->
-                <div class="mt-3">
-                  <input 
-                    type="text" 
-                    [(ngModel)]="record.notes"
-                    [disabled]="!canEdit"
-                    placeholder="Add notes (optional)..."
-                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent disabled:opacity-50"
                   />
                 </div>
 
-                <!-- Marked By Info -->
-                <div *ngIf="record.markedBy || record.markedAt" class="mt-2 text-xs text-gray-500">
-                  Last updated: {{ record.markedAt | date:'short' }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Session Notes -->
-            <div class="mt-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Session Notes (Optional)</label>
-              <textarea 
-                [(ngModel)]="attendance.sessionNotes"
-                [disabled]="!canEdit"
-                rows="3"
-                placeholder="Add any notes about this session..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-              ></textarea>
-            </div>
-
-            <!-- Summary -->
-            <div class="mt-6 p-4 bg-indigo-50 rounded-lg">
-              <h3 class="text-sm font-semibold text-indigo-900 mb-2">Summary</h3>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <!-- Notes -->
                 <div>
-                  <p class="text-2xl font-bold text-green-600">{{ getSummary().present }}</p>
-                  <p class="text-xs text-gray-600">Present</p>
-                </div>
-                <div>
-                  <p class="text-2xl font-bold text-yellow-600">{{ getSummary().late }}</p>
-                  <p class="text-xs text-gray-600">Late</p>
-                </div>
-                <div>
-                  <p class="text-2xl font-bold text-red-600">{{ getSummary().absent }}</p>
-                  <p class="text-xs text-gray-600">Absent</p>
-                </div>
-                <div>
-                  <p class="text-2xl font-bold text-blue-600">{{ getSummary().excused }}</p>
-                  <p class="text-xs text-gray-600">Excused</p>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+                  <textarea 
+                    [(ngModel)]="student.notes"
+                    (ngModelChange)="trackChange(i)"
+                    [disabled]="!!(attendance.isLocked && !isAdmin)"
+                    rows="2"
+                    placeholder="Add notes..."
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:opacity-50"
+                  ></textarea>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Actions -->
-          <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <label *ngIf="!attendance.isLocked && canEdit" class="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    [(ngModel)]="lockAfterSave"
-                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <span class="ml-2 text-sm text-gray-700">Lock session after saving</span>
-                </label>
-              </div>
-              <div class="flex gap-3">
-                <button 
-                  (click)="goBack()"
-                  class="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                >
-                  Cancel
-                </button>
-                <button 
-                  (click)="saveChanges()"
-                  [disabled]="isSaving || !canEdit"
-                  class="px-6 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  <svg *ngIf="!isSaving" class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  <span *ngIf="isSaving" class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                  {{ isSaving ? 'Saving...' : 'Save Changes' }}
-                </button>
-              </div>
+          <!-- Session Notes -->
+          <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Session Notes</h2>
+            <textarea 
+              [(ngModel)]="sessionNotes"
+              (ngModelChange)="trackNotesChange()"
+              [disabled]="!!(attendance.isLocked && !isAdmin)"
+              rows="4"
+              placeholder="Add any notes about this session..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:opacity-50"
+            ></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-between bg-white rounded-xl shadow-lg p-6">
+            <button 
+              (click)="goBack()"
+              class="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+              </svg>
+              Cancel
+            </button>
+
+            <div class="flex gap-3">
+              <button 
+                *ngIf="attendance.isLocked && isAdmin"
+                (click)="unlockSession()"
+                class="px-6 py-3 bg-yellow-100 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition-colors duration-200 flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
+                </svg>
+                Unlock First
+              </button>
+              <button 
+                *ngIf="!attendance.isLocked || isAdmin"
+                (click)="saveChanges()"
+                [disabled]="isSaving || !hasChanges"
+                class="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg *ngIf="!isSaving" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <svg *ngIf="isSaving" class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {{ isSaving ? 'Saving...' : 'Save Changes (' + changeCount + ')' }}
+              </button>
             </div>
           </div>
         </div>
@@ -306,227 +348,293 @@ import { AuthService } from '../../services/auth.service';
     </div>
   `
 })
-export class AttendanceEditComponent implements OnInit, OnDestroy {
-  attendanceId: string = '';
-  attendance: any = null;
-  
+export class AttendanceEditComponent implements OnInit {
+  attendanceId: string | null = null;
+  attendance: Attendance | null = null;
+  students: any[] = [];
+  originalStudents: any[] = [];
+  sessionNotes: string = '';
+  originalSessionNotes: string = '';
   isLoading = false;
   isSaving = false;
   error: string = '';
-  
-  // New features
-  enableKeyboardShortcuts: boolean = true;
-  lockAfterSave: boolean = false;
-  currentFocusIndex: number = 0;
-  isAdmin: boolean = false;
-  canEdit: boolean = true;
+  isAdmin = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private attendanceService: AttendanceService,
+    private toastService: ToastService,
     private confirmationService: ConfirmationService,
     private authService: AuthService
   ) {}
-  
-  ngAfterViewInit(): void {
-    if (typeof document !== 'undefined') {
-      document.addEventListener('keydown', (e) => this.handleGlobalKeyPress(e));
-    }
-  }
-  
-  ngOnDestroy(): void {
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('keydown', (e) => this.handleGlobalKeyPress(e));
-    }
-  }
 
-  ngOnInit(): void {
-    this.attendanceId = this.route.snapshot.paramMap.get('id') || '';
+  ngOnInit() {
+    this.attendanceId = this.route.snapshot.paramMap.get('id');
+    
+    // Check if user is admin
     const currentUser = this.authService.currentUser;
-    this.isAdmin = currentUser?.role === 'admin';
-    this.loadAttendance();
+    if (currentUser) {
+      this.isAdmin = currentUser.role === 'admin';
+    }
+
+    if (this.attendanceId) {
+      this.loadAttendance(this.attendanceId);
+    } else {
+      this.error = 'No attendance ID provided';
+      this.toastService.error(this.error);
+    }
   }
 
-  loadAttendance(): void {
+  loadAttendance(id: string) {
     this.isLoading = true;
     this.error = '';
 
-    this.attendanceService.getAttendance(this.attendanceId).subscribe({
+    this.attendanceService.getAttendance(id).subscribe({
       next: (response) => {
-        this.attendance = response;
-        this.canEdit = !this.attendance.isLocked || this.isAdmin;
+        if (response.success && response.data) {
+          this.attendance = response.data.attendance;
+          this.initializeStudents();
+          this.sessionNotes = this.attendance.sessionNotes || '';
+          this.originalSessionNotes = this.sessionNotes;
+        }
         this.isLoading = false;
       },
-      error: (err) => {
-        this.error = err.error?.message || 'Failed to load attendance';
+      error: (error) => {
+        console.error('Error loading attendance:', error);
+        this.error = error.error?.message || 'Failed to load attendance details';
         this.isLoading = false;
+        this.toastService.error(this.error);
       }
     });
   }
 
-  setStatus(index: number, status: string): void {
-    if (!this.canEdit) return;
-    this.attendance.records[index].status = status;
-    if (status === 'late') {
-      this.attendance.records[index].minutesLate = this.attendance.records[index].minutesLate || 5;
+  initializeStudents() {
+    if (!this.attendance || !this.attendance.records) {
+      this.students = [];
+      this.originalStudents = [];
+      return;
+    }
+
+    this.students = this.attendance.records.map((record: any) => ({
+      student: record.student,
+      status: record.status,
+      minutesLate: record.minutesLate || 0,
+      notes: record.notes || '',
+      changed: false,
+      originalStatus: record.status,
+      originalMinutesLate: record.minutesLate || 0,
+      originalNotes: record.notes || ''
+    }));
+
+    // Deep copy for reset functionality
+    this.originalStudents = JSON.parse(JSON.stringify(this.students));
+  }
+
+  setStatus(index: number, status: string) {
+    if (this.students[index]) {
+      this.students[index].status = status;
+      if (status !== 'late') {
+        this.students[index].minutesLate = 0;
+      }
+      this.trackChange(index);
     }
   }
 
-  markAllAs(status: string): void {
-    if (!this.canEdit) return;
-    this.attendance.records.forEach((record: any) => {
-      record.status = status;
-      if (status === 'late' && !record.minutesLate) {
-        record.minutesLate = 5;
+  trackChange(index: number) {
+    if (!this.students[index]) return;
+
+    const student = this.students[index];
+    const original = this.originalStudents[index];
+
+    student.changed = (
+      student.status !== original.status ||
+      student.minutesLate !== original.minutesLate ||
+      student.notes !== original.notes
+    );
+  }
+
+  trackNotesChange() {
+    // Session notes change tracking is implicit
+  }
+
+  markAllPresent() {
+    this.students.forEach((student, index) => {
+      student.status = 'present';
+      student.minutesLate = 0;
+      this.trackChange(index);
+    });
+    this.toastService.success('All students marked as present');
+  }
+
+  markAllAbsent() {
+    this.students.forEach((student, index) => {
+      student.status = 'absent';
+      student.minutesLate = 0;
+      this.trackChange(index);
+    });
+    this.toastService.success('All students marked as absent');
+  }
+
+  resetChanges() {
+    this.confirmationService.confirm({
+      title: 'Reset All Changes?',
+      message: 'This will discard all your changes and restore the original attendance data.',
+      confirmText: 'Reset',
+      cancelText: 'Cancel',
+      type: 'warning'
+    }).then((confirmed) => {
+      if (confirmed) {
+        this.students = JSON.parse(JSON.stringify(this.originalStudents));
+        this.sessionNotes = this.originalSessionNotes;
+        this.toastService.info('All changes have been reset');
       }
     });
   }
 
-  invertSelection(): void {
-    if (!this.canEdit) return;
-    this.attendance.records.forEach((record: any) => {
-      if (record.status === 'present') {
-        record.status = 'absent';
-      } else if (record.status === 'absent') {
-        record.status = 'present';
-      }
-    });
-  }
-  
-  handleGlobalKeyPress(e: KeyboardEvent): void {
-    if (!this.enableKeyboardShortcuts || !this.attendance || !this.canEdit) return;
-    
-    if (e.ctrlKey || e.metaKey) {
-      if (e.shiftKey && e.key === 'P') {
-        e.preventDefault();
-        this.markAllAs('present');
-      } else if (e.shiftKey && e.key === 'A') {
-        e.preventDefault();
-        this.markAllAs('absent');
-      } else if (e.key === 'i' || e.key === 'I') {
-        e.preventDefault();
-        this.invertSelection();
-      }
-    }
-  }
-  
-  handleKeyPress(e: KeyboardEvent, index: number): void {
-    if (!this.enableKeyboardShortcuts || !this.canEdit) return;
-    
-    const key = e.key.toLowerCase();
-    
-    if (key === 'p') {
-      e.preventDefault();
-      this.setStatus(index, 'present');
-    } else if (key === 'l') {
-      e.preventDefault();
-      this.setStatus(index, 'late');
-    } else if (key === 'a') {
-      e.preventDefault();
-      this.setStatus(index, 'absent');
-    } else if (key === 'e') {
-      e.preventDefault();
-      this.setStatus(index, 'excused');
-    }
-  }
+  unlockSession() {
+    if (!this.attendance?._id) return;
 
-  getSummary() {
-    const summary = {
-      present: 0,
-      late: 0,
-      absent: 0,
-      excused: 0
-    };
-
-    if (!this.attendance || !this.attendance.records) return summary;
-
-    this.attendance.records.forEach((record: any) => {
-      if (record.status === 'present') summary.present++;
-      else if (record.status === 'late') summary.late++;
-      else if (record.status === 'absent') summary.absent++;
-      else if (record.status === 'excused') summary.excused++;
-    });
-
-    return summary;
-  }
-
-  async unlockSession(): Promise<void> {
-    if (!this.isAdmin) return;
-
-    const confirmed = await this.confirmationService.confirm({
-      title: 'Unlock Session',
-      message: 'Are you sure you want to unlock this session? This will allow edits again.',
+    this.confirmationService.confirm({
+      title: 'Unlock Attendance Session?',
+      message: 'This will allow editing of the attendance record.',
       confirmText: 'Unlock',
       cancelText: 'Cancel',
       type: 'warning'
-    });
-
-    if (!confirmed) return;
-
-    this.attendanceService.unlockAttendance(this.attendanceId).subscribe({
-      next: () => {
-        this.loadAttendance();
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Failed to unlock session';
+    }).then((confirmed) => {
+      if (confirmed) {
+        this.attendanceService.unlockAttendance(this.attendance!._id!).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.toastService.success('Attendance session unlocked successfully');
+              this.loadAttendance(this.attendance!._id!);
+            }
+          },
+          error: (error) => {
+            console.error('Error unlocking attendance:', error);
+            this.toastService.error('Failed to unlock attendance session');
+          }
+        });
       }
     });
   }
 
-  async saveChanges(): Promise<void> {
-    if (!this.canEdit) return;
+  saveChanges() {
+    if (!this.attendance || !this.hasChanges) return;
 
-    const confirmed = await this.confirmationService.confirm({
-      title: 'Save Changes',
-      message: this.lockAfterSave
-        ? 'Save and lock this session? You will not be able to edit it later (unless you are an admin).'
-        : 'Are you sure you want to save these changes?',
+    if (this.attendance.isLocked && !this.isAdmin) {
+      this.toastService.error('Cannot edit locked attendance session');
+      return;
+    }
+
+    this.confirmationService.confirm({
+      title: 'Save Changes?',
+      message: `You have ${this.changeCount} change(s). Do you want to save them?`,
       confirmText: 'Save',
       cancelText: 'Cancel',
       type: 'info'
-    });
-
-    if (!confirmed) return;
-
-    this.isSaving = true;
-
-    const updates = {
-      records: this.attendance.records.map((r: any) => ({
-        studentId: r.student._id || r.student,
-        status: r.status,
-        minutesLate: r.minutesLate || 0,
-        notes: r.notes || ''
-      })),
-      sessionNotes: this.attendance.sessionNotes,
-      isCompleted: true
-    };
-
-    this.attendanceService.updateAttendance(this.attendanceId, updates).subscribe({
-      next: (response) => {
-        // Lock if requested
-        if (this.lockAfterSave && !this.attendance.isLocked) {
-          this.attendanceService.lockAttendance(this.attendanceId).subscribe({
-            next: () => {
-              this.router.navigate(['/dashboard/attendance']);
-            },
-            error: (err) => {
-              console.error('Failed to lock session:', err);
-              this.router.navigate(['/dashboard/attendance']);
-            }
-          });
-        } else {
-          this.router.navigate(['/dashboard/attendance']);
-        }
-      },
-      error: (err) => {
-        this.error = err.error?.message || 'Failed to save changes';
-        this.isSaving = false;
+    }).then((confirmed) => {
+      if (confirmed) {
+        this.performSave();
       }
     });
   }
 
-  goBack(): void {
-    this.router.navigate(['/dashboard/attendance']);
+  performSave() {
+    this.isSaving = true;
+
+    const updatedRecords = this.students.map(s => ({
+      studentId: s.student._id || s.student,
+      status: s.status,
+      minutesLate: s.status === 'late' ? (s.minutesLate || 0) : 0,
+      notes: s.notes || ''
+    }));
+
+    const data = {
+      records: updatedRecords,
+      sessionNotes: this.sessionNotes,
+      isCompleted: true
+    };
+
+    this.attendanceService.updateAttendance(this.attendance!._id!, data).subscribe({
+      next: (response) => {
+        this.isSaving = false;
+        if (response.success) {
+          this.toastService.success('Attendance updated successfully');
+          this.router.navigate(['/attendance', this.attendance!._id]);
+        }
+      },
+      error: (error) => {
+        this.isSaving = false;
+        console.error('Error updating attendance:', error);
+        this.toastService.error(error.error?.message || 'Failed to update attendance');
+      }
+    });
+  }
+
+  get hasChanges(): boolean {
+    const studentChanges = this.students.some(s => s.changed);
+    const notesChanged = this.sessionNotes !== this.originalSessionNotes;
+    return studentChanges || notesChanged;
+  }
+
+  get changeCount(): number {
+    let count = 0;
+    count += this.students.filter(s => s.changed).length;
+    if (this.sessionNotes !== this.originalSessionNotes) count++;
+    return count;
+  }
+
+  getStatusCount(status: string): number {
+    return this.students.filter(s => s.status === status).length;
+  }
+
+  get attendanceRate(): number {
+    if (this.students.length === 0) return 0;
+    
+    const present = this.getStatusCount('present');
+    const late = this.getStatusCount('late');
+    return Math.round(((present + late) / this.students.length) * 100);
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  }
+
+  formatDate(date: any): string {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  goBack() {
+    if (this.hasChanges) {
+      this.confirmationService.confirm({
+        title: 'Discard Changes?',
+        message: 'You have unsaved changes. Are you sure you want to leave?',
+        confirmText: 'Discard',
+        cancelText: 'Stay',
+        type: 'warning'
+      }).then((confirmed) => {
+        if (confirmed) {
+          if (this.attendance?._id) {
+            this.router.navigate(['/attendance', this.attendance._id]);
+          } else {
+            this.router.navigate(['/attendance']);
+          }
+        }
+      });
+    } else {
+      if (this.attendance?._id) {
+        this.router.navigate(['/attendance', this.attendance._id]);
+      } else {
+        this.router.navigate(['/attendance']);
+      }
+    }
   }
 }
