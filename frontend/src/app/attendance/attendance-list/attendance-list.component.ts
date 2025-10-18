@@ -29,6 +29,15 @@ import { ConfirmationService } from '../../services/confirmation.service';
             </div>
             <div class="flex gap-3">
               <button 
+                (click)="goToDashboard()"
+                class="px-6 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Dashboard
+              </button>
+              <button 
                 (click)="exportData()"
                 class="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-medium rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
@@ -207,7 +216,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
               <input 
-                type="date"
+                type="date" 
                 [(ngModel)]="filters.dateFrom"
                 (change)="applyFilters()"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -216,13 +225,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
               <input 
-                type="date"
+                type="date" 
                 [(ngModel)]="filters.dateTo"
                 (change)="applyFilters()"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
-            </div>
           </div>
+        </div>
 
           <!-- Filter Chips -->
           <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mt-4 pt-4 border-t">
@@ -241,11 +250,11 @@ import { ConfirmationService } from '../../services/confirmation.service';
             <span *ngIf="filters.subjectId" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
               Subject
               <button (click)="removeFilter('subjectId')" class="ml-2 hover:text-yellow-900">×</button>
-            </span>
+                        </span>
             <span *ngIf="filters.isCompleted" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800">
               Status: {{ filters.isCompleted === 'true' ? 'Completed' : 'Incomplete' }}
               <button (click)="removeFilter('isCompleted')" class="ml-2 hover:text-indigo-900">×</button>
-            </span>
+                        </span>
           </div>
         </div>
 
@@ -257,7 +266,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
         <!-- Attendance List - Table View -->
         <div *ngIf="!loading && viewMode === 'table'" class="bg-white rounded-xl shadow-lg overflow-hidden">
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+          <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gradient-to-r from-purple-50 to-indigo-50">
                 <tr>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Code</th>
@@ -268,9 +277,9 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Stats</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
                 <tr *ngFor="let attendance of attendances" class="hover:bg-gray-50 transition-colors duration-150">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm font-medium text-purple-600">{{ attendance.code || 'N/A' }}</div>
@@ -304,7 +313,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                         ({{ attendance.stats?.rate || 0 }}%)
                       </div>
                     </div>
-                  </td>
+                </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span *ngIf="attendance.isCompleted" 
                           class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -318,18 +327,18 @@ import { ConfirmationService } from '../../services/confirmation.service';
                           class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 ml-1">
                       🔒 Locked
                     </span>
-                  </td>
+                </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div class="flex items-center gap-2">
-                      <button 
+                    <button 
                         [routerLink]="['/attendance', attendance._id]"
                         class="text-purple-600 hover:text-purple-900"
                         title="View Details"
                       >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                          </svg>
                       </button>
                       <button 
                         *ngIf="!attendance.isLocked"
@@ -338,23 +347,23 @@ import { ConfirmationService } from '../../services/confirmation.service';
                         title="Edit"
                       >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
                       </button>
-                      <button 
+                        <button 
                         (click)="deleteAttendance(attendance._id!)"
                         class="text-red-600 hover:text-red-900"
                         title="Delete"
-                      >
+                        >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
           </div>
 
           <!-- Empty State -->
@@ -472,33 +481,33 @@ import { ConfirmationService } from '../../services/confirmation.service';
             <p class="mt-2 text-sm text-gray-500">No attendance records found</p>
             <p class="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
           </div>
-        </div>
+          </div>
 
-        <!-- Pagination -->
+          <!-- Pagination -->
         <div *ngIf="!loading && attendances.length > 0" class="mt-6 flex items-center justify-between bg-white rounded-xl shadow-lg px-6 py-4">
-          <div class="text-sm text-gray-700">
+            <div class="text-sm text-gray-700">
             Showing <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
             <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
             <span class="font-medium">{{ pagination.total }}</span> results
-          </div>
-          <div class="flex gap-2">
-            <button 
+            </div>
+            <div class="flex gap-2">
+              <button 
               [disabled]="pagination.page === 1"
               (click)="changePage(pagination.page - 1)"
               class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
+              >
+                Previous
+              </button>
             <span class="px-4 py-2 text-sm text-gray-700">
               Page {{ pagination.page }} of {{ pagination.pages }}
             </span>
-            <button 
+              <button 
               [disabled]="pagination.page >= pagination.pages"
               (click)="changePage(pagination.page + 1)"
               class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+              >
+                Next
+              </button>
           </div>
         </div>
       </div>
@@ -513,7 +522,7 @@ export class AttendanceListComponent implements OnInit {
   loading = false;
   viewMode: 'table' | 'cards' = 'table';
   pendingCount = 0;
-
+  
   filters = {
     search: '',
     groupId: '',
@@ -709,8 +718,24 @@ export class AttendanceListComponent implements OnInit {
     });
   }
 
+  goToDashboard() {
+    this.router.navigate(['/dashboard/attendance/dashboard']);
+  }
+
   showPendingGroups() {
-    this.router.navigate(['/attendance/pending']);
+    // Filter to show only pending sessions for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    this.filters = {
+      ...this.filters,
+      dateFrom: today.toISOString().split('T')[0],
+      dateTo: today.toISOString().split('T')[0],
+      isCompleted: 'false'
+    };
+    
+    this.loadAttendances();
+    this.toastService.info(`Showing ${this.pendingCount} pending session(s) for today`);
   }
 
   exportData() {

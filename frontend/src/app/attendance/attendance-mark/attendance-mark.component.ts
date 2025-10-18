@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -27,28 +27,71 @@ import { ToastService } from '../../services/toast.service';
         <div *ngIf="!groupId" class="bg-white rounded-xl shadow-lg p-6 mb-6">
           <h2 class="text-2xl font-bold text-gray-900 mb-4">Select a Group</h2>
           <div class="grid grid-cols-1 gap-4">
-            <div>
+            <div class="relative">
               <label class="block text-sm font-medium text-gray-700 mb-2">Choose Group to Mark Attendance</label>
-              <select 
-                [(ngModel)]="selectedGroupId"
-                (change)="onGroupSelect()"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="">-- Select a Group --</option>
-                <option *ngFor="let g of allGroups" [value]="g._id">
-                  {{ g.name }} - {{ g.subject?.name }} ({{ g.teacher?.fullName }})
-                </option>
-              </select>
+              
+              <!-- Searchable Dropdown -->
+              <div class="relative">
+                <div class="relative">
+                  <input
+                    type="text"
+                    [(ngModel)]="groupSearchTerm"
+                    (focus)="showGroupDropdown = true"
+                    (input)="filterGroups()"
+                    placeholder="Search groups..."
+                    class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  />
+                  <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </div>
+                
+                <!-- Dropdown List -->
+                <div *ngIf="showGroupDropdown && filteredGroups.length > 0" 
+                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-96 overflow-y-auto">
+                  <button
+                    *ngFor="let g of filteredGroups"
+                    type="button"
+                    (click)="selectGroup(g)"
+                    class="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors duration-150 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-purple-50"
+                  >
+                    <div class="font-semibold text-gray-900">{{ g.name }}</div>
+                    <div class="text-sm text-gray-600 mt-1">
+                      <span class="inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        {{ g.subject?.name || 'N/A' }}
+                      </span>
+                      <span class="mx-2">•</span>
+                      <span class="inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        {{ g.teacher?.fullName || 'N/A' }}
+                      </span>
+                      <span class="mx-2">•</span>
+                      <span class="text-purple-600">{{ g.gradeLevel }}</span>
+                    </div>
+                  </button>
+                </div>
+                
+                <!-- No Results -->
+                <div *ngIf="showGroupDropdown && filteredGroups.length === 0 && groupSearchTerm" 
+                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl p-4 text-center text-gray-500">
+                  No groups found matching "{{ groupSearchTerm }}"
+                </div>
+              </div>
             </div>
             <div *ngIf="selectedGroup" class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <p class="text-sm text-gray-600">Teacher</p>
-                  <p class="font-semibold text-gray-900">{{ selectedGroup.teacher?.fullName }}</p>
+                  <p class="font-semibold text-gray-900">{{ selectedGroup.teacher?.fullName || 'N/A' }}</p>
                 </div>
                 <div>
                   <p class="text-sm text-gray-600">Subject</p>
-                  <p class="font-semibold text-gray-900">{{ selectedGroup.subject?.name }}</p>
+                  <p class="font-semibold text-gray-900">{{ selectedGroup.subject?.name || 'N/A' }}</p>
                 </div>
                 <div>
                   <p class="text-sm text-gray-600">Grade Level</p>
@@ -98,13 +141,13 @@ import { ToastService } from '../../services/toast.service';
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                       </svg>
-                      <span>{{ group.teacher?.fullName }}</span>
+                      <span>{{ group.teacher?.fullName || 'N/A' }}</span>
                     </div>
                     <div class="flex items-center gap-2">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                       </svg>
-                      <span>{{ group.subject?.name }}</span>
+                      <span>{{ group.subject?.name || 'N/A' }}</span>
                     </div>
                     <div class="flex items-center gap-2">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,6 +396,9 @@ export class AttendanceMarkComponent implements OnInit {
   selectedGroupId: string = '';
   selectedGroup: any = null;
   allGroups: any[] = [];
+  filteredGroups: any[] = [];
+  groupSearchTerm: string = '';
+  showGroupDropdown: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -361,6 +407,15 @@ export class AttendanceMarkComponent implements OnInit {
     private groupService: GroupService,
     private toastService: ToastService
   ) {}
+
+  // Close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.relative')) {
+      this.showGroupDropdown = false;
+    }
+  }
 
   ngOnInit() {
     this.groupId = this.route.snapshot.paramMap.get('groupId');
@@ -376,12 +431,36 @@ export class AttendanceMarkComponent implements OnInit {
     this.groupService.getGroups({ page: 1, limit: 100 }).subscribe({
       next: (response: any) => {
         this.allGroups = response.success ? response.data.groups : response.groups || [];
+        this.filteredGroups = [...this.allGroups];
       },
       error: (error) => {
         console.error('Error loading groups:', error);
         this.toastService.error('Failed to load groups');
       }
     });
+  }
+
+  filterGroups() {
+    if (!this.groupSearchTerm.trim()) {
+      this.filteredGroups = [...this.allGroups];
+    } else {
+      const searchLower = this.groupSearchTerm.toLowerCase();
+      this.filteredGroups = this.allGroups.filter(group => 
+        group.name?.toLowerCase().includes(searchLower) ||
+        group.code?.toLowerCase().includes(searchLower) ||
+        group.subject?.name?.toLowerCase().includes(searchLower) ||
+        group.teacher?.fullName?.toLowerCase().includes(searchLower) ||
+        group.gradeLevel?.toLowerCase().includes(searchLower)
+      );
+    }
+  }
+
+  selectGroup(group: any) {
+    this.selectedGroup = group;
+    this.selectedGroupId = group._id;
+    this.groupSearchTerm = group.name;
+    this.showGroupDropdown = false;
+    this.loadGroup(group._id);
   }
 
   onGroupSelect() {

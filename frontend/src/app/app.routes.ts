@@ -236,6 +236,14 @@ export const routes: Routes = [
             loadComponent: () => import('./attendance/attendance-list/attendance-list.component').then(m => m.AttendanceListComponent)
           },
           {
+            path: 'dashboard',
+            loadComponent: () => import('./attendance/attendance-dashboard/attendance-dashboard.component').then(m => m.AttendanceDashboardComponent)
+          },
+          {
+            path: 'mark',
+            loadComponent: () => import('./attendance/attendance-mark/attendance-mark.component').then(m => m.AttendanceMarkComponent)
+          },
+          {
             path: 'mark/:groupId',
             loadComponent: () => import('./attendance/attendance-mark/attendance-mark.component').then(m => m.AttendanceMarkComponent)
           },
@@ -244,7 +252,7 @@ export const routes: Routes = [
             loadComponent: () => import('./attendance/attendance-detail/attendance-detail.component').then(m => m.AttendanceDetailComponent)
           },
           {
-            path: 'edit/:id',
+            path: ':id/edit',
             loadComponent: () => import('./attendance/attendance-edit/attendance-edit.component').then(m => m.AttendanceEditComponent)
           }
         ]
@@ -271,12 +279,6 @@ export const routes: Routes = [
             loadComponent: () => import('./groups/group-edit/group-edit.component').then(m => m.GroupEditComponent)
           }
         ]
-      },
-      {
-        path: 'attendance',
-        canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher'] },
-        loadComponent: () => import('./attendance/attendance-list/attendance-list.component').then(m => m.AttendanceListComponent)
       },
       {
         path: 'admin',

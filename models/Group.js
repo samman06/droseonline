@@ -170,13 +170,25 @@ groupSchema.pre('save', async function(next) {
   }
 });
 
+// Virtual fields for easier access to teacher and subject from course
+groupSchema.virtual('teacher').get(function() {
+  return this.course?.teacher;
+});
+
+groupSchema.virtual('subject').get(function() {
+  return this.course?.subject;
+});
+
+// Ensure virtuals are included when converting to JSON/Object
+groupSchema.set('toJSON', { virtuals: true });
+groupSchema.set('toObject', { virtuals: true });
+
 // Indexes
 groupSchema.index({ code: 1 });
 groupSchema.index({ name: 1 });
 groupSchema.index({ isActive: 1 });
 groupSchema.index({ 'students.student': 1 });
-groupSchema.index({ teacher: 1 });
-groupSchema.index({ subject: 1 });
+groupSchema.index({ course: 1 });
 groupSchema.index({ gradeLevel: 1 });
 
 module.exports = mongoose.model('Group', groupSchema);

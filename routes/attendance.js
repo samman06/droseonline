@@ -140,13 +140,18 @@ router.get('/pending', authenticate, async (req, res) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Get all active groups
-    const groups = await Group.find({ isActive: true })
-      .populate('teacher', 'fullName email')
-      .populate('subject', 'name code')
+    // Get all active groups with course populated
+    const groups = await Group.find({})
+      .populate({
+        path: 'course',
+        populate: [
+          { path: 'teacher', select: 'fullName email' },
+          { path: 'subject', select: 'name code' }
+        ]
+      })
       .populate('students.student', 'fullName');
 
-    console.log(`📊 Found ${groups.length} active groups`);
+    console.log(`📊 Found ${groups.length} groups`);
 
     // Check which groups have sessions today based on schedule
     const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
@@ -172,9 +177,10 @@ router.get('/pending', authenticate, async (req, res) => {
       .map(group => ({
         _id: group._id,
         name: group.name,
+        code: group.code,
         gradeLevel: group.gradeLevel,
-        teacher: group.teacher,
-        subject: group.subject,
+        teacher: group.course?.teacher,
+        subject: group.course?.subject,
         studentCount: group.students ? group.students.length : 0,
         schedule: group.schedule.filter(s => s.day.toLowerCase() === dayOfWeek)
       }));
