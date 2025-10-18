@@ -2,347 +2,502 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AttendanceService } from '../../services/attendance.service';
+import { AttendanceService, Attendance } from '../../services/attendance.service';
 import { GroupService } from '../../services/group.service';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
-import { ConfirmationService } from '../../services/confirmation.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-attendance-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-l-4 border-indigo-600">
-          <div class="flex items-center justify-between">
+        
+        <!-- Gradient Header Section -->
+        <div class="relative bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 rounded-2xl shadow-2xl p-8 mb-8 overflow-hidden">
+          <div class="absolute top-0 right-0 -mt-4 -mr-4 w-40 h-40 bg-white opacity-5 rounded-full"></div>
+          <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+          
+          <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900 mb-2">Attendance Records</h1>
-              <p class="text-gray-600">Track and manage student attendance</p>
+              <h1 class="text-4xl font-bold text-white mb-2">📋 Attendance Management</h1>
+              <p class="text-purple-100 text-lg">Track and manage student attendance sessions</p>
             </div>
             <div class="flex gap-3">
               <button 
                 (click)="exportData()"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                class="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-medium rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
-                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Export
               </button>
               <button 
                 (click)="showPendingGroups()"
-                class="px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+                class="px-6 py-3 bg-white text-purple-600 font-medium rounded-xl hover:bg-purple-50 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
-                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Pending Today ({{ pendingCount }})
+                Pending Today
+                <span class="bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold">{{ pendingCount }}</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Filters -->
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium">Total Sessions</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalSessions || 0 }}</p>
+              </div>
+              <div class="bg-purple-100 rounded-full p-3">
+                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium">Overall Rate</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.overallRate || 0 }}%</p>
+              </div>
+              <div class="bg-green-100 rounded-full p-3">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium">Completed</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.completedSessions || 0 }}</p>
+              </div>
+              <div class="bg-blue-100 rounded-full p-3">
+                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm font-medium">Pending</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.pendingSessions || 0 }}</p>
+              </div>
+              <div class="bg-orange-100 rounded-full p-3">
+                <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters Section -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Filters & Search</h2>
+            <button 
+              *ngIf="hasActiveFilters()"
+              (click)="clearAllFilters()"
+              class="text-sm text-purple-600 hover:text-purple-700 font-medium"
+            >
+              Clear All Filters
+            </button>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="mb-4">
+            <div class="relative">
+              <input 
+                type="text"
+                [(ngModel)]="filters.search"
+                (ngModelChange)="onSearchChange($event)"
+                placeholder="Search by code or session notes..."
+                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <svg class="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Filter Dropdowns -->
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Group</label>
               <select 
                 [(ngModel)]="filters.groupId"
                 (change)="applyFilters()"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">All Groups</option>
                 <option *ngFor="let group of groups" [value]="group._id">{{ group.name }}</option>
               </select>
             </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Teacher</label>
               <select 
                 [(ngModel)]="filters.teacherId"
                 (change)="applyFilters()"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">All Teachers</option>
                 <option *ngFor="let teacher of teachers" [value]="teacher._id">{{ teacher.fullName }}</option>
               </select>
             </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
               <select 
                 [(ngModel)]="filters.subjectId"
                 (change)="applyFilters()"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">All Subjects</option>
                 <option *ngFor="let subject of subjects" [value]="subject._id">{{ subject.name }}</option>
               </select>
             </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <select 
                 [(ngModel)]="filters.isCompleted"
                 (change)="applyFilters()"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">All</option>
                 <option value="true">Completed</option>
                 <option value="false">Incomplete</option>
               </select>
             </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">View</label>
+              <select 
+                [(ngModel)]="viewMode"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="table">Table View</option>
+                <option value="cards">Card View</option>
+              </select>
+            </div>
           </div>
+
+          <!-- Date Range -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
               <input 
-                type="date" 
+                type="date"
                 [(ngModel)]="filters.dateFrom"
                 (change)="applyFilters()"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
               <input 
-                type="date" 
+                type="date"
                 [(ngModel)]="filters.dateTo"
                 (change)="applyFilters()"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
           </div>
-        </div>
 
-        <!-- Pending Groups Modal -->
-        <div *ngIf="showPending" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-200">
-              <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-bold text-gray-900">Groups Pending Attendance Today</h2>
-                <button 
-                  (click)="showPending = false"
-                  class="text-gray-400 hover:text-gray-600"
-                >
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="p-6">
-              <div *ngIf="pendingGroups.length === 0" class="text-center py-8">
-                <svg class="w-16 h-16 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <p class="text-gray-600">All attendance marked for today! 🎉</p>
-              </div>
-              <div *ngIf="pendingGroups.length > 0" class="space-y-3">
-                <div *ngFor="let group of pendingGroups" 
-                     class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 border border-gray-200">
-                  <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-2">
-                        <p class="font-semibold text-gray-900 text-lg">{{ group.name }}</p>
-                        <span *ngIf="group.gradeLevel" class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-                          {{ group.gradeLevel }}
-                        </span>
-                      </div>
-                      <div class="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                        <div class="flex items-center gap-1">
-                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-                          </svg>
-                          <span>{{ group.teacher?.fullName || 'No teacher' }}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                          </svg>
-                          <span>{{ group.subject?.name || 'No subject' }}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                          </svg>
-                          <span>{{ group.studentCount || 0 }} students</span>
-                        </div>
-                      </div>
-                      <div class="flex gap-2 flex-wrap">
-                        <span *ngFor="let s of group.schedule" class="text-xs px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
-                          🕐 {{ s.day | titlecase }} • {{ s.startTime }} - {{ s.endTime }}
-                        </span>
-                      </div>
-                    </div>
-                    <button 
-                      (click)="markAttendance(group._id)"
-                      class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap"
-                    >
-                      ✓ Mark Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <!-- Filter Chips -->
+          <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+            <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+              Search: "{{ filters.search }}"
+              <button (click)="removeFilter('search')" class="ml-2 hover:text-purple-900">×</button>
+            </span>
+            <span *ngIf="filters.groupId" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+              Group
+              <button (click)="removeFilter('groupId')" class="ml-2 hover:text-blue-900">×</button>
+            </span>
+            <span *ngIf="filters.teacherId" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+              Teacher
+              <button (click)="removeFilter('teacherId')" class="ml-2 hover:text-green-900">×</button>
+            </span>
+            <span *ngIf="filters.subjectId" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800">
+              Subject
+              <button (click)="removeFilter('subjectId')" class="ml-2 hover:text-yellow-900">×</button>
+            </span>
+            <span *ngIf="filters.isCompleted" class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800">
+              Status: {{ filters.isCompleted === 'true' ? 'Completed' : 'Incomplete' }}
+              <button (click)="removeFilter('isCompleted')" class="ml-2 hover:text-indigo-900">×</button>
+            </span>
           </div>
         </div>
 
         <!-- Loading State -->
-        <div *ngIf="isLoading" class="bg-white rounded-xl shadow-lg p-12 text-center">
-          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p class="mt-4 text-gray-600">Loading attendance records...</p>
+        <div *ngIf="loading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
 
-        <!-- Attendance Table -->
-        <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-lg overflow-hidden">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gradient-to-r from-indigo-600 to-purple-600">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Group</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Teacher</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Attendance</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Lock</th>
-                <th class="px-6 py-3"></th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let attendance of attendances" class="hover:bg-gray-50 transition-colors duration-200">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ attendance.session.date | date:'MMM d, y' }}
-                </td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ attendance.group?.name }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ attendance.teacher?.fullName }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ attendance.subject?.name }}</td>
-                <td class="px-6 py-4 text-sm">
-                  <div class="flex gap-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      ✓ {{ attendance.stats?.present || 0 }}
-                    </span>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                      ⏰ {{ attendance.stats?.late || 0 }}
-                    </span>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      ✗ {{ attendance.stats?.absent || 0 }}
-                    </span>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      E {{ attendance.stats?.excused || 0 }}
-                    </span>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-1">Rate: {{ attendance.stats?.rate || 0 }}%</p>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span 
-                    class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm"
-                    [class]="attendance.isCompleted ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-white'"
-                  >
-                    <span class="w-2 h-2 rounded-full mr-2 bg-white" [class.animate-pulse]="!attendance.isCompleted"></span>
-                    {{ attendance.isCompleted ? 'Completed' : 'Incomplete' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span 
-                    *ngIf="attendance.isLocked"
-                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800"
-                  >
-                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
-                    </svg>
-                    Locked
-                  </span>
-                  <span 
-                    *ngIf="!attendance.isLocked"
-                    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800"
-                  >
-                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
-                    </svg>
-                    Unlocked
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div class="relative inline-block text-left">
-                    <button 
-                      (click)="toggleDropdown(attendance._id)"
-                      class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                    >
-                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                      </svg>
-                    </button>
-                    <div *ngIf="openDropdownId === attendance._id" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <div class="py-1">
-                        <a 
-                          [routerLink]="['/dashboard/attendance', attendance._id]"
-                          class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-200"
-                        >
-                          <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                          </svg>
-                          View Details
-                        </a>
-                        <a 
-                          [routerLink]="['/dashboard/attendance/edit', attendance._id]"
-                          class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors duration-200"
-                        >
-                          <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                          </svg>
-                          Edit
-                        </a>
-                        <button 
-                          (click)="deleteAttendance(attendance._id)"
-                          class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-                        >
-                          <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                          </svg>
-                          Delete
-                        </button>
+        <!-- Attendance List - Table View -->
+        <div *ngIf="!loading && viewMode === 'table'" class="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gradient-to-r from-purple-50 to-indigo-50">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Code</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Group</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Session Date</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Teacher</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Subject</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Stats</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                  <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let attendance of attendances" class="hover:bg-gray-50 transition-colors duration-150">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-purple-600">{{ attendance.code || 'N/A' }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ attendance.group?.name || 'N/A' }}</div>
+                    <div class="text-xs text-gray-500">{{ attendance.group?.gradeLevel || '' }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ formatDate(attendance.session?.date) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ attendance.teacher?.fullName || 'N/A' }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ attendance.subject?.name || 'N/A' }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <div class="text-xs">
+                        <span class="text-green-600 font-medium">{{ attendance.stats?.present || 0 }}</span>
+                        /
+                        <span class="text-gray-600">{{ attendance.stats?.total || 0 }}</span>
+                      </div>
+                      <div class="text-xs font-medium" 
+                           [ngClass]="{
+                             'text-green-600': (attendance.stats?.rate || 0) >= 80,
+                             'text-yellow-600': (attendance.stats?.rate || 0) >= 60 && (attendance.stats?.rate || 0) < 80,
+                             'text-red-600': (attendance.stats?.rate || 0) < 60
+                           }">
+                        ({{ attendance.stats?.rate || 0 }}%)
                       </div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span *ngIf="attendance.isCompleted" 
+                          class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      Completed
+                    </span>
+                    <span *ngIf="!attendance.isCompleted" 
+                          class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Incomplete
+                    </span>
+                    <span *ngIf="attendance.isLocked" 
+                          class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 ml-1">
+                      🔒 Locked
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div class="flex items-center gap-2">
+                      <button 
+                        [routerLink]="['/attendance', attendance._id]"
+                        class="text-purple-600 hover:text-purple-900"
+                        title="View Details"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                      </button>
+                      <button 
+                        *ngIf="!attendance.isLocked"
+                        [routerLink]="['/attendance', attendance._id, 'edit']"
+                        class="text-blue-600 hover:text-blue-900"
+                        title="Edit"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                      </button>
+                      <button 
+                        (click)="deleteAttendance(attendance._id!)"
+                        class="text-red-600 hover:text-red-900"
+                        title="Delete"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <!-- Empty State -->
           <div *ngIf="attendances.length === 0" class="text-center py-12">
-            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
             </svg>
-            <p class="text-gray-600">No attendance records found</p>
+            <p class="mt-2 text-sm text-gray-500">No attendance records found</p>
+            <p class="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
+          </div>
+        </div>
+
+        <!-- Attendance List - Card View -->
+        <div *ngIf="!loading && viewMode === 'cards'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let attendance of attendances" 
+               class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200">
+            <div class="p-6">
+              <!-- Header -->
+              <div class="flex items-start justify-between mb-4">
+                <div>
+                  <div class="text-sm font-semibold text-purple-600 mb-1">{{ attendance.code || 'N/A' }}</div>
+                  <h3 class="text-lg font-bold text-gray-900">{{ attendance.group?.name || 'N/A' }}</h3>
+                  <p class="text-sm text-gray-500">{{ attendance.group?.gradeLevel || '' }}</p>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <span *ngIf="attendance.isCompleted" 
+                        class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 text-center">
+                    ✓ Complete
+                  </span>
+                  <span *ngIf="!attendance.isCompleted" 
+                        class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 text-center">
+                    ⏱ Pending
+                  </span>
+                  <span *ngIf="attendance.isLocked" 
+                        class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 text-center">
+                    🔒 Locked
+                  </span>
+                </div>
+              </div>
+
+              <!-- Info -->
+              <div class="space-y-2 mb-4">
+                <div class="flex items-center text-sm text-gray-600">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  {{ formatDate(attendance.session?.date) }}
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  {{ attendance.teacher?.fullName || 'N/A' }}
+                </div>
+                <div class="flex items-center text-sm text-gray-600">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                  {{ attendance.subject?.name || 'N/A' }}
+                </div>
+              </div>
+
+              <!-- Stats -->
+              <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-3 mb-4">
+                <div class="flex items-center justify-between">
+                  <div class="text-center flex-1">
+                    <div class="text-2xl font-bold text-green-600">{{ attendance.stats?.present || 0 }}</div>
+                    <div class="text-xs text-gray-600">Present</div>
+                  </div>
+                  <div class="text-center flex-1 border-l border-gray-300">
+                    <div class="text-2xl font-bold text-red-600">{{ attendance.stats?.absent || 0 }}</div>
+                    <div class="text-xs text-gray-600">Absent</div>
+                  </div>
+                  <div class="text-center flex-1 border-l border-gray-300">
+                    <div class="text-2xl font-bold text-gray-900">{{ attendance.stats?.rate || 0 }}%</div>
+                    <div class="text-xs text-gray-600">Rate</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex gap-2">
+                <button 
+                  [routerLink]="['/attendance', attendance._id]"
+                  class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 text-sm font-medium"
+                >
+                  View Details
+                </button>
+                <button 
+                  *ngIf="!attendance.isLocked"
+                  [routerLink]="['/attendance', attendance._id, 'edit']"
+                  class="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors duration-200"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </button>
+                <button 
+                  (click)="deleteAttendance(attendance._id!)"
+                  class="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <!-- Pagination -->
-          <div *ngIf="pagination.totalPages > 1" class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div class="text-sm text-gray-700">
-              Showing {{ (pagination.currentPage - 1) * pagination.itemsPerPage + 1 }} to 
-              {{ Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems) }} of 
-              {{ pagination.totalItems }} results
-            </div>
-            <div class="flex gap-2">
-              <button 
-                (click)="changePage(pagination.currentPage - 1)"
-                [disabled]="pagination.currentPage === 1"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                Previous
-              </button>
-              <button 
-                (click)="changePage(pagination.currentPage + 1)"
-                [disabled]="pagination.currentPage === pagination.totalPages"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                Next
-              </button>
-            </div>
+          <!-- Empty State for Cards -->
+          <div *ngIf="attendances.length === 0" class="col-span-full text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">No attendance records found</p>
+            <p class="text-xs text-gray-400 mt-1">Try adjusting your filters</p>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="!loading && attendances.length > 0" class="mt-6 flex items-center justify-between bg-white rounded-xl shadow-lg px-6 py-4">
+          <div class="text-sm text-gray-700">
+            Showing <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to 
+            <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of 
+            <span class="font-medium">{{ pagination.total }}</span> results
+          </div>
+          <div class="flex gap-2">
+            <button 
+              [disabled]="pagination.page === 1"
+              (click)="changePage(pagination.page - 1)"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span class="px-4 py-2 text-sm text-gray-700">
+              Page {{ pagination.page }} of {{ pagination.pages }}
+            </span>
+            <button 
+              [disabled]="pagination.page >= pagination.pages"
+              (click)="changePage(pagination.page + 1)"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -350,204 +505,234 @@ import { ConfirmationService } from '../../services/confirmation.service';
   `
 })
 export class AttendanceListComponent implements OnInit {
-  attendances: any[] = [];
+  attendances: Attendance[] = [];
   groups: any[] = [];
   teachers: any[] = [];
   subjects: any[] = [];
-  pendingGroups: any[] = [];
-  pendingCount: number = 0;
-  showPending: boolean = false;
-  
-  // Cache flags to prevent duplicate API calls
-  private groupsLoaded = false;
-  private teachersLoaded = false;
-  private subjectsLoaded = false;
-  
+  loading = false;
+  viewMode: 'table' | 'cards' = 'table';
+  pendingCount = 0;
+
   filters = {
+    search: '',
     groupId: '',
     teacherId: '',
     subjectId: '',
+    isCompleted: '',
     dateFrom: '',
     dateTo: '',
-    isCompleted: '',
     page: 1,
     limit: 10
   };
 
   pagination = {
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 10
+    total: 0,
+    pages: 0,
+    page: 1,
+    limit: 10
   };
 
-  isLoading = false;
-  openDropdownId: string | null = null;
+  stats = {
+    totalSessions: 0,
+    overallRate: 0,
+    completedSessions: 0,
+    pendingSessions: 0
+  };
+
   Math = Math;
+  private searchTimeout: any;
 
   constructor(
-    private router: Router,
     private attendanceService: AttendanceService,
     private groupService: GroupService,
     private teacherService: TeacherService,
     private subjectService: SubjectService,
-    private confirmationService: ConfirmationService
+    private toastService: ToastService,
+    private router: Router
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
+    this.loadInitialData();
+  }
+
+  loadInitialData() {
     this.loadAttendances();
     this.loadGroups();
     this.loadTeachers();
     this.loadSubjects();
-    this.loadPendingGroups();
+    this.loadStats();
+    this.loadPendingCount();
   }
 
-  loadAttendances(): void {
-    this.isLoading = true;
-    this.attendanceService.getAttendances(this.filters).subscribe({
+  loadAttendances() {
+    this.loading = true;
+    const params = { ...this.filters };
+    
+    this.attendanceService.getAttendances(params).subscribe({
       next: (response) => {
-        this.attendances = response.attendances;
-        this.pagination = response.pagination;
-        this.isLoading = false;
+        if (response.success && response.data) {
+          this.attendances = response.data.attendances;
+          this.pagination = response.data.pagination;
+        }
+        this.loading = false;
       },
-      error: (err) => {
-        console.error('Error loading attendances:', err);
-        this.isLoading = false;
+      error: (error) => {
+        console.error('Error loading attendances:', error);
+        this.toastService.error('Failed to load attendance records');
+        this.loading = false;
       }
     });
   }
 
-  loadGroups(): void {
-    // Prevent duplicate API calls
-    if (this.groupsLoaded) {
-      console.log('Groups already loaded, skipping API call');
-      return;
-    }
-    
-    this.groupService.getGroups({ page: 1, limit: 100, isActive: 'true' }).subscribe({
+  loadGroups() {
+    this.groupService.getGroups({ page: 1, limit: 100 }).subscribe({
       next: (response: any) => {
-        console.log('Groups response:', response);
-        // Handle nested structure: response.data.groups
-        this.groups = response.data?.groups || response.groups || [];
-        this.groupsLoaded = true;
+        this.groups = response.success ? response.data.groups : response.groups || [];
       },
-      error: (err) => console.error('Error loading groups:', err)
+      error: (error) => console.error('Error loading groups:', error)
     });
   }
 
-  loadTeachers(): void {
-    // Prevent duplicate API calls
-    if (this.teachersLoaded) {
-      console.log('Teachers already loaded, skipping API call');
-      return;
-    }
-    
-    this.teacherService.getTeachers({ page: 1, limit: 100, isActive: 'true' }).subscribe({
+  loadTeachers() {
+    this.teacherService.getTeachers({ page: 1, limit: 100 }).subscribe({
       next: (response: any) => {
-        console.log('Teachers response:', response);
-        // Handle nested structure: response.data.teachers
-        this.teachers = response.data?.teachers || response.teachers || [];
-        this.teachersLoaded = true;
+        this.teachers = response.success ? response.data.teachers : response.teachers || [];
       },
-      error: (err) => console.error('Error loading teachers:', err)
+      error: (error) => console.error('Error loading teachers:', error)
     });
   }
 
-  loadSubjects(): void {
-    // Prevent duplicate API calls
-    if (this.subjectsLoaded) {
-      console.log('Subjects already loaded, skipping API call');
-      return;
-    }
-    
-    this.subjectService.getSubjects({ page: 1, limit: 100, isActive: 'true' }).subscribe({
+  loadSubjects() {
+    this.subjectService.getSubjects({ page: 1, limit: 100 }).subscribe({
       next: (response: any) => {
-        console.log('Subjects response:', response);
-        // Handle nested structure: response.data.subjects
-        this.subjects = response.data?.subjects || response.subjects || [];
-        this.subjectsLoaded = true;
+        this.subjects = response.success ? response.data.subjects : response.subjects || [];
       },
-      error: (err) => console.error('Error loading subjects:', err)
+      error: (error) => console.error('Error loading subjects:', error)
     });
   }
 
-  loadPendingGroups(): void {
+  loadStats() {
+    this.attendanceService.getAttendanceStats().subscribe({
+      next: (data) => {
+        this.stats = {
+          totalSessions: data.totalSessions || 0,
+          overallRate: data.overallRate || 0,
+          completedSessions: data.completedSessions || 0,
+          pendingSessions: data.pendingSessions || 0
+        };
+      },
+      error: (error) => console.error('Error loading stats:', error)
+    });
+  }
+
+  loadPendingCount() {
     this.attendanceService.getPendingAttendance().subscribe({
       next: (response) => {
-        console.log('✅ Pending groups response:', response);
-        this.pendingGroups = response.pendingGroups || [];
         this.pendingCount = response.count || 0;
       },
-      error: (err) => {
-        console.error('❌ Error loading pending groups:', err);
-        this.pendingGroups = [];
-        this.pendingCount = 0;
-      }
+      error: (error) => console.error('Error loading pending count:', error)
     });
   }
 
-  showPendingGroups(): void {
-    this.showPending = true;
+  onSearchChange(value: string) {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.applyFilters();
+    }, 500);
   }
 
-  markAttendance(groupId: string): void {
-    this.router.navigate(['/dashboard/attendance/mark', groupId]);
-  }
-
-  applyFilters(): void {
+  applyFilters() {
     this.filters.page = 1;
     this.loadAttendances();
   }
 
-  changePage(page: number): void {
+  changePage(page: number) {
     this.filters.page = page;
     this.loadAttendances();
   }
 
-  toggleDropdown(id: string): void {
-    this.openDropdownId = this.openDropdownId === id ? null : id;
+  hasActiveFilters(): boolean {
+    return !!(
+      this.filters.search ||
+      this.filters.groupId ||
+      this.filters.teacherId ||
+      this.filters.subjectId ||
+      this.filters.isCompleted ||
+      this.filters.dateFrom ||
+      this.filters.dateTo
+    );
   }
 
-  exportData(): void {
-    const exportParams: any = {};
-    if (this.filters.groupId) exportParams.groupId = this.filters.groupId;
-    if (this.filters.dateFrom) exportParams.dateFrom = this.filters.dateFrom;
-    if (this.filters.dateTo) exportParams.dateTo = this.filters.dateTo;
-    exportParams.format = 'csv';
+  removeFilter(filterName: keyof typeof this.filters) {
+    (this.filters as any)[filterName] = '';
+    this.applyFilters();
+  }
 
-    this.attendanceService.exportAttendance(exportParams).subscribe({
-      next: (blob: Blob) => {
+  clearAllFilters() {
+    this.filters = {
+      search: '',
+      groupId: '',
+      teacherId: '',
+      subjectId: '',
+      isCompleted: '',
+      dateFrom: '',
+      dateTo: '',
+      page: 1,
+      limit: 10
+    };
+    this.applyFilters();
+  }
+
+  deleteAttendance(id: string) {
+    this.toastService.confirm(
+      'Are you sure you want to delete this attendance record?',
+      'This action cannot be undone.',
+      () => {
+        this.attendanceService.deleteAttendance(id).subscribe({
+          next: () => {
+            this.toastService.success('Attendance record deleted successfully');
+            this.loadAttendances();
+            this.loadStats();
+          },
+          error: (error) => {
+            console.error('Error deleting attendance:', error);
+            this.toastService.error('Failed to delete attendance record');
+          }
+        });
+      }
+    );
+  }
+
+  showPendingGroups() {
+    this.router.navigate(['/attendance/pending']);
+  }
+
+  exportData() {
+    const params = {
+      ...this.filters,
+      format: 'csv' as const
+    };
+    
+    this.attendanceService.exportAttendance(params).subscribe({
+      next: (blob: any) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `attendance-export-${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `attendance_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         window.URL.revokeObjectURL(url);
+        this.toastService.success('Attendance data exported successfully');
       },
-      error: (err) => {
-        console.error('Error exporting attendance:', err);
+      error: (error) => {
+        console.error('Error exporting data:', error);
+        this.toastService.error('Failed to export attendance data');
       }
     });
   }
 
-  async deleteAttendance(id: string): Promise<void> {
-    const confirmed = await this.confirmationService.confirm({
-      title: 'Delete Attendance Record',
-      message: 'Are you sure you want to delete this attendance record? This action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      type: 'danger'
-    });
-
-    if (!confirmed) return;
-
-    this.attendanceService.deleteAttendance(id).subscribe({
-      next: () => {
-        this.loadAttendances();
-      },
-      error: (err) => {
-        console.error('Error deleting attendance:', err);
-      }
-    });
+  formatDate(date: any): string {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 }

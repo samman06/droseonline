@@ -1,8 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
+}
 
 export interface AttendanceRecord {
   student: any;
@@ -14,7 +22,8 @@ export interface AttendanceRecord {
 }
 
 export interface Attendance {
-  _id: string;
+  _id?: string;
+  code?: string;
   group: any;
   session: {
     date: Date;
@@ -50,13 +59,13 @@ export interface AttendanceStats {
   rate: number;
 }
 
-export interface AttendanceListResponse {
+export interface AttendanceListData {
   attendances: Attendance[];
   pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
+    total: number;
+    pages: number;
+    page: number;
+    limit: number;
   };
 }
 
@@ -73,7 +82,7 @@ export class AttendanceService {
     console.log('✅ AttendanceService initialized with URL:', this.apiUrl);
   }
 
-  getAttendances(params: any = {}): Observable<AttendanceListResponse> {
+  getAttendances(params: any = {}): Observable<ApiResponse<AttendanceListData>> {
     let httpParams = new HttpParams();
     Object.keys(params).forEach(key => {
       if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
@@ -81,15 +90,15 @@ export class AttendanceService {
       }
     });
     console.log('📋 AttendanceService.getAttendances() - URL:', this.apiUrl, 'Params:', params);
-    return this.http.get<AttendanceListResponse>(this.apiUrl, { 
+    return this.http.get<ApiResponse<AttendanceListData>>(this.apiUrl, { 
       params: httpParams,
       headers: this.authService.getAuthHeaders()
     });
   }
 
-  getAttendance(id: string): Observable<Attendance> {
+  getAttendance(id: string): Observable<ApiResponse<{ attendance: Attendance }>> {
     console.log('📋 AttendanceService.getAttendance() - ID:', id);
-    return this.http.get<Attendance>(`${this.apiUrl}/${id}`, {
+    return this.http.get<ApiResponse<{ attendance: Attendance }>>(`${this.apiUrl}/${id}`, {
       headers: this.authService.getAuthHeaders()
     });
   }
@@ -130,11 +139,11 @@ export class AttendanceService {
     groupId: string;
     sessionDate: Date;
     scheduleIndex: number;
-    records: { studentId: string; status: string; notes?: string }[];
+    records: { studentId: string; status: string; minutesLate?: number; notes?: string }[];
     sessionNotes?: string;
     isCompleted?: boolean;
-  }): Observable<{ message: string; attendance: Attendance }> {
-    return this.http.post<{ message: string; attendance: Attendance }>(this.apiUrl, data, {
+  }): Observable<ApiResponse<{ attendance: Attendance }>> {
+    return this.http.post<ApiResponse<{ attendance: Attendance }>>(this.apiUrl, data, {
       headers: this.authService.getAuthHeaders()
     });
   }
@@ -143,8 +152,8 @@ export class AttendanceService {
     records?: { studentId: string; status: string; minutesLate?: number; notes?: string }[];
     sessionNotes?: string;
     isCompleted?: boolean;
-  }): Observable<{ message: string; attendance: Attendance }> {
-    return this.http.put<{ message: string; attendance: Attendance }>(`${this.apiUrl}/${id}`, data, {
+  }): Observable<ApiResponse<{ attendance: Attendance }>> {
+    return this.http.put<ApiResponse<{ attendance: Attendance }>>(`${this.apiUrl}/${id}`, data, {
       headers: this.authService.getAuthHeaders()
     });
   }
@@ -154,20 +163,20 @@ export class AttendanceService {
     status: string; 
     minutesLate?: number; 
     notes?: string 
-  }[]): Observable<{ message: string; attendance: Attendance }> {
-    return this.http.post<{ message: string; attendance: Attendance }>(`${this.apiUrl}/${id}/bulk-update`, { records }, {
+  }[]): Observable<ApiResponse<{ attendance: Attendance }>> {
+    return this.http.post<ApiResponse<{ attendance: Attendance }>>(`${this.apiUrl}/${id}/bulk-update`, { records }, {
       headers: this.authService.getAuthHeaders()
     });
   }
 
-  lockAttendance(id: string): Observable<{ message: string; attendance: Attendance }> {
-    return this.http.post<{ message: string; attendance: Attendance }>(`${this.apiUrl}/${id}/lock`, {}, {
+  lockAttendance(id: string): Observable<ApiResponse<{ attendance: Attendance }>> {
+    return this.http.post<ApiResponse<{ attendance: Attendance }>>(`${this.apiUrl}/${id}/lock`, {}, {
       headers: this.authService.getAuthHeaders()
     });
   }
 
-  unlockAttendance(id: string): Observable<{ message: string; attendance: Attendance }> {
-    return this.http.post<{ message: string; attendance: Attendance }>(`${this.apiUrl}/${id}/unlock`, {}, {
+  unlockAttendance(id: string): Observable<ApiResponse<{ attendance: Attendance }>> {
+    return this.http.post<ApiResponse<{ attendance: Attendance }>>(`${this.apiUrl}/${id}/unlock`, {}, {
       headers: this.authService.getAuthHeaders()
     });
   }
@@ -194,8 +203,8 @@ export class AttendanceService {
     });
   }
 
-  deleteAttendance(id: string): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`, {
+  deleteAttendance(id: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`, {
       headers: this.authService.getAuthHeaders()
     });
   }
