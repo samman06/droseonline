@@ -250,7 +250,11 @@ const paginationSchema = Joi.object({
   subjectId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   courseId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   day: Joi.string().max(20).optional().allow(''),
-  gradeLevel: Joi.string().max(50).optional().allow('')
+  gradeLevel: Joi.string().max(50).optional().allow(''),
+  // Assignment filter parameters
+  status: Joi.string().valid('draft', 'published', 'closed', 'graded', '').optional().allow(''),
+  type: Joi.string().valid('homework', 'quiz', 'midterm', 'final', 'project', 'presentation', 'lab', 'essay', 'other', '').optional().allow(''),
+  studentId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow('')
 });
 
 const objectIdSchema = Joi.object({

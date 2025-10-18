@@ -12,7 +12,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {
-    const { page = 1, limit = 10, courseId, status, type, studentId, teacherId } = req.query;
+    const { page = 1, limit = 10, courseId, status, type, studentId, teacherId, search } = req.query;
     
     let query = {};
     
@@ -38,6 +38,14 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
     if (courseId) query.course = courseId;
     if (status) query.status = status;
     if (type) query.type = type;
+    if (search) {
+      // Search in title, code, and description
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { code: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
     if (studentId && req.user.role === 'admin') {
       // Only admins can filter by student
       const User = require('../models/User');
