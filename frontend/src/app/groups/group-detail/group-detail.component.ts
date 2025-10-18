@@ -12,387 +12,473 @@ import { ToastService } from '../../services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <div class="max-w-7xl mx-auto p-6 space-y-6">
-      <!-- Back Button -->
-      <div class="mb-4">
-        <button (click)="goBack()" class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all">
-          <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-          </svg>
-          <span class="text-gray-700 font-medium">Back to Groups</span>
-        </button>
-      </div>
-
-      <!-- Header Banner with Gradient -->
-      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white">
-        <div class="flex items-start justify-between">
-          <div class="flex items-start space-x-4">
-            <div class="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+      <div class="max-w-7xl mx-auto p-6 space-y-6">
+        <!-- Breadcrumb Navigation -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-3">
+            <button (click)="goBack()" class="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all shadow-sm">
+              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
               </svg>
-            </div>
-            <div>
-              <h1 class="text-4xl font-bold mb-2">{{ group?.name }}</h1>
-              <div class="flex items-center space-x-4 text-indigo-100">
-                <span class="inline-flex items-center px-3 py-1 rounded-lg bg-white bg-opacity-20 backdrop-blur-sm font-mono text-sm font-semibold">
-                  {{ group?.code }}
-                </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-lg bg-white bg-opacity-20 backdrop-blur-sm text-sm font-semibold">
-                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                  </svg>
-                  {{ group?.gradeLevel }}
-                </span>
-              </div>
+            </button>
+            <div class="flex items-center space-x-2 text-sm">
+              <span class="text-gray-500 hover:text-gray-700 cursor-pointer" (click)="goBack()">Groups</span>
+              <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+              <span class="text-gray-900 font-semibold">{{ group?.name }}</span>
             </div>
           </div>
-          <div class="flex items-center gap-3">
-            <button (click)="clone()" class="btn-clone-white" title="Create a new section with different schedule">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2">
+            <button (click)="clone()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md" title="Clone Group">
+              <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
-              Clone Section
+              <span class="hidden sm:inline">Clone</span>
             </button>
-            <button (click)="edit()" class="btn-edit-white">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button (click)="edit()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
-              Edit
+              <span class="hidden sm:inline">Edit</span>
             </button>
-            <button (click)="delete()" class="btn-danger-white">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button (click)="delete()" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm hover:shadow-md">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
-              Delete
+              <span class="hidden sm:inline">Delete</span>
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Statistics Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 p-6 shadow-sm hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Students</p>
-              <p class="text-3xl font-bold text-blue-900 mt-2">{{ group?.students?.length || 0 }}</p>
+        <!-- Hero Card -->
+        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-8 text-white relative">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%23ffffff\\' fill-opacity=\\'1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
             </div>
-            <div class="p-3 bg-blue-200 rounded-xl">
-              <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6 shadow-sm hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-semibold text-purple-600 uppercase tracking-wide">Sessions/Week</p>
-              <p class="text-3xl font-bold text-purple-900 mt-2">{{ group?.schedule?.length || 0 }}</p>
-            </div>
-            <div class="p-3 bg-purple-200 rounded-xl">
-              <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 p-6 shadow-sm hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-semibold text-green-600 uppercase tracking-wide">Price/Session</p>
-              <p class="text-3xl font-bold text-green-900 mt-2">{{ group?.pricePerSession || 0 }}</p>
-              <p class="text-xs text-green-600 mt-1">EGP</p>
-            </div>
-            <div class="p-3 bg-green-200 rounded-xl">
-              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200 p-6 shadow-sm hover:shadow-md transition-all">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-semibold text-orange-600 uppercase tracking-wide">Total Hours</p>
-              <p class="text-3xl font-bold text-orange-900 mt-2">{{ getTotalWeeklyHours() }}</p>
-              <p class="text-xs text-orange-600 mt-1">hours/week</p>
-            </div>
-            <div class="p-3 bg-orange-200 rounded-xl">
-              <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Course Information -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
-            <div class="flex items-center">
-              <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"></path>
-              </svg>
-              <h2 class="text-xl font-bold text-white">Course Information</h2>
-            </div>
-          </div>
-          <div class="p-6">
-            <div class="space-y-4">
-              <div>
-                <p class="text-2xl font-bold text-gray-900">{{ group?.course?.name }}</p>
-                <p class="text-sm text-gray-600 font-mono mt-1">{{ group?.course?.code }}</p>
-              </div>
-              <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                <div>
-                  <p class="text-sm font-semibold text-gray-500 mb-1">Teacher</p>
-                  <p class="text-base font-medium text-gray-900">{{ group?.course?.teacher?.fullName || '—' }}</p>
+            
+            <div class="relative">
+              <div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                <div class="flex-1">
+                  <div class="inline-flex items-center px-3 py-1 rounded-full bg-white bg-opacity-20 backdrop-blur-sm text-sm font-semibold mb-3">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    {{ group?.gradeLevel }}
+                  </div>
+                  <h1 class="text-4xl font-black mb-2">{{ group?.name }}</h1>
+                  <p class="text-indigo-100 font-mono text-lg mb-6">{{ group?.code }}</p>
+                  
+                  <!-- Course Info Row -->
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+                      <div class="p-2 bg-white bg-opacity-20 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                      </div>
+                      <div class="overflow-hidden">
+                        <div class="text-indigo-100 text-xs font-medium">Teacher</div>
+                        <div class="font-semibold truncate">{{ group?.course?.teacher?.fullName || 'N/A' }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+                      <div class="p-2 bg-white bg-opacity-20 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                      </div>
+                      <div class="overflow-hidden">
+                        <div class="text-indigo-100 text-xs font-medium">Subject</div>
+                        <div class="font-semibold truncate">{{ group?.course?.subject?.name || 'N/A' }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-3">
+                      <div class="p-2 bg-white bg-opacity-20 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="text-indigo-100 text-xs font-medium">Price/Session</div>
+                        <div class="font-semibold">{{ group?.pricePerSession || 0 }} EGP</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-sm font-semibold text-gray-500 mb-1">Subject</p>
-                  <p class="text-base font-medium text-gray-900">{{ group?.course?.subject?.name || '—' }}</p>
-                  <p class="text-xs text-gray-500 font-mono">{{ group?.course?.subject?.code }}</p>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold">{{ group?.students?.length || 0 }}</div>
+                    <div class="text-indigo-100 text-sm font-medium mt-1">Students</div>
+                  </div>
+                  <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 text-center">
+                    <div class="text-3xl font-bold">{{ group?.assignmentStats?.total || 0 }}</div>
+                    <div class="text-indigo-100 text-sm font-medium mt-1">Assignments</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Weekly Schedule -->
+        <!-- Tab Navigation -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4">
-            <div class="flex items-center">
-              <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
-              <h2 class="text-xl font-bold text-white">Weekly Schedule</h2>
-            </div>
-          </div>
-          <div class="p-6">
-            <div class="flex flex-wrap gap-3">
-              <div *ngFor="let s of group?.schedule" 
-                   class="inline-flex items-center px-4 py-2.5 rounded-lg text-sm font-semibold shadow-sm border transition-all duration-200 hover:shadow-md"
-                   [ngClass]="getDayColorClass(s.day)">
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          <div class="border-b border-gray-200">
+            <nav class="flex -mb-px">
+              <button 
+                (click)="activeTab = 'overview'"
+                [class.border-indigo-600]="activeTab === 'overview'"
+                [class.text-indigo-600]="activeTab === 'overview'"
+                [class.border-transparent]="activeTab !== 'overview'"
+                [class.text-gray-500]="activeTab !== 'overview'"
+                class="group inline-flex items-center px-6 py-4 border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'overview'" [class.text-gray-400]="activeTab !== 'overview'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                 </svg>
-                <span>{{ s.day | titlecase }}: {{ s.startTime }}-{{ s.endTime }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Assignments Section -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-purple-500 to-indigo-600 px-6 py-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <svg class="w-6 h-6 text-white mr-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                  <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                Overview
+              </button>
+              <button 
+                (click)="activeTab = 'students'"
+                [class.border-indigo-600]="activeTab === 'students'"
+                [class.text-indigo-600]="activeTab === 'students'"
+                [class.border-transparent]="activeTab !== 'students'"
+                [class.text-gray-500]="activeTab !== 'students'"
+                class="group inline-flex items-center px-6 py-4 border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'students'" [class.text-gray-400]="activeTab !== 'students'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
-                <h2 class="text-xl font-bold text-white">Assignments</h2>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-white/20 backdrop-blur-sm text-white text-sm font-semibold">
-                  {{ group?.assignmentStats?.total || 0 }} Total
+                Students
+                <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
+                      [class.bg-indigo-100]="activeTab === 'students'"
+                      [class.text-indigo-600]="activeTab === 'students'"
+                      [class.bg-gray-100]="activeTab !== 'students'"
+                      [class.text-gray-600]="activeTab !== 'students'">
+                  {{ group?.students?.length || 0 }}
                 </span>
-                <button 
-                  (click)="createAssignmentForGroup()"
-                  class="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 font-medium shadow-md transition-all transform hover:-translate-y-0.5">
+              </button>
+              <button 
+                (click)="activeTab = 'assignments'"
+                [class.border-indigo-600]="activeTab === 'assignments'"
+                [class.text-indigo-600]="activeTab === 'assignments'"
+                [class.border-transparent]="activeTab !== 'assignments'"
+                [class.text-gray-500]="activeTab !== 'assignments'"
+                class="group inline-flex items-center px-6 py-4 border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'assignments'" [class.text-gray-400]="activeTab !== 'assignments'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Assignments
+                <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
+                      [class.bg-indigo-100]="activeTab === 'assignments'"
+                      [class.text-indigo-600]="activeTab === 'assignments'"
+                      [class.bg-gray-100]="activeTab !== 'assignments'"
+                      [class.text-gray-600]="activeTab !== 'assignments'">
+                  {{ group?.assignmentStats?.total || 0 }}
+                </span>
+              </button>
+            </nav>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Overview Tab -->
+            <div *ngIf="activeTab === 'overview'">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Statistics Grid -->
+                <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+                  <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border-2 border-blue-200">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="p-3 bg-blue-200 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-blue-900">{{ group?.students?.length || 0 }}</div>
+                    <div class="text-sm text-blue-600 font-medium mt-1">Enrolled Students</div>
+                  </div>
+
+                  <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="p-3 bg-purple-200 rounded-lg">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-purple-900">{{ group?.assignmentStats?.total || 0 }}</div>
+                    <div class="text-sm text-purple-600 font-medium mt-1">Total Assignments</div>
+                  </div>
+
+                  <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="p-3 bg-green-200 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-green-900">{{ group?.schedule?.length || 0 }}</div>
+                    <div class="text-sm text-green-600 font-medium mt-1">Sessions Per Week</div>
+                  </div>
+
+                  <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="p-3 bg-amber-200 rounded-lg">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-amber-900">{{ getTotalWeeklyHours() }}</div>
+                    <div class="text-sm text-amber-600 font-medium mt-1">Total Weekly Hours</div>
+                  </div>
+                </div>
+
+                <!-- Schedule Card -->
+                <div class="bg-white rounded-xl border-2 border-gray-200 p-6">
+                  <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Weekly Schedule
+                  </h3>
+                  <div class="space-y-3">
+                    <div *ngFor="let s of group?.schedule" 
+                         class="flex items-center justify-between p-3 rounded-lg"
+                         [ngClass]="getDayColorClass(s.day)">
+                      <div class="flex items-center space-x-3">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="font-semibold">{{ s.day | titlecase }}</span>
+                      </div>
+                      <span class="text-sm font-medium">{{ s.startTime }} - {{ s.endTime }}</span>
+                    </div>
+                    <div *ngIf="!group?.schedule || group?.schedule.length === 0" class="text-center py-4 text-gray-500">
+                      No schedule configured
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Course Details Card -->
+              <div class="mt-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                  <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                  Course Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <p class="text-sm text-gray-600 font-medium mb-1">Course Name</p>
+                    <p class="text-lg font-bold text-gray-900">{{ group?.course?.name || 'N/A' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-600 font-medium mb-1">Course Code</p>
+                    <p class="text-lg font-mono font-bold text-gray-900">{{ group?.course?.code || 'N/A' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Students Tab -->
+            <div *ngIf="activeTab === 'students'">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="text-lg font-bold text-gray-900">Enrolled Students</h3>
+                  <p class="text-sm text-gray-600 mt-1">Manage student enrollment for this group</p>
+                </div>
+                <button (click)="openAddStudentModal()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  Add Student
+                </button>
+              </div>
+
+              <!-- Students Table -->
+              <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Contact</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrolled</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                      <tr *ngFor="let studentEnrollment of group?.students; let i = index" class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ i + 1 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                              <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                                {{ getInitials(studentEnrollment?.student?.firstName, studentEnrollment?.student?.lastName) }}
+                              </div>
+                            </div>
+                            <div class="ml-4">
+                              <div class="text-sm font-medium text-gray-900">
+                                {{ studentEnrollment?.student?.fullName }}
+                              </div>
+                              <div class="text-sm text-gray-500">
+                                {{ studentEnrollment?.student?.email }}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <span class="text-sm font-mono text-gray-900">{{ studentEnrollment?.student?.academicInfo?.studentId }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="flex items-center text-sm text-gray-900">
+                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            {{ studentEnrollment?.student?.phoneNumber || 'N/A' }}
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="flex items-center text-sm text-gray-900">
+                            <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                            </svg>
+                            {{ studentEnrollment?.student?.parentContact?.primaryPhone || 'N/A' }}
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {{ studentEnrollment?.enrollmentDate | date:'short' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button (click)="removeStudent(studentEnrollment?.student?._id || studentEnrollment?.student?.id)" 
+                                  class="text-red-600 hover:text-red-900">
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                      <tr *ngIf="!group?.students || group?.students.length === 0">
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                          No students enrolled yet
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Assignments Tab -->
+            <div *ngIf="activeTab === 'assignments'">
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="text-lg font-bold text-gray-900">Assignments</h3>
+                  <p class="text-sm text-gray-600 mt-1">View and manage assignments for this group</p>
+                </div>
+                <button (click)="createAssignmentForGroup()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
                   Create Assignment
                 </button>
               </div>
-            </div>
-          </div>
-          <div class="p-6">
-            <div *ngIf="!group?.assignmentStats || group.assignmentStats.total === 0" class="text-center py-8">
-              <div class="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-                <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-              </div>
-              <p class="text-gray-600 font-medium mb-2">No assignments yet</p>
-              <p class="text-sm text-gray-500">Create assignments for this group to get started</p>
-            </div>
 
-            <div *ngIf="group?.assignmentStats && group.assignmentStats.total > 0" class="space-y-4">
-              <!-- Assignment Stats Row -->
-              <div class="grid grid-cols-2 md:grid-cols-5 gap-4 pb-4 border-b border-gray-200">
-                <div class="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div class="text-2xl font-bold text-green-700">{{ group.assignmentStats.published }}</div>
+              <!-- Assignment Stats -->
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div class="text-2xl font-bold text-gray-900">{{ group?.assignmentStats?.total || 0 }}</div>
+                  <div class="text-xs text-gray-600 font-medium mt-1">Total</div>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <div class="text-2xl font-bold text-green-700">{{ group?.assignmentStats?.published || 0 }}</div>
                   <div class="text-xs text-green-600 font-medium mt-1">Published</div>
                 </div>
-                <div class="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div class="text-2xl font-bold text-yellow-700">{{ group.assignmentStats.draft }}</div>
+                <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                  <div class="text-2xl font-bold text-yellow-700">{{ group?.assignmentStats?.draft || 0 }}</div>
                   <div class="text-xs text-yellow-600 font-medium mt-1">Draft</div>
                 </div>
-                <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div class="text-2xl font-bold text-gray-700">{{ group.assignmentStats.closed }}</div>
-                  <div class="text-xs text-gray-600 font-medium mt-1">Closed</div>
-                </div>
-                <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div class="text-2xl font-bold text-blue-700">{{ group.assignmentStats.upcoming }}</div>
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div class="text-2xl font-bold text-blue-700">{{ group?.assignmentStats?.upcoming || 0 }}</div>
                   <div class="text-xs text-blue-600 font-medium mt-1">Upcoming</div>
                 </div>
-                <div class="text-center p-3 bg-red-50 rounded-lg border border-red-200">
-                  <div class="text-2xl font-bold text-red-700">{{ group.assignmentStats.overdue }}</div>
+                <div class="bg-red-50 rounded-lg p-4 border border-red-200">
+                  <div class="text-2xl font-bold text-red-700">{{ group?.assignmentStats?.overdue || 0 }}</div>
                   <div class="text-xs text-red-600 font-medium mt-1">Overdue</div>
                 </div>
               </div>
 
               <!-- Assignments List -->
               <div class="space-y-3">
-                <a *ngFor="let assignment of group.assignmentStats.assignments" 
-                     class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all duration-200 cursor-pointer"
-                     [routerLink]="['/dashboard/assignments', assignment._id]">
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-3">
-                      <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold" 
-                            [ngClass]="{
-                              'bg-green-100 text-green-700': assignment.status === 'published',
-                              'bg-yellow-100 text-yellow-700': assignment.status === 'draft',
-                              'bg-gray-100 text-gray-700': assignment.status === 'closed'
-                            }">
-                        {{ assignment.status }}
-                      </span>
-                      <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-700">
-                        {{ assignment.type }}
-                      </span>
-                      <span class="text-xs text-gray-500 font-mono">{{ assignment.code }}</span>
+                <a *ngFor="let assignment of group?.assignmentStats?.assignments" 
+                   [routerLink]="['/dashboard/assignments', assignment._id]"
+                   class="block bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-indigo-300 transition-all">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <div class="flex items-center space-x-2 mb-2">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold"
+                              [ngClass]="{
+                                'bg-green-100 text-green-700': assignment.status === 'published',
+                                'bg-yellow-100 text-yellow-700': assignment.status === 'draft',
+                                'bg-gray-100 text-gray-700': assignment.status === 'closed'
+                              }">
+                          {{ assignment.status }}
+                        </span>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-700">
+                          {{ assignment.type }}
+                        </span>
+                        <span class="text-xs text-gray-500 font-mono">{{ assignment.code }}</span>
+                      </div>
+                      <h4 class="font-semibold text-gray-900 mb-1">{{ assignment.title }}</h4>
+                      <div class="flex items-center space-x-4 text-sm text-gray-600">
+                        <span class="flex items-center">
+                          <svg class="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                          </svg>
+                          {{ assignment.dueDate | date:'short' }}
+                        </span>
+                        <span class="flex items-center">
+                          <svg class="w-4 h-4 mr-1 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                          </svg>
+                          {{ assignment.maxPoints }} pts
+                        </span>
+                      </div>
                     </div>
-                    <h4 class="font-semibold text-gray-900 mt-2">{{ assignment.title }}</h4>
-                    <div class="flex items-center space-x-4 mt-1 text-sm text-gray-600">
-                      <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                        </svg>
-                        {{ assignment.dueDate | date:'short' }}
-                      </span>
-                      <span class="flex items-center">
-                        <svg class="w-4 h-4 mr-1 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                          <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                        </svg>
-                        {{ assignment.maxPoints }} pts
-                      </span>
-                    </div>
-                  </div>
-                  <div>
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                   </div>
                 </a>
+                
+                <div *ngIf="!group?.assignmentStats?.assignments || group?.assignmentStats.assignments.length === 0" 
+                     class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                  <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <p class="text-gray-600 font-medium">No assignments yet</p>
+                  <p class="text-sm text-gray-500 mt-1">Create assignments for this group to get started</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Enrolled Students Table -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-              </svg>
-              <h2 class="text-xl font-bold text-white">Enrolled Students</h2>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="px-3 py-1 bg-white bg-opacity-20 rounded-lg text-white font-bold text-sm">
-                {{ group?.students?.length || 0 }}
-              </span>
-              <button (click)="openAddStudentModal()" class="btn-add-student">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Add Student
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div *ngIf="!group?.students || group?.students?.length === 0" class="p-12 text-center">
-          <svg class="w-20 h-20 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-          </svg>
-          <p class="text-gray-500 text-lg font-medium">No students enrolled yet</p>
-          <p class="text-gray-400 text-sm mt-1">Students will appear here once they enroll in this group</p>
-        </div>
-
-        <div *ngIf="group?.students && group?.students?.length > 0" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">#</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student ID</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student Phone</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Parent Phone</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Enrollment Date</th>
-                <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let studentEnrollment of group?.students; let i = index" class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ i + 1 }}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="text-sm font-mono font-semibold text-gray-900">{{ studentEnrollment?.student?.academicInfo?.studentId || '—' }}</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm mr-3">
-                      {{ getInitials(studentEnrollment?.student?.firstName, studentEnrollment?.student?.lastName) }}
-                    </div>
-                    <div>
-                      <p class="text-sm font-semibold text-gray-900">{{ studentEnrollment?.student?.fullName || (studentEnrollment?.student?.firstName + ' ' + studentEnrollment?.student?.lastName) || '—' }}</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  <div class="flex items-center">
-                    <svg class="w-4 h-4 text-gray-400 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                    </svg>
-                    <span>{{ studentEnrollment?.student?.phoneNumber || '—' }}</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  <div class="flex items-center">
-                    <svg class="w-4 h-4 text-gray-400 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                    </svg>
-                    <span>{{ studentEnrollment?.student?.parentContact?.primaryPhone || '—' }}</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                  {{ studentEnrollment?.enrollmentDate ? (studentEnrollment?.enrollmentDate | date:'MMM d, yyyy') : '—' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
-                  <button (click)="removeStudent(studentEnrollment?.student?._id || studentEnrollment?.student?.id)" 
-                          class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-red-600 hover:bg-red-50 border border-red-300 hover:border-red-400 transition-all">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
+
 
     <!-- Add Student Modal -->
     <div *ngIf="showAddStudentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
@@ -479,6 +565,7 @@ export class GroupDetailComponent implements OnInit {
   availableStudents: any[] = [];
   loadingStudents = false;
   studentSearchTerm = '';
+  activeTab = 'overview'; // New property for tab navigation
 
   constructor(
     private groupService: GroupService,
