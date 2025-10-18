@@ -251,6 +251,202 @@ import { AuthService } from '../../services/auth.service';
           </div>
         </div>
 
+        <!-- Quiz Settings (only shown when type is 'quiz') -->
+        <div *ngIf="assignmentForm.get('type')?.value === 'quiz'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 p-5">
+            <div class="flex items-center">
+              <div class="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg shadow-md mr-3">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900">Quiz Settings</h2>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Time Limit (minutes)
+                </label>
+                <input 
+                  type="number" 
+                  formControlName="timeLimit"
+                  min="1"
+                  class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="60">
+                <p class="text-xs text-gray-500 mt-1">Leave empty for no time limit</p>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Results Visibility
+                </label>
+                <select formControlName="resultsVisibility" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                  <option value="immediate">Immediate - Show results right after submission</option>
+                  <option value="after_deadline">After Deadline - Show after due date</option>
+                  <option value="manual">Manual - Teacher releases manually</option>
+                  <option value="never">Never - Only show score</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-6 mb-4">
+              <label class="flex items-center">
+                <input type="checkbox" formControlName="shuffleQuestions" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <span class="ml-2 text-sm text-gray-700">Shuffle Questions</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" formControlName="shuffleOptions" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <span class="ml-2 text-sm text-gray-700">Shuffle Answer Options</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Questions Builder (only shown when type is 'quiz') -->
+        <div *ngIf="assignmentForm.get('type')?.value === 'quiz'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md mr-3">
+                  <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="text-xl font-bold text-gray-900">Questions</h2>
+                  <p class="text-sm text-gray-600">Total: {{ questions.length }} questions | {{ calculateTotalPoints() }} points</p>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                (click)="addQuestion()"
+                class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-md transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Question
+              </button>
+            </div>
+          </div>
+          <div class="p-6">
+            <div formArrayName="questions" class="space-y-6">
+              <div *ngFor="let question of questions.controls; let i = index" [formGroupName]="i" 
+                   class="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                
+                <!-- Question Header -->
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md">
+                      <span class="text-white font-bold text-lg">{{ i + 1 }}</span>
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-semibold text-gray-900">Question {{ i + 1 }}</h3>
+                      <p class="text-sm text-gray-500">Points: {{ question.get('points')?.value || 1 }}</p>
+                    </div>
+                  </div>
+                  <button 
+                    type="button" 
+                    (click)="removeQuestion(i)"
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Question Text -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Question <span class="text-red-500">*</span>
+                  </label>
+                  <textarea 
+                    formControlName="question"
+                    rows="3"
+                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    placeholder="Enter your question here..."></textarea>
+                  <div *ngIf="question.get('question')?.invalid && question.get('question')?.touched" class="text-red-500 text-sm mt-1">
+                    Question text is required
+                  </div>
+                </div>
+
+                <!-- Answer Options -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-3">
+                    Answer Options (select the correct answer)
+                  </label>
+                  <div class="space-y-2">
+                    <div *ngFor="let opt of [0,1,2,3]; let optIdx = index" class="flex items-center gap-3">
+                      <input 
+                        type="radio" 
+                        [name]="'correct-' + i"
+                        [checked]="question.get('correctAnswerIndex')?.value === optIdx"
+                        (change)="setCorrectAnswer(i, optIdx)"
+                        class="w-5 h-5 text-green-600 focus:ring-green-500">
+                      <div class="flex-1 flex items-center gap-2">
+                        <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full font-semibold text-gray-700">
+                          {{ ['A', 'B', 'C', 'D'][optIdx] }}
+                        </span>
+                        <input 
+                          type="text"
+                          [formControlName]="'option' + optIdx"
+                          class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                          [placeholder]="'Option ' + ['A', 'B', 'C', 'D'][optIdx]">
+                      </div>
+                    </div>
+                  </div>
+                  <div *ngIf="question.get('option0')?.invalid && question.get('option0')?.touched" class="text-red-500 text-sm mt-2">
+                    All 4 options are required
+                  </div>
+                </div>
+
+                <!-- Points and Explanation -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Points <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                      type="number" 
+                      formControlName="points"
+                      min="1"
+                      class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                      placeholder="1">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Explanation (optional)
+                    </label>
+                    <input 
+                      type="text" 
+                      formControlName="explanation"
+                      class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                      placeholder="Explain the correct answer">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div *ngIf="questions.length === 0" class="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="mt-2 text-sm text-gray-600">No questions added yet</p>
+                <button 
+                  type="button" 
+                  (click)="addQuestion()"
+                  class="mt-4 inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  Add Your First Question
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Enhanced Grading Rubric -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200 p-5">
@@ -480,12 +676,18 @@ export class AssignmentFormComponent implements OnInit {
       dueDate: ['', Validators.required],
       maxPoints: [100, [Validators.required, Validators.min(1)]],
       weightage: [10, [Validators.required, Validators.min(0), Validators.max(100)]], // Weightage for grade calculation
-        rubric: this.fb.array([]),
+      rubric: this.fb.array([]),
       allowLateSubmissions: [true],
       latePenalty: [10],
       requireFileUpload: [false],
       allowMultipleSubmissions: [true],
-      instructions: ['']
+      instructions: [''],
+      // Quiz-specific fields
+      timeLimit: [null],
+      resultsVisibility: ['after_deadline'],
+      shuffleQuestions: [false],
+      shuffleOptions: [false],
+      questions: this.fb.array([])
     });
   }
 
@@ -504,6 +706,44 @@ export class AssignmentFormComponent implements OnInit {
 
   removeRubricCriterion(index: number): void {
     this.rubric.removeAt(index);
+  }
+
+  // Quiz-related methods
+  get questions(): FormArray {
+    return this.assignmentForm.get('questions') as FormArray;
+  }
+
+  addQuestion(): void {
+    const question = this.fb.group({
+      type: ['multiple_choice'],
+      question: ['', Validators.required],
+      option0: ['', Validators.required],
+      option1: ['', Validators.required],
+      option2: ['', Validators.required],
+      option3: ['', Validators.required],
+      correctAnswerIndex: [0, Validators.required],
+      points: [1, [Validators.required, Validators.min(1)]],
+      explanation: ['']
+    });
+    this.questions.push(question);
+  }
+
+  removeQuestion(index: number): void {
+    this.questions.removeAt(index);
+  }
+
+  setCorrectAnswer(questionIndex: number, optionIndex: number): void {
+    const question = this.questions.at(questionIndex);
+    question.patchValue({ correctAnswerIndex: optionIndex });
+  }
+
+  calculateTotalPoints(): number {
+    let total = 0;
+    for (let i = 0; i < this.questions.length; i++) {
+      const points = this.questions.at(i).get('points')?.value || 0;
+      total += Number(points);
+    }
+    return total;
   }
 
   loadGroups(): void {
@@ -641,7 +881,7 @@ export class AssignmentFormComponent implements OnInit {
             console.log('Set code:', assignment.code);
           }
 
-          const patchData = {
+          const patchData: any = {
             title: assignment.title || '',
             description: assignment.description || '',
             type: assignment.type || 'homework',
@@ -654,6 +894,32 @@ export class AssignmentFormComponent implements OnInit {
             allowMultipleSubmissions: assignment.allowMultipleSubmissions !== undefined ? assignment.allowMultipleSubmissions : true,
             instructions: assignment.instructions || ''
           };
+
+          // Load quiz data if type is quiz
+          if (assignment.type === 'quiz' && assignment.quizSettings) {
+            patchData.timeLimit = assignment.quizSettings.timeLimit || null;
+            patchData.resultsVisibility = assignment.quizSettings.resultsVisibility || 'after_deadline';
+            patchData.shuffleQuestions = assignment.quizSettings.shuffleQuestions || false;
+            patchData.shuffleOptions = assignment.quizSettings.shuffleOptions || false;
+
+            // Load questions
+            if (assignment.questions && assignment.questions.length > 0) {
+              assignment.questions.forEach((q: any) => {
+                const questionGroup = this.fb.group({
+                  type: [q.type || 'multiple_choice'],
+                  question: [q.question || '', Validators.required],
+                  option0: [q.options?.[0] || '', Validators.required],
+                  option1: [q.options?.[1] || '', Validators.required],
+                  option2: [q.options?.[2] || '', Validators.required],
+                  option3: [q.options?.[3] || '', Validators.required],
+                  correctAnswerIndex: [q.correctAnswerIndex !== undefined ? q.correctAnswerIndex : 0, Validators.required],
+                  points: [q.points || 1, [Validators.required, Validators.min(1)]],
+                  explanation: [q.explanation || '']
+                });
+                this.questions.push(questionGroup);
+              });
+            }
+          }
           
           console.log('Data to patch:', patchData);
           this.assignmentForm.patchValue(patchData);
@@ -800,7 +1066,7 @@ export class AssignmentFormComponent implements OnInit {
     console.log('Preparing form data from:', formValue);
     console.log('Groups from form value:', formValue.groups);
     
-    const data = {
+    const data: any = {
       title: formValue.title,
       description: formValue.description,
       type: formValue.type,
@@ -815,6 +1081,32 @@ export class AssignmentFormComponent implements OnInit {
       allowMultipleSubmissions: formValue.allowMultipleSubmissions,
       instructions: formValue.instructions
     };
+
+    // Add quiz-specific data if type is quiz
+    if (formValue.type === 'quiz') {
+      data.quizSettings = {
+        timeLimit: formValue.timeLimit || null,
+        resultsVisibility: formValue.resultsVisibility || 'after_deadline',
+        shuffleQuestions: formValue.shuffleQuestions || false,
+        shuffleOptions: formValue.shuffleOptions || false
+      };
+
+      // Transform questions to backend format
+      data.questions = formValue.questions.map((q: any) => ({
+        type: 'multiple_choice',
+        question: q.question,
+        options: [q.option0, q.option1, q.option2, q.option3],
+        correctAnswerIndex: q.correctAnswerIndex,
+        points: q.points,
+        explanation: q.explanation || ''
+      }));
+
+      // Auto-calculate maxPoints from questions total
+      const totalPoints = this.calculateTotalPoints();
+      if (totalPoints > 0) {
+        data.maxPoints = totalPoints;
+      }
+    }
     
     console.log('Prepared data:', data);
     return data;
