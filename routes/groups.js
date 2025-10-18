@@ -385,7 +385,7 @@ router.post('/:id/students', authenticate, authorize('admin'), async (req, res) 
     }
 
     // Auto filter: enforce grade match
-    const studentGrade = student.academicInfo?.currentGrade || student.academicInfo?.year;
+    const studentGrade = student.academicInfo?.currentGrade;
     if (studentGrade && group.gradeLevel && studentGrade !== group.gradeLevel) {
       return res.status(400).json({ success: false, message: `Student grade (${studentGrade}) does not match group grade (${group.gradeLevel})` });
     }

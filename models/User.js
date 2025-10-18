@@ -84,14 +84,6 @@ const userSchema = new mongoose.Schema({
         'Grade 10', 'Grade 11', 'Grade 12' // Secondary
       ]
     },
-    year: {
-      type: String,
-      enum: [
-        'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', // Primary
-        'Grade 7', 'Grade 8', 'Grade 9', // Preparatory
-        'Grade 10', 'Grade 11', 'Grade 12' // Secondary
-      ]
-    },
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
     
     // For Teachers

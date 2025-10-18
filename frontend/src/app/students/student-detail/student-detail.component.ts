@@ -23,7 +23,6 @@ interface Student {
   academicInfo: {
     studentId: string;
     currentGrade: string;
-    year: string;
     enrollmentDate: Date;
     groups?: any[];
     subjects?: any[];
@@ -82,7 +81,7 @@ interface Student {
                 </div>
                 <div>
                   <h1 class="text-2xl font-bold text-gray-900">{{ student.fullName }}</h1>
-                  <p class="text-gray-600">{{ student.academicInfo.studentId }} • {{ student.academicInfo.currentGrade || student.academicInfo.year }}</p>
+                  <p class="text-gray-600">{{ student.academicInfo.studentId }} • {{ student.academicInfo.currentGrade }}</p>
                   <div class="flex items-center mt-1">
                     <span 
                       class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -226,10 +225,6 @@ interface Student {
                   <div>
                     <dt class="text-sm font-medium text-gray-500">Current Grade</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ student.academicInfo.currentGrade }}</dd>
-                  </div>
-                  <div>
-                    <dt class="text-sm font-medium text-gray-500">Academic Year</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ student.academicInfo.year }}</dd>
                   </div>
                   <div>
                     <dt class="text-sm font-medium text-gray-500">Enrollment Date</dt>

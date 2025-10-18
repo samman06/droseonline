@@ -22,7 +22,6 @@ interface Student {
   academicInfo: {
     studentId: string;
     currentGrade: string;
-    year: string;
     enrollmentDate: Date;
     groups?: string[];
     subjects?: string[];

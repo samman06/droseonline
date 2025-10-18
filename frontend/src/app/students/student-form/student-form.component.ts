@@ -22,7 +22,6 @@ interface Student {
   academicInfo: {
     studentId: string;
     currentGrade: string;
-    year: string;
     enrollmentDate: Date;
     groups?: string[];
     subjects?: string[];
@@ -246,38 +245,6 @@ interface Student {
               </div>
               
               <div>
-                <label class="form-label">Academic Year *</label>
-                <select 
-                  formControlName="year"
-                  class="form-select"
-                  [class.border-red-300]="isFieldInvalid('academicInfo.year')"
-                >
-                  <option value="">Select Academic Year</option>
-                  <optgroup label="Primary School">
-                    <option value="Grade 1">Grade 1</option>
-                    <option value="Grade 2">Grade 2</option>
-                    <option value="Grade 3">Grade 3</option>
-                    <option value="Grade 4">Grade 4</option>
-                    <option value="Grade 5">Grade 5</option>
-                    <option value="Grade 6">Grade 6</option>
-                  </optgroup>
-                  <optgroup label="Preparatory School">
-                    <option value="Grade 7">Grade 7</option>
-                    <option value="Grade 8">Grade 8</option>
-                    <option value="Grade 9">Grade 9</option>
-                  </optgroup>
-                  <optgroup label="Secondary School">
-                    <option value="Grade 10">Grade 10</option>
-                    <option value="Grade 11">Grade 11</option>
-                    <option value="Grade 12">Grade 12</option>
-                  </optgroup>
-                </select>
-                <div *ngIf="isFieldInvalid('academicInfo.year')" class="form-error">
-                  Academic year is required
-                </div>
-              </div>
-              
-              <div>
                 <label class="form-label">Enrollment Date *</label>
                 <input 
                   type="date" 
@@ -403,7 +370,6 @@ export class StudentFormComponent implements OnInit {
       academicInfo: this.fb.group({
         studentId: [{value: '', disabled: true}], // Auto-generated, not required
         currentGrade: ['', Validators.required],
-        year: ['', Validators.required],
         enrollmentDate: ['', Validators.required],
         groups: [[]],
         subjects: [[]]
@@ -429,7 +395,6 @@ export class StudentFormComponent implements OnInit {
       academicInfo: {
         studentId: student.academicInfo.studentId,
         currentGrade: student.academicInfo.currentGrade,
-        year: student.academicInfo.year,
         enrollmentDate: student.academicInfo.enrollmentDate ? 
           new Date(student.academicInfo.enrollmentDate).toISOString().split('T')[0] : '',
         groups: student.academicInfo.groups || [],

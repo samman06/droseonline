@@ -38,23 +38,12 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
       });
     }
     
-    // Support both 'year' and 'currentYear' for backward compatibility, and new 'grade' filter
-    // Check both currentGrade and year fields since students might have grade in either field
+    // Filter by grade (supports both 'year' and 'grade' query params for API compatibility)
     if (year) {
-      andConditions.push({
-        $or: [
-          { 'academicInfo.year': year },
-          { 'academicInfo.currentGrade': year }
-        ]
-      });
+      andConditions.push({ 'academicInfo.currentGrade': year });
     }
     if (grade) {
-      andConditions.push({
-        $or: [
-          { 'academicInfo.currentGrade': grade },
-          { 'academicInfo.year': grade }
-        ]
-      });
+      andConditions.push({ 'academicInfo.currentGrade': grade });
     }
     if (currentYear) query['academicInfo.currentYear'] = parseInt(currentYear);
     if (isActive !== undefined && isActive !== '') {

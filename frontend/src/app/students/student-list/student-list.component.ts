@@ -17,7 +17,6 @@ interface Student {
   academicInfo: {
     studentId: string;
     currentGrade: string;
-    year: string;
     enrollmentDate: Date;
     groups: any[];
   };
@@ -311,7 +310,7 @@ interface Student {
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">{{ student.academicInfo.studentId }}</div>
-                    <div class="text-sm text-gray-500">{{ student.academicInfo.currentGrade || student.academicInfo.year }}</div>
+                    <div class="text-sm text-gray-500">{{ student.academicInfo.currentGrade }}</div>
                   </td>
                   
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -775,7 +774,7 @@ export class StudentListComponent implements OnInit {
         student.academicInfo.studentId,
         `"${student.fullName}"`,
         student.email,
-        student.academicInfo.currentGrade || student.academicInfo.year,
+        student.academicInfo.currentGrade,
         new Date(student.academicInfo.enrollmentDate).toLocaleDateString()
       ].join(','))
     ].join('\n');
