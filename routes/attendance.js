@@ -40,27 +40,39 @@ const attendanceQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
   sort: Joi.string().optional(),
+  search: Joi.string().max(100).optional().allow(''),
   groupId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   teacherId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   subjectId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   studentId: Joi.string().regex(/^[0-9a-fA-F]{24}$/).optional().allow(''),
   dateFrom: Joi.date().optional(),
   dateTo: Joi.date().optional(),
-  isCompleted: Joi.string().valid('true', 'false', '').optional().allow('')
+  isCompleted: Joi.string().valid('true', 'false', '').optional().allow(''),
+  minRate: Joi.number().min(0).max(100).optional(),
+  maxRate: Joi.number().min(0).max(100).optional()
 });
 
 // GET /api/attendance - List all attendance records with filters
 router.get('/', authenticate, validation.validateQuery(attendanceQuerySchema), async (req, res) => {
   try {
-    const { page, limit, sort, groupId, teacherId, subjectId, studentId, dateFrom, dateTo, isCompleted } = req.query;
+    const { page, limit, sort, search, groupId, teacherId, subjectId, studentId, dateFrom, dateTo, isCompleted, minRate, maxRate } = req.query;
 
     const query = {};
 
+    // Basic filters
     if (groupId) query.group = groupId;
     if (teacherId) query.teacher = teacherId;
     if (subjectId) query.subject = subjectId;
     if (studentId) query['records.student'] = studentId;
     if (isCompleted !== undefined && isCompleted !== '') query.isCompleted = isCompleted === 'true';
+
+    // Search functionality (search in code)
+    if (search) {
+      query.$or = [
+        { code: { $regex: search, $options: 'i' } },
+        { sessionNotes: { $regex: search, $options: 'i' } }
+      ];
+    }
 
     // Date range filter
     if (dateFrom || dateTo) {
@@ -72,31 +84,50 @@ router.get('/', authenticate, validation.validateQuery(attendanceQuerySchema), a
     const sortOption = sort || '-session.date';
     const skip = (page - 1) * limit;
 
-    const [attendances, total] = await Promise.all([
+    let [attendances, total] = await Promise.all([
       Attendance.find(query)
-        .populate('group', 'name')
-        .populate('teacher', 'fullName')
-        .populate('subject', 'name')
-        .populate('records.student', 'fullName')
-        .populate('createdBy', 'username')
+        .populate('group', 'name code gradeLevel')
+        .populate('teacher', 'firstName lastName fullName')
+        .populate('subject', 'name code')
+        .populate('records.student', 'firstName lastName fullName')
+        .populate('createdBy', 'firstName lastName fullName')
+        .populate('lockedBy', 'firstName lastName fullName')
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit)),
       Attendance.countDocuments(query)
     ]);
 
+    // Apply rate filtering if specified (post-query filtering)
+    if (minRate !== undefined || maxRate !== undefined) {
+      attendances = attendances.filter(attendance => {
+        const rate = attendance.stats ? attendance.stats.rate : 0;
+        if (minRate !== undefined && rate < minRate) return false;
+        if (maxRate !== undefined && rate > maxRate) return false;
+        return true;
+      });
+    }
+
+    // Standardized response
     res.json({
-      attendances,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+      success: true,
+      data: {
+        attendances,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          page: parseInt(page),
+          limit: parseInt(limit)
+        }
       }
     });
   } catch (error) {
     console.error('Error fetching attendance:', error);
-    res.status(500).json({ message: 'Error fetching attendance records', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching attendance records',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -290,20 +321,32 @@ router.get('/stats', authenticate, async (req, res) => {
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id)
-      .populate('group', 'name')
-      .populate('teacher', 'fullName')
-      .populate('subject', 'name')
-      .populate('records.student', 'fullName gradeLevel')
-      .populate('createdBy', 'username');
+      .populate('group', 'name code gradeLevel')
+      .populate('teacher', 'firstName lastName fullName email')
+      .populate('subject', 'name code')
+      .populate('records.student', 'firstName lastName fullName phoneNumber parentContact academicInfo')
+      .populate('records.markedBy', 'firstName lastName fullName')
+      .populate('createdBy', 'firstName lastName fullName')
+      .populate('lockedBy', 'firstName lastName fullName');
 
     if (!attendance) {
-      return res.status(404).json({ message: 'Attendance record not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Attendance record not found' 
+      });
     }
 
-    res.json(attendance);
+    res.json({
+      success: true,
+      data: { attendance: attendance.toObject() }
+    });
   } catch (error) {
     console.error('Error fetching attendance:', error);
-    res.status(500).json({ message: 'Error fetching attendance record', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching attendance record',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -315,7 +358,10 @@ router.post('/', authenticate, validation.validate(createAttendanceSchema), asyn
     // Verify group exists
     const group = await Group.findById(groupId).populate('students');
     if (!group) {
-      return res.status(404).json({ message: 'Group not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Group not found' 
+      });
     }
 
     // Check if attendance already exists for this group and date
@@ -325,13 +371,17 @@ router.post('/', authenticate, validation.validate(createAttendanceSchema), asyn
     });
 
     if (existingAttendance) {
-      return res.status(400).json({ message: 'Attendance already marked for this session' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Attendance already marked for this session' 
+      });
     }
 
     // Build attendance records
     const attendanceRecords = records.map(record => ({
       student: record.studentId,
       status: record.status,
+      minutesLate: record.minutesLate || 0,
       notes: record.notes || '',
       markedAt: new Date(),
       markedBy: req.user.id
@@ -356,17 +406,25 @@ router.post('/', authenticate, validation.validate(createAttendanceSchema), asyn
 
     // Populate before sending response
     await attendance.populate([
-      { path: 'group', select: 'name' },
-      { path: 'teacher', select: 'fullName' },
-      { path: 'subject', select: 'name' },
-      { path: 'records.student', select: 'fullName' },
-      { path: 'createdBy', select: 'username' }
+      { path: 'group', select: 'name code gradeLevel' },
+      { path: 'teacher', select: 'firstName lastName fullName' },
+      { path: 'subject', select: 'name code' },
+      { path: 'records.student', select: 'firstName lastName fullName' },
+      { path: 'createdBy', select: 'firstName lastName fullName' }
     ]);
 
-    res.status(201).json({ message: 'Attendance marked successfully', attendance });
+    res.status(201).json({ 
+      success: true,
+      message: 'Attendance marked successfully', 
+      data: { attendance: attendance.toObject() }
+    });
   } catch (error) {
     console.error('Error creating attendance:', error);
-    res.status(500).json({ message: 'Error marking attendance', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while marking attendance',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -377,7 +435,18 @@ router.put('/:id', authenticate, validation.validate(updateAttendanceSchema), as
 
     const attendance = await Attendance.findById(req.params.id);
     if (!attendance) {
-      return res.status(404).json({ message: 'Attendance record not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Attendance record not found' 
+      });
+    }
+
+    // Check if locked
+    if (attendance.isLocked && req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Attendance record is locked and cannot be edited' 
+      });
     }
 
     // Update records if provided
@@ -388,6 +457,7 @@ router.put('/:id', authenticate, validation.validate(updateAttendanceSchema), as
         );
         if (existingRecord) {
           existingRecord.status = record.status;
+          existingRecord.minutesLate = record.minutesLate || 0;
           existingRecord.notes = record.notes || existingRecord.notes;
           existingRecord.markedAt = new Date();
           existingRecord.markedBy = req.user.id;
@@ -409,17 +479,25 @@ router.put('/:id', authenticate, validation.validate(updateAttendanceSchema), as
 
     // Populate before sending response
     await attendance.populate([
-      { path: 'group', select: 'name' },
-      { path: 'teacher', select: 'fullName' },
-      { path: 'subject', select: 'name' },
-      { path: 'records.student', select: 'fullName' },
-      { path: 'createdBy', select: 'username' }
+      { path: 'group', select: 'name code gradeLevel' },
+      { path: 'teacher', select: 'firstName lastName fullName' },
+      { path: 'subject', select: 'name code' },
+      { path: 'records.student', select: 'firstName lastName fullName' },
+      { path: 'createdBy', select: 'firstName lastName fullName' }
     ]);
 
-    res.json({ message: 'Attendance updated successfully', attendance });
+    res.json({ 
+      success: true,
+      message: 'Attendance updated successfully', 
+      data: { attendance: attendance.toObject() }
+    });
   } catch (error) {
     console.error('Error updating attendance:', error);
-    res.status(500).json({ message: 'Error updating attendance', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while updating attendance',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -475,19 +553,33 @@ router.post('/:id/lock', authenticate, async (req, res) => {
   try {
     const attendance = await Attendance.findById(req.params.id);
     if (!attendance) {
-      return res.status(404).json({ message: 'Attendance session not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Attendance session not found' 
+      });
     }
 
     if (attendance.isLocked) {
-      return res.status(400).json({ message: 'Session is already locked' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Session is already locked' 
+      });
     }
 
     await attendance.lock(req.user.id);
 
-    res.json({ message: 'Attendance session locked successfully', attendance });
+    res.json({ 
+      success: true,
+      message: 'Attendance session locked successfully', 
+      data: { attendance: attendance.toObject() }
+    });
   } catch (error) {
     console.error('Error locking attendance:', error);
-    res.status(500).json({ message: 'Error locking attendance', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while locking attendance',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -495,24 +587,41 @@ router.post('/:id/lock', authenticate, async (req, res) => {
 router.post('/:id/unlock', authenticate, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can unlock attendance sessions' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Only admins can unlock attendance sessions' 
+      });
     }
 
     const attendance = await Attendance.findById(req.params.id);
     if (!attendance) {
-      return res.status(404).json({ message: 'Attendance session not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Attendance session not found' 
+      });
     }
 
     if (!attendance.isLocked) {
-      return res.status(400).json({ message: 'Session is not locked' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Session is not locked' 
+      });
     }
 
     await attendance.unlock();
 
-    res.json({ message: 'Attendance session unlocked successfully', attendance });
+    res.json({ 
+      success: true,
+      message: 'Attendance session unlocked successfully', 
+      data: { attendance: attendance.toObject() }
+    });
   } catch (error) {
     console.error('Error unlocking attendance:', error);
-    res.status(500).json({ message: 'Error unlocking attendance', error: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while unlocking attendance',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

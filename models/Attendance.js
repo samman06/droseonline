@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const attendanceRecordSchema = new mongoose.Schema({
   student: {
@@ -33,6 +34,11 @@ const attendanceRecordSchema = new mongoose.Schema({
 });
 
 const attendanceSchema = new mongoose.Schema({
+  code: {
+    type: String,
+    unique: true,
+    sparse: true // Allows null during creation before pre-save generates it
+  },
   group: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Group',
@@ -210,5 +216,18 @@ attendanceSchema.statics.getGroupStats = async function(groupId) {
 // Ensure virtuals are included in JSON
 attendanceSchema.set('toJSON', { virtuals: true });
 attendanceSchema.set('toObject', { virtuals: true });
+
+// Pre-save hook to generate attendance code
+attendanceSchema.pre('save', async function(next) {
+  if (!this.code) {
+    try {
+      const counter = await Counter.getNextSequence('attendance');
+      this.code = `ATT-${String(counter).padStart(6, '0')}`;
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
