@@ -228,6 +228,7 @@ assignmentSchema.virtual('acceptingSubmissions').get(function() {
 
 // Virtual for total questions points
 assignmentSchema.virtual('totalQuestionPoints').get(function() {
+  if (!this.questions || !Array.isArray(this.questions)) return 0;
   return this.questions.reduce((total, question) => total + question.points, 0);
 });
 
