@@ -55,13 +55,32 @@ import { AuthService } from '../../services/auth.service';
                   </svg>
                   Edit Assignment
                 </button>
-                <button *ngIf="isStudent && canSubmit"
+                <!-- Quiz-specific button for students -->
+                <button *ngIf="isStudent && assignment.type === 'quiz' && canSubmit"
+                        [routerLink]="['/dashboard/assignments', assignment._id, 'take-quiz']"
+                        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg font-medium shadow-lg transition-all transform hover:-translate-y-0.5">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                  </svg>
+                  Take Quiz
+                </button>
+                <!-- Regular submission button for non-quiz assignments -->
+                <button *ngIf="isStudent && assignment.type !== 'quiz' && canSubmit"
                         [routerLink]="['/dashboard/assignments', assignment._id, 'submit']"
                         class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-medium shadow-lg transition-all transform hover:-translate-y-0.5">
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                   </svg>
                   Submit Work
+                </button>
+                <!-- Release Results button for teachers (manual visibility only) -->
+                <button *ngIf="canEdit && assignment.type === 'quiz' && assignment.quizSettings?.resultsVisibility === 'manual' && !assignment.quizSettings?.resultsReleased"
+                        (click)="releaseQuizResults()"
+                        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-lg font-medium shadow-lg transition-all transform hover:-translate-y-0.5">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                  </svg>
+                  Release Results
                 </button>
               </div>
             </div>
@@ -125,6 +144,57 @@ import { AuthService } from '../../services/auth.service';
               </div>
               <div class="text-sm text-gray-500">
                 Last updated: {{ formatDate(assignment.updatedAt) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Quiz-Specific Settings (if quiz type) -->
+          <div *ngIf="assignment.type === 'quiz' && assignment.quizSettings" class="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-200">
+            <h3 class="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+              </svg>
+              Quiz Settings
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-600">Time Limit</p>
+                  <p class="text-sm font-semibold text-gray-900">{{ assignment.quizSettings.timeLimit ? assignment.quizSettings.timeLimit + ' min' : 'No limit' }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-600">Results Visibility</p>
+                  <p class="text-sm font-semibold text-gray-900 capitalize">{{ assignment.quizSettings.resultsVisibility?.replace('_', ' ') || 'After deadline' }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-600">Questions</p>
+                  <p class="text-sm font-semibold text-gray-900">{{ assignment.questions?.length || 0 }}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <div>
+                  <p class="text-xs text-gray-600">Shuffling</p>
+                  <p class="text-sm font-semibold text-gray-900">
+                    {{ assignment.quizSettings.shuffleQuestions || assignment.quizSettings.shuffleOptions ? 'Enabled' : 'Disabled' }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -927,6 +997,25 @@ export class AssignmentDetailComponent implements OnInit {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
+    });
+  }
+
+  releaseQuizResults(): void {
+    if (!this.assignment?._id) return;
+
+    this.assignmentService.releaseQuizResults(this.assignment._id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.success('Quiz results released successfully!');
+          // Update the local assignment object to reflect the change
+          if (this.assignment.quizSettings) {
+            this.assignment.quizSettings.resultsReleased = true;
+          }
+        }
+      },
+      error: (error) => {
+        this.toastService.showApiError(error);
+      }
     });
   }
 

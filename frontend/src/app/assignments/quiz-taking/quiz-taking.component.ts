@@ -332,12 +332,12 @@ export class QuizTakingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.confirmationService.confirm(
-      'Submit Quiz',
-      'Are you sure you want to submit? You cannot change your answers after submission.',
-      'Submit',
-      'Cancel'
-    ).then((confirmed) => {
+    this.confirmationService.confirm({
+      title: 'Submit Quiz',
+      message: 'Are you sure you want to submit? You cannot change your answers after submission.',
+      confirmText: 'Submit',
+      cancelText: 'Cancel'
+    }).then((confirmed) => {
       if (confirmed) {
         this.performSubmission();
       }
