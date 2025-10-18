@@ -191,5 +191,22 @@ export class AssignmentService {
       responseType: 'blob'
     });
   }
+
+  // Quiz-specific methods
+  getQuiz(assignmentId: string): Observable<any> {
+    return this.api.get(`${this.ASSIGNMENTS_ENDPOINT}/${assignmentId}/quiz`);
+  }
+
+  submitQuiz(assignmentId: string, payload: any): Observable<any> {
+    return this.api.post(`${this.ASSIGNMENTS_ENDPOINT}/${assignmentId}/submit-quiz`, payload);
+  }
+
+  getQuizResults(assignmentId: string, submissionId: string): Observable<any> {
+    return this.api.get(`${this.ASSIGNMENTS_ENDPOINT}/${assignmentId}/quiz-results/${submissionId}`);
+  }
+
+  releaseQuizResults(assignmentId: string): Observable<any> {
+    return this.api.post(`${this.ASSIGNMENTS_ENDPOINT}/${assignmentId}/release-results`, {});
+  }
 }
 

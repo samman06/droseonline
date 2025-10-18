@@ -204,6 +204,16 @@ export const routes: Routes = [
             canActivate: [RoleGuard],
             data: { roles: ['student'] },
             loadComponent: () => import('./assignments/student-submission/student-submission.component').then(m => m.StudentSubmissionComponent)
+          },
+          {
+            path: ':id/take-quiz',
+            canActivate: [RoleGuard],
+            data: { roles: ['student'] },
+            loadComponent: () => import('./assignments/quiz-taking/quiz-taking.component').then(m => m.QuizTakingComponent)
+          },
+          {
+            path: ':id/quiz-results/:submissionId',
+            loadComponent: () => import('./assignments/quiz-results/quiz-results.component').then(m => m.QuizResultsComponent)
           }
         ]
       },
