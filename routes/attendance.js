@@ -681,6 +681,329 @@ router.get('/reports/export', authenticate, async (req, res) => {
   }
 });
 
+// GET /api/attendance/statistics/dashboard - Get comprehensive dashboard statistics
+router.get('/statistics/dashboard', authenticate, async (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthAgo = new Date(today);
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const twoMonthsAgo = new Date(today);
+    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+    // Overall statistics
+    const totalSessions = await Attendance.countDocuments();
+    const completedSessions = await Attendance.countDocuments({ isCompleted: true });
+    const pendingSessions = await Attendance.countDocuments({ isCompleted: false });
+    const lockedSessions = await Attendance.countDocuments({ isLocked: true });
+
+    // Today's pending sessions
+    const todaysPending = await Attendance.find({
+      'session.date': { $gte: today, $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000) },
+      isCompleted: false
+    })
+    .populate('group', 'name code')
+    .populate('teacher', 'fullName')
+    .populate('subject', 'name')
+    .limit(10)
+    .sort('session.date');
+
+    // Recent sessions (last 7 days)
+    const recentSessions = await Attendance.find({
+      'session.date': { $gte: weekAgo }
+    }).populate('group teacher subject records.student');
+
+    // Calculate overall attendance rate
+    let totalStudents = 0;
+    let totalPresent = 0;
+    let totalAbsent = 0;
+    let totalLate = 0;
+    let totalExcused = 0;
+
+    recentSessions.forEach(session => {
+      session.records.forEach(record => {
+        totalStudents++;
+        if (record.status === 'present') totalPresent++;
+        else if (record.status === 'absent') totalAbsent++;
+        else if (record.status === 'late') totalLate++;
+        else if (record.status === 'excused') totalExcused++;
+      });
+    });
+
+    const overallRate = totalStudents > 0 ? Math.round(((totalPresent + totalLate) / totalStudents) * 100) : 0;
+
+    // Attendance trends (daily for last 7 days)
+    const trends = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+
+      const daySessions = await Attendance.find({
+        'session.date': { $gte: date, $lt: nextDate }
+      });
+
+      let dayTotal = 0;
+      let dayPresent = 0;
+      daySessions.forEach(session => {
+        session.records.forEach(record => {
+          dayTotal++;
+          if (record.status === 'present' || record.status === 'late') dayPresent++;
+        });
+      });
+
+      trends.push({
+        date: date.toISOString().split('T')[0],
+        rate: dayTotal > 0 ? Math.round((dayPresent / dayTotal) * 100) : 0,
+        sessions: daySessions.length,
+        students: dayTotal
+      });
+    }
+
+    // Top performing groups (last 30 days)
+    const groupStats = await Attendance.aggregate([
+      {
+        $match: {
+          'session.date': { $gte: monthAgo }
+        }
+      },
+      {
+        $unwind: '$records'
+      },
+      {
+        $group: {
+          _id: '$group',
+          totalRecords: { $sum: 1 },
+          presentCount: {
+            $sum: {
+              $cond: [
+                { $or: [
+                  { $eq: ['$records.status', 'present'] },
+                  { $eq: ['$records.status', 'late'] }
+                ]},
+                1,
+                0
+              ]
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          rate: {
+            $multiply: [
+              { $divide: ['$presentCount', '$totalRecords'] },
+              100
+            ]
+          }
+        }
+      },
+      {
+        $sort: { rate: -1 }
+      },
+      {
+        $limit: 5
+      }
+    ]);
+
+    // Populate group details
+    const Group = require('../models/Group');
+    for (let stat of groupStats) {
+      const group = await Group.findById(stat._id).populate('course');
+      stat.group = group;
+    }
+
+    // Students at risk (< 70% attendance rate in last 30 days)
+    const studentStats = await Attendance.aggregate([
+      {
+        $match: {
+          'session.date': { $gte: monthAgo }
+        }
+      },
+      {
+        $unwind: '$records'
+      },
+      {
+        $group: {
+          _id: '$records.student',
+          totalRecords: { $sum: 1 },
+          presentCount: {
+            $sum: {
+              $cond: [
+                { $or: [
+                  { $eq: ['$records.status', 'present'] },
+                  { $eq: ['$records.status', 'late'] }
+                ]},
+                1,
+                0
+              ]
+            }
+          },
+          absentCount: {
+            $sum: {
+              $cond: [{ $eq: ['$records.status', 'absent'] }, 1, 0]
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          rate: {
+            $multiply: [
+              { $divide: ['$presentCount', '$totalRecords'] },
+              100
+            ]
+          }
+        }
+      },
+      {
+        $match: {
+          rate: { $lt: 70 },
+          totalRecords: { $gte: 3 } // At least 3 sessions
+        }
+      },
+      {
+        $sort: { rate: 1 }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    // Populate student details
+    const User = require('../models/User');
+    for (let stat of studentStats) {
+      const student = await User.findById(stat._id).select('fullName email academicInfo');
+      stat.student = student;
+    }
+
+    // Week-over-week comparison
+    const thisWeekSessions = await Attendance.find({
+      'session.date': { $gte: weekAgo }
+    });
+    const lastWeekStart = new Date(weekAgo);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    const lastWeekSessions = await Attendance.find({
+      'session.date': { $gte: lastWeekStart, $lt: weekAgo }
+    });
+
+    let thisWeekTotal = 0, thisWeekPresent = 0;
+    let lastWeekTotal = 0, lastWeekPresent = 0;
+
+    thisWeekSessions.forEach(session => {
+      session.records.forEach(record => {
+        thisWeekTotal++;
+        if (record.status === 'present' || record.status === 'late') thisWeekPresent++;
+      });
+    });
+
+    lastWeekSessions.forEach(session => {
+      session.records.forEach(record => {
+        lastWeekTotal++;
+        if (record.status === 'present' || record.status === 'late') lastWeekPresent++;
+      });
+    });
+
+    const thisWeekRate = thisWeekTotal > 0 ? Math.round((thisWeekPresent / thisWeekTotal) * 100) : 0;
+    const lastWeekRate = lastWeekTotal > 0 ? Math.round((lastWeekPresent / lastWeekTotal) * 100) : 0;
+    const weekChange = thisWeekRate - lastWeekRate;
+
+    // Month-over-month comparison
+    const thisMonthSessions = await Attendance.find({
+      'session.date': { $gte: monthAgo }
+    });
+    const lastMonthSessions = await Attendance.find({
+      'session.date': { $gte: twoMonthsAgo, $lt: monthAgo }
+    });
+
+    let thisMonthTotal = 0, thisMonthPresent = 0;
+    let lastMonthTotal = 0, lastMonthPresent = 0;
+
+    thisMonthSessions.forEach(session => {
+      session.records.forEach(record => {
+        thisMonthTotal++;
+        if (record.status === 'present' || record.status === 'late') thisMonthPresent++;
+      });
+    });
+
+    lastMonthSessions.forEach(session => {
+      session.records.forEach(record => {
+        lastMonthTotal++;
+        if (record.status === 'present' || record.status === 'late') lastMonthPresent++;
+      });
+    });
+
+    const thisMonthRate = thisMonthTotal > 0 ? Math.round((thisMonthPresent / thisMonthTotal) * 100) : 0;
+    const lastMonthRate = lastMonthTotal > 0 ? Math.round((lastMonthPresent / lastMonthTotal) * 100) : 0;
+    const monthChange = thisMonthRate - lastMonthRate;
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          totalSessions,
+          completedSessions,
+          pendingSessions,
+          lockedSessions,
+          overallRate,
+          totalStudents,
+          totalPresent,
+          totalAbsent,
+          totalLate,
+          totalExcused
+        },
+        trends,
+        comparisons: {
+          weekOverWeek: {
+            thisWeek: thisWeekRate,
+            lastWeek: lastWeekRate,
+            change: weekChange,
+            changePercent: lastWeekRate > 0 ? Math.round((weekChange / lastWeekRate) * 100) : 0
+          },
+          monthOverMonth: {
+            thisMonth: thisMonthRate,
+            lastMonth: lastMonthRate,
+            change: monthChange,
+            changePercent: lastMonthRate > 0 ? Math.round((monthChange / lastMonthRate) * 100) : 0
+          }
+        },
+        topGroups: groupStats.map(stat => ({
+          group: stat.group,
+          rate: Math.round(stat.rate),
+          totalRecords: stat.totalRecords,
+          presentCount: stat.presentCount
+        })),
+        studentsAtRisk: studentStats.map(stat => ({
+          student: stat.student,
+          rate: Math.round(stat.rate),
+          totalRecords: stat.totalRecords,
+          presentCount: stat.presentCount,
+          absentCount: stat.absentCount
+        })),
+        todaysPending: todaysPending.map(session => ({
+          _id: session._id,
+          code: session.code,
+          group: session.group,
+          teacher: session.teacher,
+          subject: session.subject,
+          sessionDate: session.session.date,
+          studentCount: session.records.length
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching dashboard statistics',
+      error: error.message
+    });
+  }
+});
+
 // DELETE /api/attendance/:id - Delete attendance record
 router.delete('/:id', authenticate, async (req, res) => {
   try {

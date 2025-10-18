@@ -208,4 +208,10 @@ export class AttendanceService {
       headers: this.authService.getAuthHeaders()
     });
   }
+
+  getDashboardStatistics(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/statistics/dashboard`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
 }
