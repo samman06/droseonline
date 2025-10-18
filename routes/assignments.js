@@ -973,4 +973,395 @@ router.get('/:id/statistics', authenticate, checkTeacherAccess, async (req, res)
   }
 });
 
+// ==================== QUIZ-SPECIFIC ROUTES ====================
+
+// @route   GET /api/assignments/:id/quiz
+// @desc    Get quiz for taking (without correct answers for students)
+// @access  Private (Students)
+router.get('/:id/quiz', authenticate, async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id)
+      .populate('groups', 'name')
+      .populate('course', 'name')
+      .populate('teacher', 'firstName lastName fullName');
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    // Verify this is a quiz
+    if (assignment.type !== 'quiz') {
+      return res.status(400).json({
+        success: false,
+        message: 'This assignment is not a quiz'
+      });
+    }
+
+    // Check if assignment is published
+    if (assignment.status !== 'published') {
+      return res.status(403).json({
+        success: false,
+        message: 'This quiz is not yet published'
+      });
+    }
+
+    // Check if student can still submit
+    if (!assignment.canSubmit()) {
+      return res.status(403).json({
+        success: false,
+        message: 'This quiz is no longer accepting submissions'
+      });
+    }
+
+    // Check if student already submitted (no retakes by default)
+    const existingSubmission = await Submission.findOne({
+      assignment: assignment._id,
+      student: req.user.id
+    });
+
+    if (existingSubmission) {
+      const maxAttempts = assignment.quizSettings?.maxAttempts || 1;
+      if (existingSubmission.attemptNumber >= maxAttempts) {
+        return res.status(403).json({
+          success: false,
+          message: 'You have already submitted this quiz',
+          data: { submissionId: existingSubmission._id }
+        });
+      }
+    }
+
+    // Prepare quiz data (remove correct answers)
+    const quizData = {
+      _id: assignment._id,
+      title: assignment.title,
+      description: assignment.description,
+      instructions: assignment.instructions,
+      maxPoints: assignment.maxPoints,
+      dueDate: assignment.dueDate,
+      course: assignment.course,
+      teacher: assignment.teacher,
+      quizSettings: {
+        timeLimit: assignment.quizSettings?.timeLimit,
+        shuffleQuestions: assignment.quizSettings?.shuffleQuestions,
+        shuffleOptions: assignment.quizSettings?.shuffleOptions,
+        allowBacktrack: assignment.quizSettings?.allowBacktrack,
+        questionsPerPage: assignment.quizSettings?.questionsPerPage
+      },
+      questions: assignment.questions.map((q, index) => {
+        let options = q.options ? [...q.options] : [];
+        let optionsOrder = options.map((_, i) => i); // [0, 1, 2, 3]
+
+        // Shuffle options if enabled
+        if (assignment.quizSettings?.shuffleOptions && q.type === 'multiple_choice') {
+          optionsOrder = shuffleArray([...optionsOrder]);
+          options = optionsOrder.map(i => q.options[i]);
+        }
+
+        return {
+          index,
+          type: q.type,
+          question: q.question,
+          options, // Options (possibly shuffled, without marking correct answer)
+          points: q.points,
+          _optionsOrder: optionsOrder // Hidden metadata for answer mapping
+        };
+      }),
+      attemptNumber: existingSubmission ? existingSubmission.attemptNumber + 1 : 1
+    };
+
+    // Shuffle questions if enabled
+    if (assignment.quizSettings?.shuffleQuestions) {
+      const indices = quizData.questions.map((_, i) => i);
+      const shuffledIndices = shuffleArray(indices);
+      quizData.questions = shuffledIndices.map(i => quizData.questions[i]);
+      quizData._questionsOrder = shuffledIndices; // Hidden metadata for answer mapping
+    }
+
+    res.json({
+      success: true,
+      data: { quiz: quizData }
+    });
+  } catch (error) {
+    console.error('Get quiz error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching quiz'
+    });
+  }
+});
+
+// @route   POST /api/assignments/:id/submit-quiz
+// @desc    Submit quiz answers and auto-grade
+// @access  Private (Students)
+router.post('/:id/submit-quiz', authenticate, async (req, res) => {
+  try {
+    const { answers, startTime, endTime, questionsOrder, optionsOrder } = req.body;
+
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    // Verify this is a quiz
+    if (assignment.type !== 'quiz') {
+      return res.status(400).json({
+        success: false,
+        message: 'This assignment is not a quiz'
+      });
+    }
+
+    // Check if can still submit
+    if (!assignment.canSubmit()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Quiz submission deadline has passed'
+      });
+    }
+
+    // Check for existing submission
+    const existingSubmission = await Submission.findOne({
+      assignment: assignment._id,
+      student: req.user.id
+    });
+
+    if (existingSubmission) {
+      const maxAttempts = assignment.quizSettings?.maxAttempts || 1;
+      if (existingSubmission.attemptNumber >= maxAttempts) {
+        return res.status(403).json({
+          success: false,
+          message: 'You have already submitted this quiz'
+        });
+      }
+    }
+
+    // Validate time limit
+    const timeSpentSeconds = startTime && endTime ? Math.floor((new Date(endTime) - new Date(startTime)) / 1000) : 0;
+    const timeLimitSeconds = assignment.quizSettings?.timeLimit ? assignment.quizSettings.timeLimit * 60 : null;
+    const timeLimitExceeded = timeLimitSeconds && timeSpentSeconds > timeLimitSeconds;
+
+    // Prepare quiz answers for grading
+    const quizAnswers = answers.map(answer => ({
+      questionIndex: answer.questionIndex,
+      selectedOptionIndex: answer.selectedOptionIndex,
+      isCorrect: false, // Will be set by auto-grade
+      pointsEarned: 0 // Will be set by auto-grade
+    }));
+
+    // Create submission
+    const submission = new Submission({
+      assignment: assignment._id,
+      student: req.user.id,
+      course: assignment.course,
+      submissionType: 'quiz',
+      quizAnswers,
+      quizMetadata: {
+        startTime: startTime ? new Date(startTime) : new Date(),
+        endTime: endTime ? new Date(endTime) : new Date(),
+        timeSpent: timeSpentSeconds,
+        timeLimitExceeded,
+        questionsOrder: questionsOrder || [],
+        optionsOrder: optionsOrder || []
+      },
+      attemptNumber: existingSubmission ? existingSubmission.attemptNumber + 1 : 1,
+      status: 'submitted'
+    });
+
+    // Auto-grade the quiz
+    await submission.autoGradeQuiz();
+
+    // Populate before sending
+    await submission.populate([
+      { path: 'assignment', select: 'title maxPoints quizSettings' },
+      { path: 'student', select: 'firstName lastName fullName' }
+    ]);
+
+    // Determine what to return based on resultsVisibility
+    const canView = assignment.canViewResults();
+    
+    const responseData = {
+      submission: {
+        _id: submission._id,
+        submittedAt: submission.submittedAt,
+        attemptNumber: submission.attemptNumber,
+        status: submission.status
+      }
+    };
+
+    if (canView) {
+      responseData.submission.grade = {
+        pointsEarned: submission.grade.pointsEarned,
+        percentage: submission.grade.percentage
+      };
+      responseData.submission.quizAnswers = submission.quizAnswers;
+      responseData.canViewResults = true;
+    } else {
+      responseData.message = 'Quiz submitted successfully. Results will be available based on teacher settings.';
+      responseData.canViewResults = false;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Quiz submitted and graded successfully',
+      data: responseData
+    });
+  } catch (error) {
+    console.error('Submit quiz error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while submitting quiz',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// @route   GET /api/assignments/:id/quiz-results/:submissionId
+// @desc    Get quiz results based on visibility settings
+// @access  Private (Students - own submission, Teachers - all)
+router.get('/:id/quiz-results/:submissionId', authenticate, async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    const submission = await Submission.findById(req.params.submissionId)
+      .populate('student', 'firstName lastName fullName email academicInfo')
+      .populate('assignment', 'title questions maxPoints quizSettings');
+
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: 'Submission not found'
+      });
+    }
+
+    // Check access: students can only view their own, teachers can view all
+    if (req.user.role === 'student' && submission.student._id.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only view your own quiz results'
+      });
+    }
+
+    // Check if results should be visible (students only)
+    if (req.user.role === 'student' && !assignment.canViewResults()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Quiz results are not yet available',
+        data: {
+          submittedAt: submission.submittedAt,
+          status: 'Results pending'
+        }
+      });
+    }
+
+    // Prepare detailed results
+    const results = {
+      submission: {
+        _id: submission._id,
+        submittedAt: submission.submittedAt,
+        attemptNumber: submission.attemptNumber,
+        timeSpent: submission.quizMetadata?.timeSpent,
+        timeLimitExceeded: submission.quizMetadata?.timeLimitExceeded
+      },
+      grade: {
+        pointsEarned: submission.grade.pointsEarned,
+        maxPoints: assignment.maxPoints,
+        percentage: submission.grade.percentage,
+        status: submission.status
+      },
+      answers: submission.quizAnswers.map((answer, index) => {
+        const question = assignment.questions[answer.questionIndex];
+        return {
+          questionNumber: index + 1,
+          question: question?.question,
+          selectedOptionIndex: answer.selectedOptionIndex,
+          selectedOption: question?.options?.[answer.selectedOptionIndex],
+          correctAnswerIndex: question?.correctAnswerIndex,
+          correctAnswer: question?.options?.[question.correctAnswerIndex],
+          isCorrect: answer.isCorrect,
+          pointsEarned: answer.pointsEarned,
+          pointsPossible: question?.points,
+          explanation: question?.explanation
+        };
+      })
+    };
+
+    res.json({
+      success: true,
+      data: { results }
+    });
+  } catch (error) {
+    console.error('Get quiz results error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching quiz results'
+    });
+  }
+});
+
+// @route   POST /api/assignments/:id/release-results
+// @desc    Manually release quiz results (for manual visibility mode)
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/:id/release-results', authenticate, checkTeacherAccess, async (req, res) => {
+  try {
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    if (assignment.type !== 'quiz') {
+      return res.status(400).json({
+        success: false,
+        message: 'This assignment is not a quiz'
+      });
+    }
+
+    if (assignment.quizSettings.resultsVisibility !== 'manual') {
+      return res.status(400).json({
+        success: false,
+        message: 'This quiz is not set to manual result release'
+      });
+    }
+
+    // Release results
+    assignment.quizSettings.resultsReleased = true;
+    await assignment.save();
+
+    res.json({
+      success: true,
+      message: 'Quiz results released successfully',
+      data: { assignment }
+    });
+  } catch (error) {
+    console.error('Release quiz results error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while releasing quiz results'
+    });
+  }
+});
+
+// Helper function to shuffle array
+function shuffleArray(array) {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 module.exports = router;
