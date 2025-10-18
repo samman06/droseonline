@@ -593,8 +593,8 @@ export class AttendanceMarkComponent implements OnInit {
     this.attendanceService.createAttendance(data).subscribe({
       next: (response) => {
         // Lock session if requested
-        if (this.lockAfterSave && response.attendance && response.attendance._id) {
-          this.attendanceService.lockAttendance(response.attendance._id).subscribe({
+        if (this.lockAfterSave && response.data?.attendance && response.data.attendance._id) {
+          this.attendanceService.lockAttendance(response.data.attendance._id).subscribe({
             next: () => {
               this.router.navigate(['/dashboard/attendance']);
             },

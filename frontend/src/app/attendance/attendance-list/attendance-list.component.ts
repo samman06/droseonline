@@ -7,6 +7,7 @@ import { GroupService } from '../../services/group.service';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 
 @Component({
   selector: 'app-attendance-list',
@@ -279,7 +280,7 @@ import { ToastService } from '../../services/toast.service';
                     <div class="text-xs text-gray-500">{{ attendance.group?.gradeLevel || '' }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ formatDate(attendance.session?.date) }}
+                    {{ formatDate(attendance.session.date) }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {{ attendance.teacher?.fullName || 'N/A' }}
@@ -400,7 +401,7 @@ import { ToastService } from '../../services/toast.service';
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                   </svg>
-                  {{ formatDate(attendance.session?.date) }}
+                  {{ formatDate(attendance.session.date) }}
                 </div>
                 <div class="flex items-center text-sm text-gray-600">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -548,6 +549,7 @@ export class AttendanceListComponent implements OnInit {
     private teacherService: TeacherService,
     private subjectService: SubjectService,
     private toastService: ToastService,
+    private confirmationService: ConfirmationService,
     private router: Router
   ) {}
 
@@ -684,10 +686,14 @@ export class AttendanceListComponent implements OnInit {
   }
 
   deleteAttendance(id: string) {
-    this.toastService.confirm(
-      'Are you sure you want to delete this attendance record?',
-      'This action cannot be undone.',
-      () => {
+    this.confirmationService.confirm({
+      title: 'Delete Attendance Record',
+      message: 'Are you sure you want to delete this attendance record? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    }).then((confirmed) => {
+      if (confirmed) {
         this.attendanceService.deleteAttendance(id).subscribe({
           next: () => {
             this.toastService.success('Attendance record deleted successfully');
@@ -700,7 +706,7 @@ export class AttendanceListComponent implements OnInit {
           }
         });
       }
-    );
+    });
   }
 
   showPendingGroups() {
