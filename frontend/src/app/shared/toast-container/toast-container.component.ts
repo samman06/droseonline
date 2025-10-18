@@ -10,7 +10,6 @@ import { Observable } from 'rxjs';
   template: `
     <div class="fixed top-4 right-4 z-50 space-y-2 max-w-md">
       <div *ngFor="let toast of (toasts$ | async)" 
-           [@slideIn]
            [class]="getToastClass(toast)"
            class="rounded-lg shadow-lg p-4 flex items-start gap-3 backdrop-blur-sm border">
         

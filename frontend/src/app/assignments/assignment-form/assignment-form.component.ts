@@ -139,12 +139,11 @@ import { AuthService } from '../../services/auth.service';
                     <div *ngFor="let group of groups" 
                          (click)="toggleGroupSelection(group)"
                          class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors">
-                      <label class="flex items-center cursor-pointer">
+                      <label class="flex items-center cursor-pointer w-full">
                         <input 
                           type="checkbox" 
                           [checked]="isGroupSelected(group._id)"
-                          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                          (click)="$event.stopPropagation()">
+                          class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer pointer-events-none">
                         <div class="ml-3 flex-1">
                           <div class="text-sm font-medium text-gray-900">{{ group.name }}</div>
                           <div class="text-xs text-gray-500">{{ group.code }} • {{ group.gradeLevel }}</div>
@@ -558,18 +557,28 @@ export class AssignmentFormComponent implements OnInit {
   }
 
   toggleGroupSelection(group: any): void {
+    console.log('Toggling group selection:', group.name, group._id);
     const index = this.selectedGroups.findIndex(g => g._id === group._id);
+    
+    // Create a new array reference to trigger change detection
     if (index > -1) {
-      // Remove group
-      this.selectedGroups.splice(index, 1);
+      // Remove group - create new array without this group
+      this.selectedGroups = this.selectedGroups.filter(g => g._id !== group._id);
+      console.log('Removed group. Selected groups now:', this.selectedGroups.length);
     } else {
-      // Add group
-      this.selectedGroups.push(group);
+      // Add group - create new array with this group added
+      this.selectedGroups = [...this.selectedGroups, group];
+      console.log('Added group. Selected groups now:', this.selectedGroups.length);
     }
+    
     // Update form control
+    const groupIds = this.selectedGroups.map(g => g._id);
+    console.log('Updating form control with group IDs:', groupIds);
     this.assignmentForm.patchValue({
-      groups: this.selectedGroups.map(g => g._id)
+      groups: groupIds
     });
+    console.log('Form groups value after patch:', this.assignmentForm.get('groups')?.value);
+    console.log('Selected groups array:', this.selectedGroups.map(g => ({ id: g._id, name: g.name })));
   }
 
   isGroupSelected(groupId: string): boolean {
@@ -577,34 +586,62 @@ export class AssignmentFormComponent implements OnInit {
   }
 
   removeGroupSelection(groupId: string): void {
+    console.log('Removing group selection:', groupId);
+    // Create new array reference to trigger change detection
     this.selectedGroups = this.selectedGroups.filter(g => g._id !== groupId);
+    console.log('Selected groups after removal:', this.selectedGroups.length);
+    
     // Update form control
+    const groupIds = this.selectedGroups.map(g => g._id);
+    console.log('Updating form control with group IDs:', groupIds);
     this.assignmentForm.patchValue({
-      groups: this.selectedGroups.map(g => g._id)
+      groups: groupIds
     });
+    console.log('Form groups value after patch:', this.assignmentForm.get('groups')?.value);
   }
 
   loadAssignment(): void {
-    if (!this.assignmentId) return;
+    if (!this.assignmentId) {
+      console.warn('No assignment ID provided');
+      return;
+    }
+    
+    console.log('Loading assignment with ID:', this.assignmentId);
+    console.log('Form initialized:', !!this.assignmentForm);
+    console.log('Groups loaded:', this.groups.length);
     
     this.loading = true;
     this.assignmentService.getAssignment(this.assignmentId).subscribe({
       next: (response: any) => {
+        console.log('Assignment API response:', response);
+        
         if (response.success && response.data) {
-          const assignment = response.data;
-          console.log('Loaded assignment data:', assignment);
+          // Backend returns data: { assignment: {...} }
+          const assignment = response.data.assignment || response.data;
+          console.log('Assignment data:', {
+            title: assignment.title,
+            description: assignment.description?.substring(0, 50),
+            type: assignment.type,
+            groups: assignment.groups,
+            dueDate: assignment.dueDate,
+            maxPoints: assignment.maxPoints,
+            weightage: assignment.weightage
+          });
           
           // Format due date for datetime-local input
           const dueDate = assignment.dueDate 
             ? new Date(assignment.dueDate).toISOString().slice(0, 16) 
             : '';
+          
+          console.log('Formatted due date:', dueDate);
 
           // Set code field separately (it's disabled, so patchValue won't work)
           if (assignment.code) {
             this.assignmentForm.get('code')?.setValue(assignment.code);
+            console.log('Set code:', assignment.code);
           }
 
-          this.assignmentForm.patchValue({
+          const patchData = {
             title: assignment.title || '',
             description: assignment.description || '',
             type: assignment.type || 'homework',
@@ -616,9 +653,19 @@ export class AssignmentFormComponent implements OnInit {
             requireFileUpload: assignment.requireFileUpload || false,
             allowMultipleSubmissions: assignment.allowMultipleSubmissions !== undefined ? assignment.allowMultipleSubmissions : true,
             instructions: assignment.instructions || ''
+          };
+          
+          console.log('Data to patch:', patchData);
+          this.assignmentForm.patchValue(patchData);
+          console.log('Form after patch:', {
+            value: this.assignmentForm.value,
+            valid: this.assignmentForm.valid,
+            controls: Object.keys(this.assignmentForm.controls).reduce((acc, key) => {
+              const control = this.assignmentForm.get(key);
+              acc[key] = { value: control?.value, valid: control?.valid };
+              return acc;
+            }, {} as any)
           });
-
-          console.log('Form values after patch:', this.assignmentForm.value);
 
           // Load and populate groups
           if (assignment.groups && assignment.groups.length > 0) {
@@ -633,6 +680,10 @@ export class AssignmentFormComponent implements OnInit {
               groups: groupIds
             });
             
+            console.log('Form groups after patching:', this.assignmentForm.get('groups')?.value);
+            console.log('Form groups control valid?', this.assignmentForm.get('groups')?.valid);
+            console.log('Form groups control errors:', this.assignmentForm.get('groups')?.errors);
+            
             // Populate selectedGroups array with full group objects for display
             // If groups are populated objects, use them directly
             if (assignment.groups[0] && typeof assignment.groups[0] === 'object' && assignment.groups[0].name) {
@@ -645,6 +696,8 @@ export class AssignmentFormComponent implements OnInit {
               );
               console.log('Matched groups from loaded list:', this.selectedGroups);
             }
+          } else {
+            console.warn('No groups found in assignment!', assignment.groups);
           }
 
           // Load rubric criteria
@@ -678,10 +731,24 @@ export class AssignmentFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.assignmentForm.invalid || this.saving) return;
+    if (this.assignmentForm.invalid || this.saving) {
+      console.warn('Form invalid or already saving', {
+        invalid: this.assignmentForm.invalid,
+        saving: this.saving,
+        errors: this.assignmentForm.errors
+      });
+      return;
+    }
 
     const formData = this.prepareFormData();
     formData.status = 'published';
+    
+    console.log('Submitting assignment:', {
+      isEditMode: this.isEditMode,
+      assignmentId: this.assignmentId,
+      formData: formData,
+      selectedGroups: this.selectedGroups.map(g => ({ id: g._id, name: g.name }))
+    });
 
     this.saving = true;
     const request = this.isEditMode && this.assignmentId
@@ -730,7 +797,10 @@ export class AssignmentFormComponent implements OnInit {
   prepareFormData(): any {
     const formValue = this.assignmentForm.value;
     
-    return {
+    console.log('Preparing form data from:', formValue);
+    console.log('Groups from form value:', formValue.groups);
+    
+    const data = {
       title: formValue.title,
       description: formValue.description,
       type: formValue.type,
@@ -745,6 +815,9 @@ export class AssignmentFormComponent implements OnInit {
       allowMultipleSubmissions: formValue.allowMultipleSubmissions,
       instructions: formValue.instructions
     };
+    
+    console.log('Prepared data:', data);
+    return data;
   }
 
   cancel(): void {

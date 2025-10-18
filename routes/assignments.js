@@ -61,7 +61,7 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
         }
       })
       .populate('teacher', 'firstName lastName fullName')
-      .populate('groups', 'name code')
+      .populate('groups', 'name code gradeLevel')
       .sort({ dueDate: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -128,7 +128,7 @@ router.get('/:id', authenticate, async (req, res) => {
         }
       })
       .populate('teacher', 'firstName lastName fullName email')
-      .populate('groups', 'name code level semester');
+      .populate('groups', 'name code gradeLevel');
 
     if (!assignment) {
       return res.status(404).json({
@@ -330,7 +330,7 @@ router.put('/:id', authenticate, checkTeacherAccess, validate(assignmentSchema),
       }
     })
     .populate('teacher', 'firstName lastName fullName')
-    .populate('groups', 'name code');
+    .populate('groups', 'name code gradeLevel');
 
     res.json({
       success: true,

@@ -128,7 +128,7 @@ router.get('/:id', authenticate, async (req, res) => {
     const group = await Group.findById(req.params.id)
       .populate({
         path: 'course',
-        select: 'name code academicYear startDate endDate creditHours',
+        select: 'name code description startDate endDate',
         populate: [
           { path: 'teacher', select: 'firstName lastName fullName email' },
           { path: 'subject', select: 'name code' }

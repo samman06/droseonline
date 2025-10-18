@@ -385,6 +385,88 @@ import { AuthService } from '../../services/auth.service';
           </div>
         </div>
 
+        <!-- Assigned Groups Section -->
+        <div *ngIf="assignment.groups && assignment.groups.length > 0" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200 p-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-md mr-3">
+                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="text-2xl font-bold text-gray-900">Assigned Groups</h2>
+                  <p class="text-sm text-gray-600 mt-1">This assignment is assigned to {{ assignment.groups.length }} group(s)</p>
+                </div>
+              </div>
+              <div class="bg-white rounded-lg px-4 py-2 shadow-md">
+                <span class="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  {{ assignment.groups.length }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="p-6">
+            <!-- Groups Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Code</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Group Name</th>
+                    <th class="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Grade Level</th>
+                    <th class="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr *ngFor="let group of assignment.groups; let i = index" 
+                      class="hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-colors duration-150">
+                    <td class="px-4 py-4">
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-xs mr-3">
+                          {{ i + 1 }}
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          {{ group.code }}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4">
+                      <div class="font-bold text-gray-900">{{ group.name }}</div>
+                    </td>
+                    <td class="px-4 py-4">
+                      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ group.gradeLevel }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                      <a [routerLink]="['/dashboard/groups', group._id]"
+                         class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-medium rounded-lg shadow-sm transition-all transform hover:-translate-y-0.5">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        View Details
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <!-- Empty State (should not happen given the *ngIf, but good for safety) -->
+            <div *ngIf="!assignment.groups || assignment.groups.length === 0" 
+                 class="text-center py-12 text-gray-500">
+              <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <p class="text-lg font-medium">No groups assigned</p>
+              <p class="text-sm mt-1">This assignment hasn't been assigned to any groups yet.</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Enhanced Instructions & Details -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Instructions & Rubric -->
@@ -625,12 +707,24 @@ export class AssignmentDetailComponent implements OnInit {
     this.loading = true;
     this.assignmentService.getAssignment(this.assignmentId).subscribe({
       next: (response: any) => {
+        console.log('Assignment detail API response:', response);
         if (response.success && response.data) {
-          this.assignment = response.data;
+          // Backend returns data: { assignment: {...} }
+          this.assignment = response.data.assignment || response.data;
+          console.log('Loaded assignment:', this.assignment);
+          console.log('Assignment groups:', this.assignment?.groups);
+          console.log('Groups length:', this.assignment?.groups?.length);
+          
+          // Check if groups is an array
+          if (this.assignment?.groups) {
+            console.log('Groups is array?', Array.isArray(this.assignment.groups));
+            console.log('First group:', this.assignment.groups[0]);
+          }
         }
         this.loading = false;
       },
       error: (error: any) => {
+        console.error('Error loading assignment details:', error);
         this.toastService.showApiError(error);
         this.loading = false;
         this.router.navigate(['/dashboard/assignments']);
