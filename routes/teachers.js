@@ -527,6 +527,321 @@ router.delete('/:id/subjects/:subjectId', authenticate, authorize('admin'), asyn
   }
 });
 
+// ============================================
+// STUDENT-FACING ROUTES (must be before /:id)
+// ============================================
+
+// @route   GET /api/teachers/browse
+// @desc    Browse teachers with their courses and groups (for students)
+// @access  Private (Student)
+router.get('/browse', authenticate, authorize('student'), async (req, res) => {
+  try {
+    const { search, subject } = req.query;
+    
+    // Get student's grade level
+    const studentGrade = req.user.academicInfo?.currentGrade;
+    
+    const query = { role: 'teacher', isActive: true };
+    
+    if (search) {
+      query.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { 'academicInfo.bio': { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (subject) {
+      query['academicInfo.subjects'] = subject;
+    }
+
+    const teachers = await User.find(query)
+      .select('firstName lastName fullName email phoneNumber academicInfo profileImage')
+      .sort({ lastName: 1, firstName: 1 })
+      .lean();
+
+    // Get courses and groups for each teacher
+    const teachersWithCourses = await Promise.all(
+      teachers.map(async (teacher) => {
+        const courses = await Course.find({ 
+          teacher: teacher._id, 
+          isActive: true 
+        })
+          .populate('subject', 'name code description')
+          .select('name code description subject gradeLevel')
+          .lean();
+
+        // For each course, get its groups (filtered by student's grade)
+        const coursesWithGroups = await Promise.all(
+          courses.map(async (course) => {
+            const groupQuery = { 
+              course: course._id, 
+              isActive: true
+            };
+            
+            // Filter by student's grade level if they have one
+            if (studentGrade) {
+              groupQuery.gradeLevel = studentGrade;
+            }
+            
+            const groups = await Group.find(groupQuery)
+              .select('name code gradeLevel currentEnrollment schedule pricePerSession students')
+              .lean();
+
+            return {
+              ...course,
+              groups: groups.map(g => ({
+                _id: g._id,
+                name: g.name,
+                code: g.code,
+                gradeLevel: g.gradeLevel,
+                currentEnrollment: g.currentEnrollment,
+                schedule: g.schedule,
+                pricePerSession: g.pricePerSession,
+                isEnrolled: g.students?.some(s => 
+                  s.student?.toString() === req.user._id.toString() && s.status === 'active'
+                ) || false
+              }))
+            };
+          })
+        );
+
+        // Filter out courses with no groups (after grade filtering)
+        const coursesWithValidGroups = coursesWithGroups.filter(c => c.groups.length > 0);
+
+        return {
+          ...teacher,
+          courses: coursesWithValidGroups,
+          totalCourses: coursesWithValidGroups.length,
+          totalGroups: coursesWithValidGroups.reduce((sum, c) => sum + c.groups.length, 0)
+        };
+      })
+    );
+
+    // Filter out teachers with no courses (after filtering)
+    const teachersWithValidCourses = teachersWithCourses.filter(t => t.courses.length > 0);
+
+    res.json({
+      success: true,
+      data: {
+        teachers: teachersWithValidCourses,
+        total: teachersWithValidCourses.length
+      }
+    });
+  } catch (error) {
+    console.error('Browse teachers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while browsing teachers'
+    });
+  }
+});
+
+// @route   GET /api/teachers/:id/courses
+// @desc    Get teacher's courses with groups (for students)
+// @access  Private (Student)
+router.get('/:id/courses', authenticate, authorize('student'), async (req, res) => {
+  try {
+    // Get student's grade level
+    const studentGrade = req.user.academicInfo?.currentGrade;
+    
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher', isActive: true })
+      .select('firstName lastName fullName email academicInfo profileImage');
+
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    const courses = await Course.find({ 
+      teacher: req.params.id, 
+      isActive: true 
+    })
+      .populate('subject', 'name code description')
+      .select('name code description subject gradeLevel')
+      .lean();
+
+    // For each course, get its groups (filtered by student's grade)
+    const coursesWithGroups = await Promise.all(
+      courses.map(async (course) => {
+        const groupQuery = { 
+          course: course._id, 
+          isActive: true
+        };
+        
+        // Filter by student's grade level if they have one
+        if (studentGrade) {
+          groupQuery.gradeLevel = studentGrade;
+        }
+        
+        const groups = await Group.find(groupQuery)
+          .select('name code gradeLevel currentEnrollment schedule pricePerSession students')
+          .lean();
+
+        // Check if student is already in any of these groups (active only)
+        const groupsWithEnrollmentStatus = groups.map(group => ({
+          ...group,
+          isEnrolled: group.students?.some(s => 
+            s.student?.toString() === req.user._id.toString() && s.status === 'active'
+          ) || false
+        }));
+
+        return {
+          ...course,
+          groups: groupsWithEnrollmentStatus
+        };
+      })
+    );
+
+    // Filter out courses with no groups (after grade filtering)
+    const coursesWithValidGroups = coursesWithGroups.filter(c => c.groups.length > 0);
+
+    res.json({
+      success: true,
+      data: {
+        teacher,
+        courses: coursesWithValidGroups
+      }
+    });
+  } catch (error) {
+    console.error('Get teacher courses error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching teacher courses'
+    });
+  }
+});
+
+// @route   POST /api/teachers/groups/:groupId/join
+// @desc    Join a group (for students)
+// @access  Private (Student)
+router.post('/groups/:groupId/join', authenticate, authorize('student'), async (req, res) => {
+  try {
+    const group = await Group.findOne({ _id: req.params.groupId, isActive: true })
+      .populate('course', 'name');
+
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: 'Group not found'
+      });
+    }
+
+    // Check if group matches student's grade level
+    const studentGrade = req.user.academicInfo?.currentGrade;
+    if (studentGrade && group.gradeLevel !== studentGrade) {
+      return res.status(403).json({
+        success: false,
+        message: `This group is for ${group.gradeLevel} students. You are in ${studentGrade}.`
+      });
+    }
+
+    // Check if student is already in this group (active enrollment)
+    const existingStudentIndex = group.students.findIndex(s => 
+      s.student.toString() === req.user._id.toString()
+    );
+
+    if (existingStudentIndex !== -1) {
+      const existingStudent = group.students[existingStudentIndex];
+      
+      if (existingStudent.status === 'active') {
+        return res.status(400).json({
+          success: false,
+          message: 'You are already enrolled in this group'
+        });
+      }
+      
+      // Reactivate if previously dropped
+      if (existingStudent.status === 'dropped') {
+        group.students[existingStudentIndex].status = 'active';
+        group.students[existingStudentIndex].enrollmentDate = new Date(); // Update enrollment date
+        group.students[existingStudentIndex].dropDate = undefined; // Clear drop date
+      }
+    } else {
+      // Add new student to group
+      group.students.push({
+        student: req.user._id,
+        enrollmentDate: new Date(),
+        status: 'active'
+      });
+    }
+
+    await group.save();
+
+    // Add group to student's academicInfo.groups
+    await User.findByIdAndUpdate(req.user._id, {
+      $addToSet: { 'academicInfo.groups': group._id }
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully joined ${group.name}`,
+      data: { group }
+    });
+  } catch (error) {
+    console.error('Join group error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while joining group'
+    });
+  }
+});
+
+// @route   POST /api/teachers/groups/:groupId/leave
+// @desc    Leave a group (for students)
+// @access  Private (Student)
+router.post('/groups/:groupId/leave', authenticate, authorize('student'), async (req, res) => {
+  try {
+    const group = await Group.findOne({ _id: req.params.groupId, isActive: true });
+
+    if (!group) {
+      return res.status(404).json({
+        success: false,
+        message: 'Group not found'
+      });
+    }
+
+    // Find active student in group
+    const studentIndex = group.students.findIndex(s => 
+      s.student.toString() === req.user._id.toString() && s.status === 'active'
+    );
+
+    if (studentIndex === -1) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are not enrolled in this group'
+      });
+    }
+
+    // Set status to 'dropped' (keep for historical data and analytics)
+    group.students[studentIndex].status = 'dropped';
+    group.students[studentIndex].dropDate = new Date();
+    await group.save();
+
+    // Remove group from student's academicInfo.groups
+    await User.findByIdAndUpdate(req.user._id, {
+      $pull: { 'academicInfo.groups': group._id }
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully left ${group.name}`
+    });
+  } catch (error) {
+    console.error('Leave group error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while leaving group'
+    });
+  }
+});
+
+// ============================================
+// ADMIN/TEACHER ROUTES (with ID parameter)
+// ============================================
+
 // @route   GET /api/teachers/:id
 // @desc    Get teacher profile
 // @access  Private (Admin/Own Profile)

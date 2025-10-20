@@ -6,7 +6,7 @@ export interface ConfirmationConfig {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  type?: 'danger' | 'warning' | 'info';
+  type?: 'danger' | 'warning' | 'info' | 'success';
 }
 
 @Injectable({

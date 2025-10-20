@@ -56,6 +56,9 @@ const groupSchema = new mongoose.Schema({
       type: String,
       enum: ['active', 'dropped', 'completed', 'transferred'],
       default: 'active'
+    },
+    dropDate: {
+      type: Date
     }
   }],
   

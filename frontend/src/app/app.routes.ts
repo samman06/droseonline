@@ -87,6 +87,12 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'browse-teachers',
+        canActivate: [RoleGuard],
+        data: { roles: ['student'] },
+        loadComponent: () => import('./students/teacher-browse/teacher-browse.component').then(m => m.TeacherBrowseComponent)
+      },
+      {
         path: 'teachers',
         canActivate: [RoleGuard],
         data: { roles: ['admin'] },

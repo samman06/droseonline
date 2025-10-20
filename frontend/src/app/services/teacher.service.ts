@@ -53,5 +53,22 @@ export class TeacherService {
   removeSubject(id: string, subjectId: string): Observable<ApiResponse<any>> {
     return this.apiService.delete(`${this.TEACHERS_ENDPOINT}/${id}/subjects`, subjectId);
   }
+
+  // Student-facing methods
+  browseTeachers(params: QueryParams = {}): Observable<ApiResponse<any>> {
+    return this.apiService.get(`${this.TEACHERS_ENDPOINT}/browse`, params);
+  }
+
+  getTeacherCoursesForStudent(id: string): Observable<ApiResponse<any>> {
+    return this.apiService.get(`${this.TEACHERS_ENDPOINT}/${id}/courses`);
+  }
+
+  joinGroup(groupId: string): Observable<ApiResponse<any>> {
+    return this.apiService.post(`${this.TEACHERS_ENDPOINT}/groups/${groupId}/join`, {});
+  }
+
+  leaveGroup(groupId: string): Observable<ApiResponse<any>> {
+    return this.apiService.post(`${this.TEACHERS_ENDPOINT}/groups/${groupId}/leave`, {});
+  }
 }
 
