@@ -1,3 +1,6 @@
+// ==========================================
+// UTILITY CLASSES
+// ==========================================
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -5,9 +8,12 @@
   overflow: hidden;
 }
 
-// Smooth scrollbar
+// ==========================================
+// SMOOTH SCROLLBARS
+// ==========================================
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -16,15 +22,81 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
   border-radius: 10px;
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: linear-gradient(135deg, #94a3b8, #64748b);
 }
 
-// Empty state animations
+// ==========================================
+// ANIMATED BACKGROUND BLOBS
+// ==========================================
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  animation: blobAnimation 20s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.blob-2 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #ec4899, #f43f5e);
+  bottom: 20%;
+  right: 10%;
+  animation-delay: 7s;
+}
+
+.blob-3 {
+  width: 450px;
+  height: 450px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: 14s;
+}
+
+// ==========================================
+// PATTERN BACKGROUNDS
+// ==========================================
+.pattern-dots {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+// ==========================================
+// KEYFRAME ANIMATIONS
+// ==========================================
+
+// Blob movement animation
+@keyframes blobAnimation {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(50px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-50px, 50px) scale(0.9);
+  }
+}
+
+// Empty state float animation
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -34,6 +106,7 @@
   }
 }
 
+// Empty state glow animation
 @keyframes glow {
   0%, 100% {
     opacity: 0.2;
@@ -43,11 +116,183 @@
   }
 }
 
-// Apply animations to empty state
+// Gradient animation for title
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// Fade in animation for modal backdrop
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Slide up and fade in for modal
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Pulse animation for loading states
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// Shimmer effect for skeleton loading
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+// ==========================================
+// ANIMATION CLASSES
+// ==========================================
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
 
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideUpFadeIn {
+  animation: slideUpFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+// ==========================================
+// CARD HOVER EFFECTS & MICRO-INTERACTIONS
+// ==========================================
+
+// Ripple effect for buttons
+button {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  &:active::before {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+// Glass morphism effect
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+// Enhanced shadow layers
+.shadow-layered {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24),
+    0 10px 40px rgba(99, 102, 241, 0.1);
+}
+
+// ==========================================
+// RESPONSIVE ENHANCEMENTS
+// ==========================================
+@media (max-width: 768px) {
+  .blob {
+    width: 300px !important;
+    height: 300px !important;
+  }
+  
+  .animate-slideUpFadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+// ==========================================
+// ACCESSIBILITY - REDUCE MOTION
+// ==========================================
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .blob {
+    animation: none;
+  }
+}
+
+// ==========================================
+// MODAL SCROLL PREVENTION
+// ==========================================
+
+// Prevent scrolling behind modal
+:host ::ng-deep body.modal-open {
+  overflow: hidden !important;
+  height: 100vh;
+  position: fixed;
+  width: 100%;
+}
+
+// Ensure modal overlay prevents touch scrolling
+.fixed.inset-0 {
+  touch-action: none;
+  -webkit-overflow-scrolling: auto;
+}
+
+// Allow scrolling only within modal content
+.overflow-y-auto {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }

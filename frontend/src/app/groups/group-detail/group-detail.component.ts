@@ -20,9 +20,9 @@ import { ToastService } from '../../services/toast.service';
           <div class="flex items-center space-x-3">
             <button (click)="goBack()" class="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all shadow-sm">
               <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-              </svg>
-            </button>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+        </button>
             <div class="flex items-center space-x-2 text-sm">
               <span class="text-gray-500 hover:text-gray-700 cursor-pointer" (click)="goBack()">Groups</span>
               <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -30,8 +30,8 @@ import { ToastService } from '../../services/toast.service';
               </svg>
               <span class="text-gray-900 font-semibold">{{ group?.name }}</span>
             </div>
-          </div>
-          
+      </div>
+
           <!-- Action Buttons -->
           <div class="flex items-center gap-2">
             <button (click)="clone()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md" title="Clone Group">
@@ -112,9 +112,9 @@ import { ToastService } from '../../services/toast.service';
                         <div class="font-semibold">{{ group?.pricePerSession || 0 }} EGP</div>
                       </div>
                     </div>
-                  </div>
-                </div>
-                
+        </div>
+      </div>
+
                 <!-- Quick Stats -->
                 <div class="grid grid-cols-2 gap-3">
                   <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 text-center">
@@ -633,7 +633,7 @@ import { ToastService } from '../../services/toast.service';
                             </span>
                             <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
                               {{ countLate(session) }} L
-                            </span>
+            </span>
                           </div>
                           
                           <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

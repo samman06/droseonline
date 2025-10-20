@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -13,7 +13,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
   templateUrl: './teacher-browse.component.html',
   styleUrls: ['./teacher-browse.component.scss']
 })
-export class TeacherBrowseComponent implements OnInit {
+export class TeacherBrowseComponent implements OnInit, OnDestroy {
   teachers: any[] = [];
   selectedTeacher: any = null;
   isLoading = false;
@@ -31,6 +31,11 @@ export class TeacherBrowseComponent implements OnInit {
 
   ngOnInit() {
     this.loadTeachers();
+  }
+
+  ngOnDestroy() {
+    // Ensure scroll is restored when component is destroyed
+    this.enableBodyScroll();
   }
 
   loadTeachers() {
@@ -58,6 +63,7 @@ export class TeacherBrowseComponent implements OnInit {
   openTeacherDetail(teacher: any) {
     this.selectedTeacher = null;
     this.showDetailModal = true;
+    this.disableBodyScroll(); // Prevent background scrolling
     
     // Load teacher's courses and groups
     this.teacherService.getTeacherCoursesForStudent(teacher._id).subscribe({
@@ -69,6 +75,7 @@ export class TeacherBrowseComponent implements OnInit {
       error: (error) => {
         this.toastService.showApiError(error);
         this.showDetailModal = false;
+        this.enableBodyScroll(); // Re-enable scroll on error
       }
     });
   }
@@ -76,6 +83,34 @@ export class TeacherBrowseComponent implements OnInit {
   closeModal() {
     this.showDetailModal = false;
     this.selectedTeacher = null;
+    this.enableBodyScroll(); // Re-enable background scrolling
+  }
+
+  // Utility methods to control body scroll
+  private disableBodyScroll() {
+    document.body.style.overflow = 'hidden';
+    document.body.style.paddingRight = this.getScrollbarWidth() + 'px'; // Prevent layout shift
+  }
+
+  private enableBodyScroll() {
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+  }
+
+  private getScrollbarWidth(): number {
+    // Calculate scrollbar width to prevent content shift when hiding scrollbar
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll';
+    document.body.appendChild(outer);
+    
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    
+    const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+    outer.parentNode?.removeChild(outer);
+    
+    return scrollbarWidth;
   }
 
   joinGroup(group: any, course: any) {
@@ -144,6 +179,10 @@ This action can be reversed by rejoining the group.`,
   getScheduleText(schedule: any[]): string {
     if (!schedule || schedule.length === 0) return 'No schedule set';
     return schedule.map(s => `${s.day}: ${s.startTime}-${s.endTime}`).join(', ');
+  }
+
+  getTotalCourses(): number {
+    return this.teachers.reduce((total, teacher) => total + (teacher.totalCourses || 0), 0);
   }
 }
 
