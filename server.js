@@ -73,6 +73,14 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/droseonli
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 
+// Import error handling middleware
+const { errorHandler, notFoundHandler, requestLogger } = require('./middleware/errorHandler');
+
+// Request logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(requestLogger);
+}
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/students', require('./routes/students'));
@@ -87,6 +95,7 @@ app.use('/api/academic-years', require('./routes/academicYears'));
 app.use('/api/announcements', require('./routes/announcements'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/materials', require('./routes/materials'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -97,24 +106,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: process.env.NODE_ENV === 'production' 
-      ? 'Something went wrong!' 
-      : err.message
-  });
-});
+// 404 handler - must come before error handler
+app.use(notFoundHandler);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'API endpoint not found'
-  });
-});
+// Global error handler - must be last
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
