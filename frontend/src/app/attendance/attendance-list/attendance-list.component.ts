@@ -242,8 +242,18 @@ import { PermissionService } from '../../services/permission.service';
               </div>
             </div>
 
-            <div *ngIf="!isLoadingSchedule" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div *ngFor="let day of daysOfWeek; let i = index" class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+            <!-- Empty state when no classes scheduled -->
+            <div *ngIf="!isLoadingSchedule && getDaysWithClasses().length === 0" class="bg-white rounded-xl shadow-lg p-12 text-center">
+              <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">No Classes Scheduled</h3>
+              <p class="text-gray-500">You don't have any classes scheduled this week.</p>
+            </div>
+
+            <!-- Show only days with classes -->
+            <div *ngIf="!isLoadingSchedule && getDaysWithClasses().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div *ngFor="let day of getDaysWithClasses(); let i = index" class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
                   <h3 class="text-lg font-bold text-white capitalize">{{ day }}</h3>
                   <span class="bg-white/20 px-3 py-1 rounded-full text-white text-sm">
@@ -252,14 +262,7 @@ import { PermissionService } from '../../services/permission.service';
                 </div>
                 
                 <div class="p-6">
-                  <div *ngIf="studentSchedule[day]?.length === 0" class="text-center py-8 text-gray-400">
-                    <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                    </svg>
-                    <p class="text-sm">No sessions scheduled</p>
-                  </div>
-                  
-                  <div *ngIf="studentSchedule[day]?.length > 0" class="space-y-3">
+                  <div class="space-y-3">
                     <div 
                       *ngFor="let session of studentSchedule[day]"
                       class="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 transition-all hover:shadow-md"
@@ -730,8 +733,18 @@ import { PermissionService } from '../../services/permission.service';
               </div>
             </div>
 
-            <div *ngIf="!isLoadingTeachingSchedule" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div *ngFor="let day of daysOfWeek; let i = index" class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+            <!-- Empty state when no teaching sessions scheduled -->
+            <div *ngIf="!isLoadingTeachingSchedule && getTeacherDaysWithClasses().length === 0" class="bg-white rounded-xl shadow-lg p-12 text-center">
+              <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">No Teaching Sessions Scheduled</h3>
+              <p class="text-gray-500">You don't have any teaching sessions scheduled this week.</p>
+            </div>
+
+            <!-- Show only days with teaching sessions -->
+            <div *ngIf="!isLoadingTeachingSchedule && getTeacherDaysWithClasses().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div *ngFor="let day of getTeacherDaysWithClasses(); let i = index" class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 flex items-center justify-between">
                   <h3 class="text-lg font-bold text-white capitalize">{{ day }}</h3>
                   <span class="bg-white/20 px-3 py-1 rounded-full text-white text-sm">
@@ -740,14 +753,7 @@ import { PermissionService } from '../../services/permission.service';
                 </div>
                 
                 <div class="p-6">
-                  <div *ngIf="teacherSchedule[day]?.length === 0" class="text-center py-8 text-gray-400">
-                    <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                    </svg>
-                    <p class="text-sm">No teaching sessions</p>
-                  </div>
-                  
-                  <div *ngIf="teacherSchedule[day]?.length > 0" class="space-y-3">
+                  <div class="space-y-3">
                     <div 
                       *ngFor="let session of teacherSchedule[day]"
                       class="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-500 transition-all hover:shadow-md group"
@@ -771,7 +777,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                       <button 
                         (click)="quickMarkAttendance(session.groupId)"
-                        class="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                        class="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium opacity-0 group-hover:opacity-100"
                       >
                         Quick Mark Attendance
                       </button>
@@ -1123,6 +1129,20 @@ export class AttendanceListComponent implements OnInit {
         this.isLoadingSchedule = false;
       }
     });
+  }
+
+  // Get only days that have scheduled classes (for students)
+  getDaysWithClasses(): string[] {
+    return this.daysOfWeek.filter(day => 
+      this.studentSchedule[day] && this.studentSchedule[day].length > 0
+    );
+  }
+
+  // Get only days that have teaching sessions (for teachers)
+  getTeacherDaysWithClasses(): string[] {
+    return this.daysOfWeek.filter(day => 
+      this.teacherSchedule[day] && this.teacherSchedule[day].length > 0
+    );
   }
 
   loadStudentTodaySessions(): void {
