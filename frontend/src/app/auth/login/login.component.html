@@ -129,6 +129,16 @@
           </div>
           <span *ngIf="!isLoading">Sign in</span>
         </button>
+
+        <!-- Registration Link -->
+        <div class="text-center pt-6 border-t border-gray-200">
+          <p class="text-sm text-gray-600">
+            New student?
+            <a [routerLink]="['/auth/register']" class="font-medium text-green-600 hover:text-green-700 transition-colors">
+              Create an account
+            </a>
+          </p>
+        </div>
       </form>
     </div>
 

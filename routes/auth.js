@@ -212,7 +212,8 @@ router.put('/profile', authenticate, async (req, res) => {
       'dateOfBirth', 
       'address',
       'department',
-      'specialization'
+      'specialization',
+      'avatar'
     ];
     const updates = {};
 
