@@ -102,8 +102,8 @@ import { AuthService } from '../../services/auth.service';
               <div class="flex items-center gap-4 text-sm text-gray-500">
                 <span>{{ announcement.author?.firstName }} {{ announcement.author?.lastName }}</span>
                 <span>{{ formatDate(announcement.publishAt) }}</span>
-                <span *ngIf="announcement.stats?.totalViews">
-                  {{ announcement.stats?.totalViews }} views
+                <span *ngIf="announcement.stats?.views">
+                  {{ announcement.stats?.views }} views
                 </span>
               </div>
             </div>
@@ -137,8 +137,8 @@ import { AuthService } from '../../services/auth.service';
               <div class="flex items-center gap-4 text-sm text-gray-500">
                 <span>{{ announcement.author?.firstName }} {{ announcement.author?.lastName }}</span>
                 <span>{{ formatDate(announcement.publishAt) }}</span>
-                <span *ngIf="announcement.stats?.totalViews">
-                  {{ announcement.stats?.totalViews }} views
+                <span *ngIf="announcement.stats?.views">
+                  {{ announcement.stats?.views }} views
                 </span>
               </div>
             </div>
