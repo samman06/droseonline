@@ -5,6 +5,7 @@ import { PasswordUtils } from '../utils/password.util';
 
 export interface User {
   id: string;
+  _id?: string; // MongoDB ID (for backend compatibility)
   firstName: string;
   lastName: string;
   email: string;

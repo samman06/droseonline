@@ -276,7 +276,7 @@ export const routes: Routes = [
       {
         path: 'groups',
         canActivate: [RoleGuard],
-        data: { roles: ['admin'] },
+        data: { roles: ['admin', 'teacher', 'student'] }, // All roles can access groups
         children: [
           {
             path: '',
@@ -284,6 +284,8 @@ export const routes: Routes = [
           },
           {
             path: 'new',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] }, // Only admin/teacher can create
             loadComponent: () => import('./groups/group-create/group-create.component').then(m => m.GroupCreateComponent)
           },
           {
@@ -292,6 +294,8 @@ export const routes: Routes = [
           },
           {
             path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] }, // Only admin/teacher can edit
             loadComponent: () => import('./groups/group-edit/group-edit.component').then(m => m.GroupEditComponent)
           }
         ]

@@ -13,8 +13,8 @@ const router = express.Router();
 
 // @route   GET /api/teachers
 // @desc    Get all teachers
-// @access  Private (Admin)
-router.get('/', authenticate, authorize('admin'), validateQuery(paginationSchema), async (req, res) => {
+// @access  Private (Admin, Teacher)
+router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, department, isActive, subject } = req.query;
     

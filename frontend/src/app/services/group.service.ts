@@ -47,6 +47,34 @@ export class GroupService {
       excludeGroupId
     });
   }
+
+  // ==========================================
+  // ROLE-SPECIFIC METHODS
+  // ==========================================
+
+  /**
+   * Get groups for the current student (enrolled groups only)
+   * Used by students to see their groups
+   */
+  getMyGroups(params: QueryParams = {}): Observable<ApiResponse<any>> {
+    return this.api.get(`${this.GROUPS_ENDPOINT}/my-groups`, params);
+  }
+
+  /**
+   * Get groups taught by the current teacher
+   * Used by teachers to see their teaching groups
+   */
+  getTeacherGroups(params: QueryParams = {}): Observable<ApiResponse<any>> {
+    return this.api.get(`${this.GROUPS_ENDPOINT}/teacher/groups`, params);
+  }
+
+  /**
+   * Get all groups (admin view)
+   * Alias for getGroups() for clarity in role-based code
+   */
+  getAllGroups(params: QueryParams = {}): Observable<ApiResponse<any>> {
+    return this.getGroups(params);
+  }
 }
 
 

@@ -8,8 +8,202 @@ const { validate, validateQuery, groupSchema, paginationSchema } = require('../m
 
 const router = express.Router();
 
+// ==========================================
+// ROLE-SPECIFIC ENDPOINTS (Must come before generic routes)
+// ==========================================
+
+// @route   GET /api/groups/my-groups
+// @desc    Get groups for current student (enrolled groups only)
+// @access  Private (Student)
+router.get('/my-groups', authenticate, authorize('student'), validateQuery(paginationSchema), async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, gradeLevel, subjectId } = req.query;
+    
+    // Get student's enrolled groups from their profile
+    const student = await User.findById(req.user._id).select('academicInfo.groups');
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    const enrolledGroupIds = student.academicInfo?.groups || [];
+    
+    const query = {
+      _id: { $in: enrolledGroupIds },
+      isActive: true
+    };
+    
+    // Filter by subject (need to find courses with this subject first)
+    if (subjectId) {
+      const Course = require('../models/Course');
+      const courses = await Course.find({ subject: subjectId, isActive: true }).select('_id');
+      const courseIds = courses.map(c => c._id);
+      query.course = { $in: courseIds };
+    }
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { code: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (gradeLevel) {
+      query.gradeLevel = gradeLevel;
+    }
+
+    const groups = await Group.find(query)
+      .populate({
+        path: 'course',
+        select: 'name code teacher subject',
+        populate: [
+          { path: 'teacher', select: 'firstName lastName email' }, // Include firstName/lastName for fullName virtual
+          { path: 'subject', select: 'name code' }
+        ]
+      })
+      .sort({ name: 1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .lean(); // Use lean() for better performance and proper object serialization
+
+    const total = await Group.countDocuments(query);
+
+    // Add enrollment status and construct fullName for teachers
+    const groupsWithStatus = groups.map(group => {
+      // Manually add fullName since it's a virtual field (not included in lean())
+      if (group.course?.teacher) {
+        group.course.teacher.fullName = `${group.course.teacher.firstName} ${group.course.teacher.lastName}`;
+      }
+      return {
+        ...group,
+        isEnrolled: true // All groups here are enrolled since we filtered by student's groups
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        groups: groupsWithStatus,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get my groups error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching your groups' });
+  }
+});
+
+// @route   GET /api/groups/teacher/groups
+// @desc    Get groups taught by current teacher
+// @access  Private (Teacher)
+router.get('/teacher/groups', authenticate, authorize('teacher'), validateQuery(paginationSchema), async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, gradeLevel, subjectId } = req.query;
+    
+    // Find courses taught by this teacher
+    const Course = require('../models/Course');
+    const courseQuery = { teacher: req.user._id, isActive: true };
+    if (subjectId) {
+      courseQuery.subject = subjectId;
+    }
+    
+    const courses = await Course.find(courseQuery).select('_id');
+    const courseIds = courses.map(c => c._id);
+    
+    const query = {
+      course: { $in: courseIds },
+      isActive: true
+    };
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { code: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (gradeLevel) {
+      query.gradeLevel = gradeLevel;
+    }
+
+    const groups = await Group.find(query)
+      .populate({
+        path: 'course',
+        select: 'name code teacher subject',
+        populate: [
+          { path: 'teacher', select: 'firstName lastName email' }, // Include firstName/lastName for fullName virtual
+          { path: 'subject', select: 'name code' }
+        ]
+      })
+      .populate('students.student', 'firstName lastName email') // Include firstName/lastName for students
+      .sort({ name: 1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .lean(); // Use lean() for better performance and proper object serialization
+
+    const total = await Group.countDocuments(query);
+
+    // Add assignment count for each group and construct fullName for teachers/students
+    const groupsWithData = await Promise.all(
+      groups.map(async (group) => {
+        const assignmentCount = await Assignment.countDocuments({
+          groups: group._id,
+          status: 'published'
+        });
+        
+        // Manually add fullName for teacher since it's a virtual field (not included in lean())
+        if (group.course?.teacher) {
+          group.course.teacher.fullName = `${group.course.teacher.firstName} ${group.course.teacher.lastName}`;
+        }
+        
+        // Manually add fullName for students
+        if (group.students) {
+          group.students = group.students.map(s => {
+            if (s.student) {
+              s.student.fullName = `${s.student.firstName} ${s.student.lastName}`;
+            }
+            return s;
+          });
+        }
+        
+        return {
+          ...group,
+          assignmentCount: {
+            total: assignmentCount,
+            published: assignmentCount
+          }
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: {
+        groups: groupsWithData,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get teacher groups error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching your teaching groups' });
+  }
+});
+
+// ==========================================
+// GENERAL ENDPOINTS
+// ==========================================
+
 // @route   GET /api/groups
-// @desc    Get all groups
+// @desc    Get all groups (Admin view)
 // @access  Private
 router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
   try {

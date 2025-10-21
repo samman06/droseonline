@@ -6,6 +6,8 @@ import { GroupService } from '../../services/group.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
+import { AuthService, User } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-group-list',
@@ -23,10 +25,21 @@ import { SubjectService } from '../../services/subject.service';
               </svg>
             </div>
             <div>
-              <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <!-- Role-specific headers -->
+              <h1 *ngIf="currentUser?.role === 'student'" class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                My Groups
+              </h1>
+              <h1 *ngIf="currentUser?.role === 'teacher'" class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                My Teaching Groups
+              </h1>
+              <h1 *ngIf="currentUser?.role === 'admin'" class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 Groups Management
               </h1>
-              <p class="mt-1 text-gray-600">Organize classes with teachers, subjects, and schedules</p>
+              
+              <!-- Role-specific descriptions -->
+              <p *ngIf="currentUser?.role === 'student'" class="mt-1 text-gray-600">View your enrolled groups and join new ones</p>
+              <p *ngIf="currentUser?.role === 'teacher'" class="mt-1 text-gray-600">Manage groups you teach and track student progress</p>
+              <p *ngIf="currentUser?.role === 'admin'" class="mt-1 text-gray-600">Organize classes with teachers, subjects, and schedules</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -38,7 +51,9 @@ import { SubjectService } from '../../services/subject.service';
             </div>
           </div>
           <div class="mt-4 lg:mt-0 flex space-x-3">
+            <!-- Export button - Only for admin and teachers -->
             <button 
+              *ngIf="canExport"
               (click)="exportGroups()" 
               class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
               [disabled]="groups.length === 0"
@@ -48,7 +63,12 @@ import { SubjectService } from '../../services/subject.service';
               </svg>
               Export Data
             </button>
-            <button (click)="navigateToCreate()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+            
+            <!-- Create button - Only for admin and teachers -->
+            <button 
+              *ngIf="canCreate"
+              (click)="navigateToCreate()" 
+              class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
@@ -74,7 +94,7 @@ import { SubjectService } from '../../services/subject.service';
             Search: {{ filters.search }}
             <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
-          <span *ngIf="filters.teacherId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span *ngIf="filters.teacherId && currentUser?.role === 'admin'" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
             Teacher: {{ getTeacherName(filters.teacherId) }}
             <button (click)="removeFilter('teacherId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
@@ -82,7 +102,7 @@ import { SubjectService } from '../../services/subject.service';
             Subject: {{ getSubjectName(filters.subjectId) }}
             <button (click)="removeFilter('subjectId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
-          <span *ngIf="filters.gradeLevel" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span *ngIf="filters.gradeLevel && currentUser?.role !== 'student'" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
             Grade: {{ filters.gradeLevel }}
             <button (click)="removeFilter('gradeLevel')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
@@ -99,8 +119,8 @@ import { SubjectService } from '../../services/subject.service';
             />
           </div>
           
-          <!-- Teacher Filter -->
-          <div>
+          <!-- Teacher Filter - Only for admin -->
+          <div *ngIf="currentUser?.role === 'admin'">
             <select class="form-select" [(ngModel)]="filters.teacherId" (ngModelChange)="onFiltersChange()">
               <option value="">All Teachers</option>
               <option *ngFor="let t of teachers" [value]="t.id || t._id">{{ t.fullName || (t.firstName + ' ' + t.lastName) }}</option>
@@ -115,8 +135,8 @@ import { SubjectService } from '../../services/subject.service';
             </select>
           </div>
           
-          <!-- Grade Filter -->
-          <div>
+          <!-- Grade Filter - Hidden for students (they only see their grade) -->
+          <div *ngIf="currentUser?.role !== 'student'">
             <select class="form-select" [(ngModel)]="filters.gradeLevel" (ngModelChange)="onFiltersChange()">
               <option value="">All Grades</option>
               <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
@@ -179,10 +199,31 @@ import { SubjectService } from '../../services/subject.service';
                     </button>
                     <div *ngIf="openDropdownId === (g.id || g._id)" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <div class="py-1">
-                        <button (click)="viewGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">View Details</button>
-                        <button (click)="editGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150">Edit Group</button>
-                        <div class="border-t border-gray-100"></div>
-                        <button (click)="deleteGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150">Delete Group</button>
+                        <!-- View Details - Available to all roles -->
+                        <button (click)="viewGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                          </svg>
+                          View Details
+                        </button>
+                        
+                        <!-- Edit - Only if user has permission -->
+                        <button *ngIf="canEdit(g)" (click)="editGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                          </svg>
+                          Edit Group
+                        </button>
+                        
+                        <!-- Delete - Only if user has permission -->
+                        <div *ngIf="canDelete(g)" class="border-t border-gray-100"></div>
+                        <button *ngIf="canDelete(g)" (click)="deleteGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                          Delete Group
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -212,6 +253,9 @@ export class GroupListComponent implements OnInit {
   openDropdownId: string | null = null;
   private searchDebounce: any;
 
+  // Role-based properties
+  currentUser: User | null = null;
+
   filters: any = { search: '', teacherId: '', subjectId: '', gradeLevel: '' };
   readonly grades = ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
 
@@ -223,11 +267,65 @@ export class GroupListComponent implements OnInit {
     private teacherService: TeacherService,
     private subjectService: SubjectService,
     private router: Router,
-    private confirmation: ConfirmationService
+    private confirmation: ConfirmationService,
+    private authService: AuthService,
+    public permissionService: PermissionService
   ) {}
 
+  // ==========================================
+  // PERMISSION GETTERS (for template use)
+  // ==========================================
+
+  /**
+   * Check if user can create groups
+   */
+  get canCreate(): boolean {
+    return this.permissionService.canCreateGroup();
+  }
+
+  /**
+   * Check if user can export data
+   */
+  get canExport(): boolean {
+    return this.permissionService.canExportData();
+  }
+
+  /**
+   * Check if user can edit a specific group
+   */
+  canEdit(group: any): boolean {
+    return this.permissionService.canEditGroup(group);
+  }
+
+  /**
+   * Check if user can delete a specific group
+   */
+  canDelete(group: any): boolean {
+    return this.permissionService.canDeleteGroup(group);
+  }
+
+  /**
+   * Check if user can join a group (students only)
+   */
+  canJoin(group: any): boolean {
+    return this.permissionService.canJoinGroup() && !group.isEnrolled;
+  }
+
+  /**
+   * Check if user can leave a group (students only)
+   */
+  canLeave(group: any): boolean {
+    return this.permissionService.canLeaveGroup() && group.isEnrolled;
+  }
+
   ngOnInit(): void {
-    this.loadGroups();
+    // Subscribe to current user for role-based logic
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.loadGroups(); // Reload groups when user changes
+    });
+
+    // Load filter data (teachers and subjects)
     this.teacherService.getTeachers({ page: 1, limit: 100 }).subscribe({
       next: res => { const list = res.data?.teachers || res.data || []; this.teachers = Array.isArray(list) ? list : []; }
     });
@@ -236,16 +334,46 @@ export class GroupListComponent implements OnInit {
     });
   }
 
+  /**
+   * Load groups based on current user's role
+   * - Student: Load only enrolled groups (getMyGroups)
+   * - Teacher: Load groups they teach (getTeacherGroups)
+   * - Admin: Load all groups (getAllGroups)
+   */
   loadGroups(): void {
+    if (!this.currentUser) return;
+
     this.isLoading = true;
-    this.groupService.getGroups(this.filters).subscribe({
+    
+    // Role-specific data fetching
+    let observable;
+    switch (this.currentUser.role) {
+      case 'student':
+        observable = this.groupService.getMyGroups(this.filters);
+        break;
+      case 'teacher':
+        observable = this.groupService.getTeacherGroups(this.filters);
+        break;
+      case 'admin':
+      default:
+        observable = this.groupService.getAllGroups(this.filters);
+        break;
+    }
+
+    observable.subscribe({
       next: (res) => {
         if (res.success) {
-          if (res.data?.groups) this.groups = res.data.groups; else if (Array.isArray(res.data)) this.groups = res.data; else this.groups = [];
-        } else { this.groups = []; }
+          if (res.data?.groups) this.groups = res.data.groups; 
+          else if (Array.isArray(res.data)) this.groups = res.data; 
+          else this.groups = [];
+        } else { 
+          this.groups = []; 
+        }
         this.isLoading = false;
       },
-      error: _ => { this.isLoading = false; }
+      error: _ => { 
+        this.isLoading = false; 
+      }
     });
   }
 
