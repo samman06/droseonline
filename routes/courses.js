@@ -10,8 +10,8 @@ const router = express.Router();
 
 // @route   GET /api/courses
 // @desc    Get all courses
-// @access  Private
-router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) => {
+// @access  Private (Admin, Teacher only - Students use Browse Teachers)
+router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, teacherId, subjectId, academicYear, isActive } = req.query;
     
@@ -20,12 +20,6 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
     // Role-based filtering
     if (req.user.role === 'teacher') {
       query.teacher = req.user._id;
-    } else if (req.user.role === 'student') {
-      // Students see courses from their enrolled groups
-      const User = require('../models/User');
-      const student = await User.findById(req.user._id).populate('academicInfo.groups');
-      const groupIds = student.academicInfo.groups.map(g => g._id);
-      query.groups = { $in: groupIds };
     }
     
     // Apply filters

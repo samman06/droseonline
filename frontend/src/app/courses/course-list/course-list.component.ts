@@ -50,10 +50,10 @@ import { SubjectService } from '../../services/subject.service';
 
       <!-- Enhanced Search and Filters Bar -->
       <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <!-- Search -->
-          <div class="md:col-span-2 relative">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+        <!-- Teacher View: Search Only -->
+        <div *ngIf="currentUser?.role === 'teacher'" class="space-y-4">
+          <div class="relative">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Search Your Courses</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,46 +68,69 @@ import { SubjectService } from '../../services/subject.service';
                 class="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
             </div>
           </div>
-
-          <!-- Teacher Filter -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher</label>
-            <select 
-              [(ngModel)]="filters.teacherId" 
-              (change)="onFilterChange()"
-              class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
-              <option value="">All Teachers</option>
-              <option *ngFor="let teacher of teachers" [value]="teacher._id">
-                {{ teacher.fullName || teacher.firstName + ' ' + teacher.lastName }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Subject Filter -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
-            <select 
-              [(ngModel)]="filters.subjectId" 
-              (change)="onFilterChange()"
-              class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
-              <option value="">All Subjects</option>
-              <option *ngFor="let subject of subjects" [value]="subject._id">
-                {{ subject.name }}
-              </option>
-            </select>
-          </div>
         </div>
 
-        <!-- Reset Button -->
-        <div class="mt-4 flex justify-end">
-          <button 
-            (click)="resetFilters()" 
-            class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            Reset Filters
-          </button>
+        <!-- Admin View: Search + All Filters -->
+        <div *ngIf="currentUser?.role === 'admin'" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Search -->
+            <div class="md:col-span-2 relative">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </div>
+                <input 
+                  type="text" 
+                  [(ngModel)]="filters.search" 
+                  (input)="onSearchChange()" 
+                  placeholder="Search by name or code..." 
+                  class="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+              </div>
+            </div>
+
+            <!-- Teacher Filter -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher</label>
+              <select 
+                [(ngModel)]="filters.teacherId" 
+                (change)="onFilterChange()"
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                <option value="">All Teachers</option>
+                <option *ngFor="let teacher of teachers" [value]="teacher._id">
+                  {{ teacher.fullName || teacher.firstName + ' ' + teacher.lastName }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Subject Filter -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
+              <select 
+                [(ngModel)]="filters.subjectId" 
+                (change)="onFilterChange()"
+                class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
+                <option value="">All Subjects</option>
+                <option *ngFor="let subject of subjects" [value]="subject._id">
+                  {{ subject.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Reset Button for Admin -->
+          <div class="flex justify-end">
+            <button 
+              (click)="resetFilters()" 
+              class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Reset Filters
+            </button>
+          </div>
         </div>
       </div>
 
@@ -291,8 +314,13 @@ export class CourseListComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.authService.currentUser;
-    this.loadTeachers();
-    this.loadSubjects();
+    
+    // Only load teachers and subjects for admins (they have filters)
+    if (this.currentUser?.role === 'admin') {
+      this.loadTeachers();
+      this.loadSubjects();
+    }
+    
     this.loadCourses();
   }
 

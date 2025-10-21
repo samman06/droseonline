@@ -13,8 +13,8 @@ const router = express.Router();
 
 // @route   GET /api/teachers
 // @desc    Get all teachers
-// @access  Private (Admin, Teacher)
-router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
+// @access  Private (Admin, Teacher, Student)
+router.get('/', authenticate, authorize('admin', 'teacher', 'student'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, department, isActive, subject } = req.query;
     
@@ -23,6 +23,11 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
     console.log('subject param:', subject, 'type:', typeof subject);
     
     const query = { role: 'teacher' };
+    
+    // Students only see active teachers
+    if (req.user.role === 'student') {
+      query.isActive = true;
+    }
     
     if (search) {
       query.$or = [
@@ -56,7 +61,31 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
 
     const total = await User.countDocuments(query);
 
-    // Add course and group counts for each teacher
+    // For students, return simplified data without stats (for better performance)
+    if (req.user.role === 'student') {
+      const simplifiedTeachers = teachers.map(teacher => ({
+        _id: teacher._id,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        fullName: teacher.fullName,
+        email: teacher.email
+      }));
+
+      return res.json({
+        success: true,
+        data: {
+          teachers: simplifiedTeachers,
+          pagination: {
+            total,
+            pages: Math.ceil(total / limit),
+            page: parseInt(page),
+            limit: parseInt(limit)
+          }
+        }
+      });
+    }
+
+    // For admins and teachers, include detailed stats
     const Course = require('../models/Course');
     const Group = require('../models/Group');
     
