@@ -515,6 +515,463 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
+// ============================================
+// STUDENT-SPECIFIC ATTENDANCE ENDPOINTS (Must be before /:id route)
+// ============================================
+
+// GET /api/attendance/my-records - Student's attendance records
+router.get('/my-records', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const { page = 1, limit = 20, groupId, dateFrom, dateTo, status } = req.query;
+
+    // Build query
+    const query = { 'records.student': req.user._id };
+    if (groupId) query.group = groupId;
+    if (dateFrom || dateTo) {
+      query['session.date'] = {};
+      if (dateFrom) query['session.date'].$gte = new Date(dateFrom);
+      if (dateTo) query['session.date'].$lte = new Date(dateTo);
+    }
+
+    const attendance = await Attendance.find(query)
+      .populate('group', 'name code')
+      .populate({
+        path: 'group',
+        populate: {
+          path: 'course',
+          select: 'name',
+          populate: { path: 'subject', select: 'name' }
+        }
+      })
+      .sort({ 'session.date': -1 })
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .lean();
+
+    // Extract student's records
+    const myRecords = attendance.map(att => {
+      const myRecord = att.records.find(r => r.student.toString() === req.user._id.toString());
+      return {
+        _id: att._id,
+        group: att.group,
+        sessionDate: att.session.date,
+        scheduleIndex: att.session.scheduleIndex,
+        status: myRecord?.status || 'N/A',
+        minutesLate: myRecord?.minutesLate,
+        notes: myRecord?.notes,
+        markedAt: att.markedAt
+      };
+    }).filter(r => !status || r.status === status);
+
+    const total = await Attendance.countDocuments(query);
+
+    // Calculate statistics
+    const allRecords = await Attendance.find({ 'records.student': req.user._id })
+      .select('records')
+      .lean();
+    
+    const myStatuses = allRecords.flatMap(att => 
+      att.records.filter(r => r.student.toString() === req.user._id.toString()).map(r => r.status)
+    );
+
+    const stats = {
+      total: myStatuses.length,
+      present: myStatuses.filter(s => s === 'present').length,
+      absent: myStatuses.filter(s => s === 'absent').length,
+      late: myStatuses.filter(s => s === 'late').length,
+      excused: myStatuses.filter(s => s === 'excused').length,
+      rate: myStatuses.length > 0 
+        ? Math.round(((myStatuses.filter(s => s === 'present' || s === 'late').length) / myStatuses.length) * 100)
+        : 0
+    };
+
+    res.json({
+      success: true,
+      data: {
+        records: myRecords,
+        stats,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching student attendance records:', error);
+    res.status(500).json({ success: false, message: 'Error fetching attendance records', error: error.message });
+  }
+});
+
+// GET /api/attendance/my-schedule - Student's weekly schedule from enrolled groups
+router.get('/my-schedule', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const User = require('../models/User');
+    const student = await User.findById(req.user._id)
+      .populate({
+        path: 'academicInfo.groups',
+        populate: [
+          {
+            path: 'course',
+            populate: [
+              { path: 'subject', select: 'name' },
+              { path: 'teacher', select: 'firstName lastName fullName' }
+            ]
+          }
+        ]
+      });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    // Extract schedule from all enrolled groups
+    const schedule = {
+      sunday: [],
+      monday: [],
+      tuesday: [],
+      wednesday: [],
+      thursday: [],
+      friday: [],
+      saturday: []
+    };
+
+    student.academicInfo.groups.forEach(group => {
+      if (group.schedule && group.schedule.length > 0) {
+        group.schedule.forEach(session => {
+          schedule[session.day].push({
+            groupId: group._id,
+            groupName: group.name,
+            groupCode: group.code,
+            subject: group.course?.subject?.name || 'N/A',
+            teacher: group.course?.teacher?.fullName || 'N/A',
+            startTime: session.startTime,
+            endTime: session.endTime
+          });
+        });
+      }
+    });
+
+    // Sort each day by start time
+    Object.keys(schedule).forEach(day => {
+      schedule[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    });
+
+    res.json({
+      success: true,
+      data: { schedule }
+    });
+  } catch (error) {
+    console.error('Error fetching student schedule:', error);
+    res.status(500).json({ success: false, message: 'Error fetching schedule', error: error.message });
+  }
+});
+
+// GET /api/attendance/today-sessions - Student's sessions for today
+router.get('/today-sessions', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'student') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const User = require('../models/User');
+    const student = await User.findById(req.user._id)
+      .populate({
+        path: 'academicInfo.groups',
+        populate: [
+          {
+            path: 'course',
+            populate: [
+              { path: 'subject', select: 'name' },
+              { path: 'teacher', select: 'firstName lastName fullName' }
+            ]
+          }
+        ]
+      });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    // Get current day
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = days[new Date().getDay()];
+    const now = new Date();
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+    const todayEnd = new Date(now.setHours(23, 59, 59, 999));
+
+    // Get today's sessions
+    const todaySessions = [];
+    
+    student.academicInfo.groups.forEach(group => {
+      if (group.schedule && group.schedule.length > 0) {
+        group.schedule.forEach(session => {
+          if (session.day === today) {
+            todaySessions.push({
+              groupId: group._id,
+              groupName: group.name,
+              groupCode: group.code,
+              subject: group.course?.subject?.name || 'N/A',
+              teacher: group.course?.teacher?.fullName || 'N/A',
+              startTime: session.startTime,
+              endTime: session.endTime
+            });
+          }
+        });
+      }
+    });
+
+    // Sort by start time
+    todaySessions.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    // Check attendance status for today's sessions
+    const groupIds = todaySessions.map(s => s.groupId);
+    const todayAttendance = await Attendance.find({
+      group: { $in: groupIds },
+      'session.date': { $gte: todayStart, $lte: todayEnd },
+      'records.student': req.user._id
+    }).select('group records').lean();
+
+    // Add attendance status to sessions
+    const sessionsWithStatus = todaySessions.map(session => {
+      const attendanceRecord = todayAttendance.find(att => 
+        att.group.toString() === session.groupId.toString()
+      );
+      
+      let status = 'pending';
+      if (attendanceRecord) {
+        const myRecord = attendanceRecord.records.find(r => 
+          r.student.toString() === req.user._id.toString()
+        );
+        status = myRecord ? myRecord.status : 'pending';
+      }
+
+      return {
+        ...session,
+        attendanceStatus: status
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        date: new Date().toISOString(),
+        dayOfWeek: today,
+        sessions: sessionsWithStatus,
+        totalSessions: sessionsWithStatus.length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching today sessions:', error);
+    res.status(500).json({ success: false, message: 'Error fetching today sessions', error: error.message });
+  }
+});
+
+// ============================================
+// TEACHER-SPECIFIC ATTENDANCE ENDPOINTS
+// ============================================
+
+// GET /api/attendance/my-teaching-schedule - Teacher's weekly teaching schedule
+router.get('/my-teaching-schedule', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const Group = require('../models/Group');
+    const Course = require('../models/Course');
+    
+    // Get courses based on role
+    let courseQuery = { isActive: true };
+    if (req.user.role === 'teacher') {
+      courseQuery.teacher = req.user._id;
+    }
+    // Admin sees all courses
+    
+    const courses = await Course.find(courseQuery).select('_id').lean();
+    const courseIds = courses.map(c => c._id);
+
+    // Get all groups for these courses
+    const groups = await Group.find({ 
+      course: { $in: courseIds },
+      isActive: true 
+    })
+      .populate('course', 'name')
+      .populate({
+        path: 'course',
+        populate: { path: 'subject', select: 'name' }
+      })
+      .lean();
+
+    // Extract schedule from all groups
+    const schedule = {
+      sunday: [],
+      monday: [],
+      tuesday: [],
+      wednesday: [],
+      thursday: [],
+      friday: [],
+      saturday: []
+    };
+
+    groups.forEach(group => {
+      if (group.schedule && group.schedule.length > 0) {
+        group.schedule.forEach(session => {
+          const activeStudents = group.students ? group.students.filter(s => s.status === 'active').length : 0;
+          
+          schedule[session.day].push({
+            groupId: group._id,
+            groupName: group.name,
+            groupCode: group.code,
+            subject: group.course?.subject?.name || 'N/A',
+            courseId: group.course?._id,
+            courseName: group.course?.name || 'N/A',
+            startTime: session.startTime,
+            endTime: session.endTime,
+            studentsCount: activeStudents
+          });
+        });
+      }
+    });
+
+    // Sort each day by start time
+    Object.keys(schedule).forEach(day => {
+      schedule[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    });
+
+    res.json({
+      success: true,
+      data: { schedule }
+    });
+  } catch (error) {
+    console.error('Error fetching teacher schedule:', error);
+    res.status(500).json({ success: false, message: 'Error fetching schedule', error: error.message });
+  }
+});
+
+// GET /api/attendance/today-teaching-sessions - Teacher's sessions for today
+router.get('/today-teaching-sessions', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const Group = require('../models/Group');
+    const Course = require('../models/Course');
+    
+    // Get current day
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const today = days[new Date().getDay()];
+    const now = new Date();
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+    const todayEnd = new Date(now.setHours(23, 59, 59, 999));
+
+    // Get courses based on role
+    let courseQuery = { isActive: true };
+    if (req.user.role === 'teacher') {
+      courseQuery.teacher = req.user._id;
+    }
+    // Admin sees all courses
+    
+    const courses = await Course.find(courseQuery).select('_id').lean();
+    const courseIds = courses.map(c => c._id);
+
+    // Get all groups for these courses
+    const groups = await Group.find({ 
+      course: { $in: courseIds },
+      isActive: true 
+    })
+      .populate('course', 'name')
+      .populate({
+        path: 'course',
+        populate: { path: 'subject', select: 'name' }
+      })
+      .lean();
+
+    // Get today's sessions
+    const todaySessions = [];
+    
+    groups.forEach(group => {
+      if (group.schedule && group.schedule.length > 0) {
+        group.schedule.forEach(session => {
+          if (session.day === today) {
+            const activeStudents = group.students ? group.students.filter(s => s.status === 'active').length : 0;
+            
+            todaySessions.push({
+              groupId: group._id,
+              groupName: group.name,
+              groupCode: group.code,
+              subject: group.course?.subject?.name || 'N/A',
+              courseId: group.course?._id,
+              courseName: group.course?.name || 'N/A',
+              startTime: session.startTime,
+              endTime: session.endTime,
+              studentsCount: activeStudents
+            });
+          }
+        });
+      }
+    });
+
+    // Sort by start time
+    todaySessions.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    // Check attendance status for today's sessions
+    const groupIds = todaySessions.map(s => s.groupId);
+    const todayAttendance = await Attendance.find({
+      group: { $in: groupIds },
+      'session.date': { $gte: todayStart, $lte: todayEnd }
+    }).select('group isCompleted records').lean();
+
+    // Add attendance status to sessions
+    const sessionsWithStatus = todaySessions.map(session => {
+      const attendanceRecord = todayAttendance.find(att => 
+        att.group.toString() === session.groupId.toString()
+      );
+      
+      let status = 'pending';
+      let attendanceId = null;
+      let recordedCount = 0;
+
+      if (attendanceRecord) {
+        status = attendanceRecord.isCompleted ? 'completed' : 'in_progress';
+        attendanceId = attendanceRecord._id;
+        recordedCount = attendanceRecord.records.length;
+      }
+
+      return {
+        ...session,
+        attendanceStatus: status,
+        attendanceId,
+        recordedStudents: recordedCount
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        date: new Date().toISOString(),
+        dayOfWeek: today,
+        sessions: sessionsWithStatus,
+        totalSessions: sessionsWithStatus.length,
+        pendingSessions: sessionsWithStatus.filter(s => s.attendanceStatus === 'pending').length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching today teaching sessions:', error);
+    res.status(500).json({ success: false, message: 'Error fetching today sessions', error: error.message });
+  }
+});
+
 // GET /api/attendance/:id - Get specific attendance record
 router.get('/:id', authenticate, async (req, res) => {
   try {
@@ -1237,433 +1694,6 @@ router.delete('/:id', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Error deleting attendance:', error);
     res.status(500).json({ message: 'Error deleting attendance record', error: error.message });
-  }
-});
-
-// ============================================
-// STUDENT-SPECIFIC ATTENDANCE ENDPOINTS
-// ============================================
-
-// GET /api/attendance/my-records - Student's attendance records
-router.get('/my-records', authenticate, async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ success: false, message: 'Access denied' });
-    }
-
-    const { page = 1, limit = 20, groupId, dateFrom, dateTo, status } = req.query;
-
-    // Build query
-    const query = { 'records.student': req.user._id };
-    if (groupId) query.group = groupId;
-    if (dateFrom || dateTo) {
-      query['session.date'] = {};
-      if (dateFrom) query['session.date'].$gte = new Date(dateFrom);
-      if (dateTo) query['session.date'].$lte = new Date(dateTo);
-    }
-
-    const attendance = await Attendance.find(query)
-      .populate('group', 'name code')
-      .populate({
-        path: 'group',
-        populate: {
-          path: 'course',
-          select: 'name',
-          populate: { path: 'subject', select: 'name' }
-        }
-      })
-      .sort({ 'session.date': -1 })
-      .limit(parseInt(limit))
-      .skip((page - 1) * limit)
-      .lean();
-
-    // Extract student's records
-    const myRecords = attendance.map(att => {
-      const myRecord = att.records.find(r => r.student.toString() === req.user._id.toString());
-      return {
-        _id: att._id,
-        group: att.group,
-        sessionDate: att.session.date,
-        scheduleIndex: att.session.scheduleIndex,
-        status: myRecord?.status || 'N/A',
-        minutesLate: myRecord?.minutesLate,
-        notes: myRecord?.notes,
-        markedAt: att.markedAt
-      };
-    }).filter(r => !status || r.status === status);
-
-    const total = await Attendance.countDocuments(query);
-
-    // Calculate statistics
-    const allRecords = await Attendance.find({ 'records.student': req.user._id })
-      .select('records')
-      .lean();
-    
-    const myStatuses = allRecords.flatMap(att => 
-      att.records.filter(r => r.student.toString() === req.user._id.toString()).map(r => r.status)
-    );
-
-    const stats = {
-      total: myStatuses.length,
-      present: myStatuses.filter(s => s === 'present').length,
-      absent: myStatuses.filter(s => s === 'absent').length,
-      late: myStatuses.filter(s => s === 'late').length,
-      excused: myStatuses.filter(s => s === 'excused').length,
-      rate: myStatuses.length > 0 
-        ? Math.round(((myStatuses.filter(s => s === 'present' || s === 'late').length) / myStatuses.length) * 100)
-        : 0
-    };
-
-    res.json({
-      success: true,
-      data: {
-        records: myRecords,
-        stats,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalItems: total,
-          itemsPerPage: parseInt(limit)
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching student attendance records:', error);
-    res.status(500).json({ success: false, message: 'Error fetching attendance records', error: error.message });
-  }
-});
-
-// GET /api/attendance/my-schedule - Student's weekly schedule from enrolled groups
-router.get('/my-schedule', authenticate, async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ success: false, message: 'Access denied' });
-    }
-
-    const User = require('../models/User');
-    const student = await User.findById(req.user._id)
-      .populate({
-        path: 'academicInfo.groups',
-        populate: [
-          {
-            path: 'course',
-            populate: [
-              { path: 'subject', select: 'name' },
-              { path: 'teacher', select: 'firstName lastName fullName' }
-            ]
-          }
-        ]
-      });
-
-    if (!student) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    // Extract schedule from all enrolled groups
-    const schedule = {
-      sunday: [],
-      monday: [],
-      tuesday: [],
-      wednesday: [],
-      thursday: [],
-      friday: [],
-      saturday: []
-    };
-
-    student.academicInfo.groups.forEach(group => {
-      if (group.schedule && group.schedule.length > 0) {
-        group.schedule.forEach(session => {
-          schedule[session.day].push({
-            groupId: group._id,
-            groupName: group.name,
-            groupCode: group.code,
-            subject: group.course?.subject?.name || 'N/A',
-            teacher: group.course?.teacher?.fullName || 'N/A',
-            startTime: session.startTime,
-            endTime: session.endTime
-          });
-        });
-      }
-    });
-
-    // Sort each day by start time
-    Object.keys(schedule).forEach(day => {
-      schedule[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
-    });
-
-    res.json({
-      success: true,
-      data: { schedule }
-    });
-  } catch (error) {
-    console.error('Error fetching student schedule:', error);
-    res.status(500).json({ success: false, message: 'Error fetching schedule', error: error.message });
-  }
-});
-
-// GET /api/attendance/today-sessions - Student's sessions for today
-router.get('/today-sessions', authenticate, async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ success: false, message: 'Access denied' });
-    }
-
-    const User = require('../models/User');
-    const student = await User.findById(req.user._id)
-      .populate({
-        path: 'academicInfo.groups',
-        populate: [
-          {
-            path: 'course',
-            populate: [
-              { path: 'subject', select: 'name' },
-              { path: 'teacher', select: 'firstName lastName fullName' }
-            ]
-          }
-        ]
-      });
-
-    if (!student) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
-    }
-
-    // Get current day
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const today = days[new Date().getDay()];
-    const now = new Date();
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
-    const todayEnd = new Date(now.setHours(23, 59, 59, 999));
-
-    // Get today's sessions
-    const todaySessions = [];
-    
-    student.academicInfo.groups.forEach(group => {
-      if (group.schedule && group.schedule.length > 0) {
-        group.schedule.forEach(session => {
-          if (session.day === today) {
-            todaySessions.push({
-              groupId: group._id,
-              groupName: group.name,
-              groupCode: group.code,
-              subject: group.course?.subject?.name || 'N/A',
-              teacher: group.course?.teacher?.fullName || 'N/A',
-              startTime: session.startTime,
-              endTime: session.endTime
-            });
-          }
-        });
-      }
-    });
-
-    // Sort by start time
-    todaySessions.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-    // Check attendance status for today's sessions
-    const groupIds = todaySessions.map(s => s.groupId);
-    const todayAttendance = await Attendance.find({
-      group: { $in: groupIds },
-      'session.date': { $gte: todayStart, $lte: todayEnd },
-      'records.student': req.user._id
-    }).select('group records').lean();
-
-    // Add attendance status to sessions
-    const sessionsWithStatus = todaySessions.map(session => {
-      const attendanceRecord = todayAttendance.find(att => 
-        att.group.toString() === session.groupId.toString()
-      );
-      
-      let status = 'pending';
-      if (attendanceRecord) {
-        const myRecord = attendanceRecord.records.find(r => 
-          r.student.toString() === req.user._id.toString()
-        );
-        status = myRecord ? myRecord.status : 'pending';
-      }
-
-      return {
-        ...session,
-        attendanceStatus: status
-      };
-    });
-
-    res.json({
-      success: true,
-      data: {
-        date: new Date().toISOString(),
-        dayOfWeek: today,
-        sessions: sessionsWithStatus,
-        totalSessions: sessionsWithStatus.length
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching today sessions:', error);
-    res.status(500).json({ success: false, message: 'Error fetching today sessions', error: error.message });
-  }
-});
-
-// ============================================
-// TEACHER-SPECIFIC ATTENDANCE ENDPOINTS
-// ============================================
-
-// GET /api/attendance/my-teaching-schedule - Teacher's weekly teaching schedule
-router.get('/my-teaching-schedule', authenticate, async (req, res) => {
-  try {
-    if (req.user.role !== 'teacher') {
-      return res.status(403).json({ success: false, message: 'Access denied' });
-    }
-
-    const Course = require('../models/Course');
-    
-    // Get teacher's courses
-    const courses = await Course.find({ teacher: req.user._id, isActive: true })
-      .populate('subject', 'name')
-      .populate('groups', 'name code schedule students')
-      .lean();
-
-    // Extract schedule from all groups
-    const schedule = {
-      sunday: [],
-      monday: [],
-      tuesday: [],
-      wednesday: [],
-      thursday: [],
-      friday: [],
-      saturday: []
-    };
-
-    courses.forEach(course => {
-      if (course.groups && course.groups.length > 0) {
-        course.groups.forEach(group => {
-          if (group.schedule && group.schedule.length > 0) {
-            group.schedule.forEach(session => {
-              schedule[session.day].push({
-                groupId: group._id,
-                groupName: group.name,
-                groupCode: group.code,
-                subject: course.subject?.name || 'N/A',
-                courseId: course._id,
-                courseName: course.name,
-                startTime: session.startTime,
-                endTime: session.endTime,
-                studentsCount: group.students.filter(s => s.status === 'active').length
-              });
-            });
-          }
-        });
-      }
-    });
-
-    // Sort each day by start time
-    Object.keys(schedule).forEach(day => {
-      schedule[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
-    });
-
-    res.json({
-      success: true,
-      data: { schedule }
-    });
-  } catch (error) {
-    console.error('Error fetching teacher schedule:', error);
-    res.status(500).json({ success: false, message: 'Error fetching schedule', error: error.message });
-  }
-});
-
-// GET /api/attendance/today-teaching-sessions - Teacher's sessions for today
-router.get('/today-teaching-sessions', authenticate, async (req, res) => {
-  try {
-    if (req.user.role !== 'teacher') {
-      return res.status(403).json({ success: false, message: 'Access denied' });
-    }
-
-    const Course = require('../models/Course');
-    
-    // Get current day
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const today = days[new Date().getDay()];
-    const now = new Date();
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
-    const todayEnd = new Date(now.setHours(23, 59, 59, 999));
-
-    // Get teacher's courses
-    const courses = await Course.find({ teacher: req.user._id, isActive: true })
-      .populate('subject', 'name')
-      .populate('groups', 'name code schedule students')
-      .lean();
-
-    // Get today's sessions
-    const todaySessions = [];
-    
-    courses.forEach(course => {
-      if (course.groups && course.groups.length > 0) {
-        course.groups.forEach(group => {
-          if (group.schedule && group.schedule.length > 0) {
-            group.schedule.forEach(session => {
-              if (session.day === today) {
-                todaySessions.push({
-                  groupId: group._id,
-                  groupName: group.name,
-                  groupCode: group.code,
-                  subject: course.subject?.name || 'N/A',
-                  courseId: course._id,
-                  courseName: course.name,
-                  startTime: session.startTime,
-                  endTime: session.endTime,
-                  studentsCount: group.students.filter(s => s.status === 'active').length
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-
-    // Sort by start time
-    todaySessions.sort((a, b) => a.startTime.localeCompare(b.startTime));
-
-    // Check attendance status for today's sessions
-    const groupIds = todaySessions.map(s => s.groupId);
-    const todayAttendance = await Attendance.find({
-      group: { $in: groupIds },
-      'session.date': { $gte: todayStart, $lte: todayEnd }
-    }).select('group isCompleted records').lean();
-
-    // Add attendance status to sessions
-    const sessionsWithStatus = todaySessions.map(session => {
-      const attendanceRecord = todayAttendance.find(att => 
-        att.group.toString() === session.groupId.toString()
-      );
-      
-      let status = 'pending';
-      let attendanceId = null;
-      let recordedCount = 0;
-
-      if (attendanceRecord) {
-        status = attendanceRecord.isCompleted ? 'completed' : 'in_progress';
-        attendanceId = attendanceRecord._id;
-        recordedCount = attendanceRecord.records.length;
-      }
-
-      return {
-        ...session,
-        attendanceStatus: status,
-        attendanceId,
-        recordedStudents: recordedCount
-      };
-    });
-
-    res.json({
-      success: true,
-      data: {
-        date: new Date().toISOString(),
-        dayOfWeek: today,
-        sessions: sessionsWithStatus,
-        totalSessions: sessionsWithStatus.length,
-        pendingSessions: sessionsWithStatus.filter(s => s.attendanceStatus === 'pending').length
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching today teaching sessions:', error);
-    res.status(500).json({ success: false, message: 'Error fetching today sessions', error: error.message });
   }
 });
 

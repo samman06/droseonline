@@ -1169,46 +1169,21 @@ export class AttendanceListComponent implements OnInit {
   }
 
   loadStats(): void {
-    this.attendanceService.getAttendances({ ...this.filters, limit: 1000 }).subscribe({
+    this.attendanceService.getDashboardStatistics().subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          // Calculate stats
-          const allAttendances = response.data.attendances || [];
+          // Use dashboard statistics endpoint
           this.stats = {
-            totalSessions: allAttendances.length,
-            completedSessions: allAttendances.filter((a: any) => a.isCompleted).length,
-            pendingSessions: allAttendances.filter((a: any) => !a.isCompleted).length,
-            overallRate: this.calculateOverallRate(allAttendances)
+            totalSessions: response.data.totalSessions || 0,
+            completedSessions: response.data.completedSessions || 0,
+            pendingSessions: response.data.pendingSessions || 0,
+            overallRate: response.data.overallRate || 0
           };
-
-          // Calculate pending today count
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          this.pendingCount = allAttendances.filter((a: any) => {
-            const sessionDate = new Date(a.session?.date);
-            sessionDate.setHours(0, 0, 0, 0);
-            return !a.isCompleted && sessionDate.getTime() === today.getTime();
-          }).length;
+          this.pendingCount = response.data.todaysPending?.length || 0;
         }
       },
       error: (error) => console.error('Error loading stats:', error)
     });
-  }
-
-  calculateOverallRate(attendances: any[]): number {
-    if (attendances.length === 0) return 0;
-    
-    let totalPresent = 0;
-    let totalRecords = 0;
-
-    attendances.forEach(att => {
-      if (att.records) {
-        totalRecords += att.records.length;
-        totalPresent += att.records.filter((r: any) => r.status === 'present' || r.status === 'late').length;
-      }
-    });
-
-    return totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 0;
   }
 
   loadGroups(): void {
