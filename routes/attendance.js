@@ -1284,7 +1284,7 @@ router.get('/my-records', authenticate, async (req, res) => {
         _id: att._id,
         group: att.group,
         sessionDate: att.session.date,
-        scheduleTime: att.session.scheduleTime,
+        scheduleIndex: att.session.scheduleIndex,
         status: myRecord?.status || 'N/A',
         minutesLate: myRecord?.minutesLate,
         notes: myRecord?.notes,
