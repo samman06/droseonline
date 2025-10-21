@@ -8,6 +8,8 @@ import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { AuthService, User } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-attendance-list',
@@ -24,11 +26,19 @@ import { ConfirmationService } from '../../services/confirmation.service';
           
           <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 class="text-4xl font-bold text-white mb-2">📋 Attendance Management</h1>
-              <p class="text-purple-100 text-lg">Track and manage student attendance sessions</p>
+              <!-- Role-specific headers -->
+              <h1 *ngIf="currentUser?.role === 'student'" class="text-4xl font-bold text-white mb-2">📋 My Attendance</h1>
+              <h1 *ngIf="currentUser?.role === 'teacher'" class="text-4xl font-bold text-white mb-2">📋 Class Attendance</h1>
+              <h1 *ngIf="currentUser?.role === 'admin'" class="text-4xl font-bold text-white mb-2">📋 Attendance Management</h1>
+              
+              <!-- Role-specific descriptions -->
+              <p *ngIf="currentUser?.role === 'student'" class="text-purple-100 text-lg">View your attendance records</p>
+              <p *ngIf="currentUser?.role === 'teacher'" class="text-purple-100 text-lg">Track and manage student attendance sessions</p>
+              <p *ngIf="currentUser?.role === 'admin'" class="text-purple-100 text-lg">Monitor attendance across all groups</p>
             </div>
             <div class="flex gap-3">
               <button 
+                *ngIf="canViewReports"
                 (click)="goToDashboard()"
                 class="px-6 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-purple-50 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
@@ -38,15 +48,17 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 Dashboard
               </button>
               <button 
+                *ngIf="canExport"
                 (click)="exportData()"
                 class="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-medium rounded-xl transition-all duration-200 backdrop-blur-sm border border-white/30 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 2z"/>
                 </svg>
                 Export
               </button>
               <button 
+                *ngIf="canMarkAttendance"
                 (click)="showPendingGroups()"
                 class="px-6 py-3 bg-white text-purple-600 font-medium rounded-xl hover:bg-purple-50 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
               >
@@ -523,6 +535,9 @@ export class AttendanceListComponent implements OnInit {
   viewMode: 'table' | 'cards' = 'table';
   pendingCount = 0;
   
+  // Role-based properties
+  currentUser: User | null = null;
+  
   filters = {
     search: '',
     groupId: '',
@@ -559,11 +574,17 @@ export class AttendanceListComponent implements OnInit {
     private subjectService: SubjectService,
     private toastService: ToastService,
     private confirmationService: ConfirmationService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit() {
-    this.loadInitialData();
+    // Subscribe to current user for role-based permissions
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.loadInitialData(); // Reload when user changes
+    });
   }
 
   loadInitialData() {
@@ -576,10 +597,27 @@ export class AttendanceListComponent implements OnInit {
   }
 
   loadAttendances() {
+    if (!this.currentUser) return;
+    
     this.loading = true;
     const params = { ...this.filters };
     
-    this.attendanceService.getAttendances(params).subscribe({
+    // Role-specific data loading
+    let observable;
+    switch (this.currentUser.role) {
+      case 'student':
+        observable = this.attendanceService.getMyAttendance(params);
+        break;
+      case 'teacher':
+        observable = this.attendanceService.getCurrentTeacherAttendance(params);
+        break;
+      case 'admin':
+      default:
+        observable = this.attendanceService.getAllAttendance(params);
+        break;
+    }
+    
+    observable.subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.attendances = response.data.attendances;
@@ -759,6 +797,30 @@ export class AttendanceListComponent implements OnInit {
         this.toastService.error('Failed to export attendance data');
       }
     });
+  }
+
+  // PERMISSION GETTERS (using PermissionService)
+  get canMarkAttendance(): boolean {
+    return this.permissionService.canMarkAttendance();
+  }
+
+  get canExport(): boolean {
+    return this.permissionService.canExportData();
+  }
+
+  get canViewReports(): boolean {
+    // All roles can view reports (admin/teacher see all, students see their own)
+    return true;
+  }
+
+  get canEditAttendance(): boolean {
+    // Admin and teachers can edit
+    return this.permissionService.isAdmin() || this.permissionService.isTeacher();
+  }
+
+  get canDeleteAttendance(): boolean {
+    // Only admin can delete
+    return this.permissionService.isAdmin();
   }
 
   formatDate(date: any): string {

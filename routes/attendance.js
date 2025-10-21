@@ -52,6 +52,198 @@ const attendanceQuerySchema = Joi.object({
   maxRate: Joi.number().min(0).max(100).optional()
 });
 
+// ==========================================
+// ROLE-SPECIFIC ENDPOINTS (Must come before generic routes)
+// ==========================================
+
+// @route   GET /api/attendance/my-attendance
+// @desc    Get attendance records for current student (own attendance only)
+// @access  Private (Student only)
+router.get('/my-attendance', authenticate, validation.validateQuery(attendanceQuerySchema), async (req, res) => {
+  try {
+    const { page = 1, limit = 10, sort = '-session.date', dateFrom, dateTo } = req.query;
+    
+    const User = require('../models/User');
+    const student = await User.findById(req.user._id).select('academicInfo.groups');
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+    
+    const groupIds = student.academicInfo?.groups || [];
+    
+    // Build query for student's attendance
+    const query = {
+      group: { $in: groupIds },
+      'records.student': req.user._id
+    };
+    
+    // Apply date filters
+    if (dateFrom || dateTo) {
+      query['session.date'] = {};
+      if (dateFrom) query['session.date'].$gte = new Date(dateFrom);
+      if (dateTo) query['session.date'].$lte = new Date(dateTo);
+    }
+    
+    const attendances = await Attendance.find(query)
+      .populate('group', 'name code gradeLevel')
+      .populate({
+        path: 'group',
+        populate: {
+          path: 'course',
+          select: 'name code',
+          populate: [
+            { path: 'teacher', select: 'firstName lastName fullName' },
+            { path: 'subject', select: 'name code' }
+          ]
+        }
+      })
+      .populate('teacher', 'firstName lastName fullName')
+      .populate('subject', 'name code')
+      .sort(sort)
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .lean();
+    
+    const total = await Attendance.countDocuments(query);
+    
+    // Filter records to show only student's own attendance
+    const studentAttendances = attendances.map(att => {
+      const studentRecord = att.records?.find(r => 
+        r.student.toString() === req.user._id.toString()
+      );
+      
+      return {
+        _id: att._id,
+        group: att.group,
+        session: att.session,
+        code: att.code,
+        teacher: att.teacher,
+        subject: att.subject,
+        isCompleted: att.isCompleted,
+        isLocked: att.isLocked,
+        createdAt: att.createdAt,
+        myRecord: studentRecord || null
+      };
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        attendances: studentAttendances,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get my attendance error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching your attendance' });
+  }
+});
+
+// @route   GET /api/attendance/teacher/attendance
+// @desc    Get attendance records for current teacher's groups
+// @access  Private (Teacher only)
+router.get('/teacher/attendance', authenticate, validation.validateQuery(attendanceQuerySchema), async (req, res) => {
+  try {
+    const { page = 1, limit = 10, sort = '-session.date', search, groupId, dateFrom, dateTo, isCompleted } = req.query;
+    
+    // Find groups taught by this teacher
+    const Course = require('../models/Course');
+    const teacherCourses = await Course.find({ teacher: req.user._id, isActive: true }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+    
+    const teacherGroups = await Group.find({ course: { $in: courseIds }, isActive: true }).select('_id');
+    const groupIds = teacherGroups.map(g => g._id);
+    
+    // Build query
+    const query = {
+      group: { $in: groupIds }
+    };
+    
+    // Apply filters
+    if (groupId) query.group = groupId;
+    if (dateFrom || dateTo) {
+      query['session.date'] = {};
+      if (dateFrom) query['session.date'].$gte = new Date(dateFrom);
+      if (dateTo) query['session.date'].$lte = new Date(dateTo);
+    }
+    if (isCompleted === 'true') query.isCompleted = true;
+    else if (isCompleted === 'false') query.isCompleted = false;
+    
+    if (search) {
+      query.$or = [
+        { code: { $regex: search, $options: 'i' } },
+        { 'session.notes': { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const attendances = await Attendance.find(query)
+      .populate('group', 'name code gradeLevel currentEnrollment')
+      .populate({
+        path: 'group',
+        populate: {
+          path: 'course',
+          select: 'name code',
+          populate: [
+            { path: 'teacher', select: 'firstName lastName fullName' },
+            { path: 'subject', select: 'name code' }
+          ]
+        }
+      })
+      .populate('teacher', 'firstName lastName fullName')
+      .populate('subject', 'name code')
+      .populate('records.student', 'firstName lastName fullName')
+      .sort(sort)
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .lean();
+    
+    const total = await Attendance.countDocuments(query);
+    
+    // Add statistics for each attendance record
+    const attendancesWithStats = attendances.map(att => {
+      const totalRecords = att.records?.length || 0;
+      const present = att.records?.filter(r => r.status === 'present').length || 0;
+      const late = att.records?.filter(r => r.status === 'late').length || 0;
+      const absent = att.records?.filter(r => r.status === 'absent').length || 0;
+      const excused = att.records?.filter(r => r.status === 'excused').length || 0;
+      const attendanceRate = totalRecords > 0 ? Math.round(((present + late) / totalRecords) * 100) : 0;
+      
+      return {
+        ...att,
+        stats: {
+          totalRecords,
+          present,
+          late,
+          absent,
+          excused,
+          attendanceRate
+        }
+      };
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        attendances: attendancesWithStats,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get teacher attendance error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching teacher attendance' });
+  }
+});
+
 // GET /api/attendance - List all attendance records with filters
 router.get('/', authenticate, validation.validateQuery(attendanceQuerySchema), async (req, res) => {
   try {

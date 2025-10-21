@@ -181,6 +181,54 @@ export class AttendanceService {
     });
   }
 
+  // ==========================================
+  // ROLE-SPECIFIC METHODS (New)
+  // ==========================================
+
+  /**
+   * Get attendance records for the current student (own attendance only)
+   * Used by students to view their attendance
+   */
+  getMyAttendance(params: any = {}): Observable<ApiResponse<AttendanceListData>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key].toString());
+      }
+    });
+    console.log('📋 AttendanceService.getMyAttendance() - Params:', params);
+    return this.http.get<ApiResponse<AttendanceListData>>(`${this.apiUrl}/my-attendance`, {
+      params: httpParams,
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  /**
+   * Get attendance records for current teacher's groups
+   * Used by teachers to view their teaching attendance
+   */
+  getCurrentTeacherAttendance(params: any = {}): Observable<ApiResponse<AttendanceListData>> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        httpParams = httpParams.set(key, params[key].toString());
+      }
+    });
+    console.log('📋 AttendanceService.getCurrentTeacherAttendance() - Params:', params);
+    return this.http.get<ApiResponse<AttendanceListData>>(`${this.apiUrl}/teacher/attendance`, {
+      params: httpParams,
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  /**
+   * Get all attendance records (admin view)
+   * Alias for getAttendances() for clarity in role-based code
+   */
+  getAllAttendance(params: any = {}): Observable<ApiResponse<AttendanceListData>> {
+    return this.getAttendances(params);
+  }
+
   exportAttendance(params: { groupId?: string; dateFrom?: string; dateTo?: string; format?: 'json' | 'csv' }): Observable<any> {
     let httpParams = new HttpParams();
     Object.keys(params).forEach(key => {

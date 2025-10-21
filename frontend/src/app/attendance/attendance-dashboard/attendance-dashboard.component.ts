@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AttendanceService } from '../../services/attendance.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService, User } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-attendance-dashboard',
@@ -16,8 +18,15 @@ import { ToastService } from '../../services/toast.service';
         <div class="mb-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-4xl font-bold text-gray-900 mb-2">Attendance Dashboard</h1>
-              <p class="text-gray-600">Overview of attendance statistics and trends</p>
+              <!-- Role-specific headers -->
+              <h1 *ngIf="currentUser?.role === 'student'" class="text-4xl font-bold text-gray-900 mb-2">My Attendance Overview</h1>
+              <h1 *ngIf="currentUser?.role === 'teacher'" class="text-4xl font-bold text-gray-900 mb-2">Class Attendance Dashboard</h1>
+              <h1 *ngIf="currentUser?.role === 'admin'" class="text-4xl font-bold text-gray-900 mb-2">Attendance Dashboard</h1>
+              
+              <!-- Role-specific descriptions -->
+              <p *ngIf="currentUser?.role === 'student'" class="text-gray-600">Your personal attendance statistics and trends</p>
+              <p *ngIf="currentUser?.role === 'teacher'" class="text-gray-600">Overview of your teaching groups' attendance</p>
+              <p *ngIf="currentUser?.role === 'admin'" class="text-gray-600">System-wide attendance statistics and trends</p>
             </div>
             <div class="flex gap-3">
               <button 
@@ -30,6 +39,7 @@ import { ToastService } from '../../services/toast.service';
                 Refresh
               </button>
               <button 
+                *ngIf="canMarkAttendance"
                 (click)="markAttendance()"
                 class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,15 +355,24 @@ export class AttendanceDashboardComponent implements OnInit {
   data: any = null;
   isLoading = false;
   error = '';
+  
+  // Role-based properties
+  currentUser: User | null = null;
 
   constructor(
     private attendanceService: AttendanceService,
     private toastService: ToastService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit() {
-    this.loadDashboard();
+    // Subscribe to current user for role-based permissions
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.loadDashboard(); // Reload when user changes
+    });
   }
 
   loadDashboard() {
@@ -392,6 +411,16 @@ export class AttendanceDashboardComponent implements OnInit {
     } else {
       this.router.navigate(['/dashboard/attendance/mark']);
     }
+  }
+
+  // PERMISSION GETTERS (using PermissionService)
+  get canMarkAttendance(): boolean {
+    return this.permissionService.canMarkAttendance();
+  }
+
+  get canViewSystemStats(): boolean {
+    // Admin can see system-wide stats, teacher sees their groups, student sees own stats
+    return true; // All roles have access, but data is filtered by backend
   }
 }
 
