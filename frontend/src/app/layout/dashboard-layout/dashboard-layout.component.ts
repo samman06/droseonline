@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
 import { NotificationsComponent } from '../../shared/notifications/notifications.component';
+import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -11,12 +13,15 @@ import { NotificationsComponent } from '../../shared/notifications/notifications
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.scss']
 })
-export class DashboardLayoutComponent implements OnInit {
+export class DashboardLayoutComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   sidebarOpen = false;
-  notificationCount = 3;
+  notificationCount = 0;
   profileDropdownOpen = false;
   notificationsDropdownOpen = false;
+  
+  private notificationSubscription?: Subscription;
+  private refreshSubscription?: Subscription;
 
   navigationItems = [
     {
@@ -83,7 +88,8 @@ export class DashboardLayoutComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -91,11 +97,26 @@ export class DashboardLayoutComponent implements OnInit {
       this.currentUser = user;
     });
 
+    // Subscribe to notification count
+    this.notificationSubscription = this.notificationService.unreadCount$.subscribe(count => {
+      this.notificationCount = count;
+    });
+
+    // Refresh notifications every 30 seconds
+    this.refreshSubscription = interval(30000).subscribe(() => {
+      this.notificationService.refresh();
+    });
+
     // Close dropdowns on route change
     this.router.events.subscribe(() => {
       this.closeProfileDropdown();
       this.closeNotificationsDropdown();
     });
+  }
+
+  ngOnDestroy() {
+    this.notificationSubscription?.unsubscribe();
+    this.refreshSubscription?.unsubscribe();
   }
 
   toggleSidebar() {

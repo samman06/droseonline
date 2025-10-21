@@ -2,6 +2,10 @@ const express = require('express');
 const Announcement = require('../models/Announcement');
 const { authenticate, authorize } = require('../middleware/auth');
 const { validate, validateQuery, announcementSchema, paginationSchema } = require('../middleware/validation');
+const { notifyNewAnnouncement, notifyNewComment } = require('../utils/notificationHelper');
+const User = require('../models/User');
+const Group = require('../models/Group');
+const Course = require('../models/Course');
 
 const router = express.Router();
 
@@ -156,6 +160,17 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(announcem
       .populate('targetGroups', 'name code')
       .populate('targetCourses', 'name code');
 
+    // Send notifications to target audience
+    try {
+      const recipients = await getAnnouncementRecipients(populatedAnnouncement);
+      if (recipients.length > 0) {
+        await notifyNewAnnouncement(populatedAnnouncement, recipients);
+      }
+    } catch (notifError) {
+      console.error('Error sending notifications:', notifError);
+      // Don't fail the request if notifications fail
+    }
+
     res.status(201).json({
       success: true,
       message: 'Announcement created successfully',
@@ -297,10 +312,26 @@ router.post('/:id/comment', authenticate, async (req, res) => {
     await announcement.addComment(req.user._id, content);
 
     const updatedAnnouncement = await Announcement.findById(announcement._id)
+      .populate('author', '_id')
       .populate({
         path: 'comments.user',
         select: 'firstName lastName fullName avatar email'
       });
+
+    // Notify announcement author (if commenter is not the author)
+    if (updatedAnnouncement.author._id.toString() !== req.user._id.toString()) {
+      try {
+        await notifyNewComment(
+          'announcement',
+          announcement._id,
+          req.user,
+          updatedAnnouncement.author._id,
+          announcement.title
+        );
+      } catch (notifError) {
+        console.error('Error sending comment notification:', notifError);
+      }
+    }
 
     res.json({
       success: true,
@@ -385,6 +416,86 @@ async function checkAnnouncementAccess(announcement, user) {
   }
 
   return false;
+}
+
+// Helper function to get announcement recipients for notifications
+async function getAnnouncementRecipients(announcement) {
+  const recipients = [];
+
+  try {
+    // If status is not published, no notifications
+    if (announcement.status !== 'published') {
+      return [];
+    }
+
+    // Based on audience
+    if (announcement.audience === 'all') {
+      const allUsers = await User.find({ isActive: true }).select('_id');
+      return allUsers.map(u => u._id);
+    }
+
+    if (announcement.audience === 'students') {
+      const students = await User.find({ role: 'student', isActive: true }).select('_id');
+      return students.map(u => u._id);
+    }
+
+    if (announcement.audience === 'teachers') {
+      const teachers = await User.find({ role: 'teacher', isActive: true }).select('_id');
+      return teachers.map(u => u._id);
+    }
+
+    if (announcement.audience === 'admins') {
+      const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+      return admins.map(u => u._id);
+    }
+
+    // For specific targeting
+    if (announcement.audience === 'specific') {
+      // Add targetUsers
+      if (announcement.targetUsers && announcement.targetUsers.length > 0) {
+        recipients.push(...announcement.targetUsers.map(u => u._id || u));
+      }
+
+      // Add students from targetGroups
+      if (announcement.targetGroups && announcement.targetGroups.length > 0) {
+        const groupIds = announcement.targetGroups.map(g => g._id || g);
+        const studentsInGroups = await User.find({
+          role: 'student',
+          'academicInfo.groups': { $in: groupIds }
+        }).select('_id');
+        recipients.push(...studentsInGroups.map(s => s._id));
+      }
+
+      // Add students/teachers from targetCourses
+      if (announcement.targetCourses && announcement.targetCourses.length > 0) {
+        const courseIds = announcement.targetCourses.map(c => c._id || c);
+        
+        // Get groups from these courses
+        const groups = await Group.find({ course: { $in: courseIds } }).select('_id');
+        const groupIds = groups.map(g => g._id);
+        
+        // Get students from these groups
+        const studentsInCourses = await User.find({
+          role: 'student',
+          'academicInfo.groups': { $in: groupIds }
+        }).select('_id');
+        recipients.push(...studentsInCourses.map(s => s._id));
+
+        // Get teachers for these courses
+        const courses = await Course.find({ _id: { $in: courseIds } }).populate('teacher');
+        courses.forEach(course => {
+          if (course.teacher && course.teacher._id) {
+            recipients.push(course.teacher._id);
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error getting announcement recipients:', error);
+  }
+
+  // Remove duplicates
+  return [...new Set(recipients.map(id => id.toString()))];
 }
 
 module.exports = router;

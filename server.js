@@ -85,6 +85,7 @@ app.use('/api/grades', require('./routes/grades'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/academic-years', require('./routes/academicYears'));
 app.use('/api/announcements', require('./routes/announcements'));
+app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Health check endpoint

@@ -4,6 +4,7 @@ const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
 const { validate, registerSchema, loginSchema, updateProfileSchema } = require('../middleware/validation');
 const { authenticate, authorize, sensitiveOperationLimit } = require('../middleware/auth');
+const { notifyWelcome } = require('../utils/notificationHelper');
 
 const router = express.Router();
 
@@ -57,6 +58,14 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     });
 
     await user.save();
+
+    // Send welcome notification
+    try {
+      await notifyWelcome(user._id, user.role);
+    } catch (notifError) {
+      console.error('Error sending welcome notification:', notifError);
+      // Don't fail registration if notification fails
+    }
 
     // Generate token
     const token = generateToken({ id: user._id, role: user.role });

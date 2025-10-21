@@ -147,6 +147,13 @@ export const routes: Routes = [
           }
         ]
       },
+      // Notifications
+      {
+        path: 'notifications',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher', 'student'] },
+        loadComponent: () => import('./notifications/notifications-page.component').then(m => m.NotificationsPageComponent)
+      },
       // Courses
       {
         path: 'courses',

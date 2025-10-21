@@ -1,17 +1,8 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-
-export interface Notification {
-  id: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  link?: string;
-  icon?: string;
-}
+import { Router, RouterModule } from '@angular/router';
+import { NotificationService, Notification } from '../../services/notification.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-notifications',
@@ -34,7 +25,22 @@ export interface Notification {
 
       <!-- Notifications List -->
       <div class="overflow-y-auto max-h-96">
-        <div *ngIf="notifications.length === 0" class="px-4 py-12 text-center">
+        <!-- Loading State -->
+        <div *ngIf="loading" class="px-4 py-8">
+          <div class="animate-pulse space-y-3">
+            <div *ngFor="let i of [1,2,3,4,5]" class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-gray-200 rounded-full"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div class="h-3 bg-gray-200 rounded w-full"></div>
+                <div class="h-3 bg-gray-200 rounded w-1/4"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && notifications.length === 0" class="px-4 py-12 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
@@ -42,21 +48,17 @@ export interface Notification {
           <p class="text-xs text-gray-400 mt-1">You're all caught up!</p>
         </div>
 
+        <!-- Notifications List -->
         <div *ngFor="let notification of notifications" 
              class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
              [class.bg-indigo-50]="!notification.read"
-             (click)="markAsRead(notification)">
+             (click)="handleNotificationClick(notification)">
           <div class="flex items-start space-x-3">
-            <!-- Icon -->
+            <!-- Icon/Emoji -->
             <div class="flex-shrink-0 mt-1">
-              <div [ngClass]="getIconClasses(notification.type)" 
-                   class="w-8 h-8 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path *ngIf="notification.type === 'info'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path *ngIf="notification.type === 'success'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path *ngIf="notification.type === 'warning'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  <path *ngIf="notification.type === 'error'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div [ngClass]="getColorClass(notification)" 
+                   class="w-8 h-8 rounded-full flex items-center justify-center text-lg border">
+                {{ getIcon(notification) }}
               </div>
             </div>
 
@@ -69,7 +71,17 @@ export interface Notification {
                 <span *ngIf="!notification.read" class="ml-2 flex-shrink-0 w-2 h-2 bg-indigo-600 rounded-full"></span>
               </div>
               <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ notification.message }}</p>
-              <p class="text-xs text-gray-400 mt-1">{{ getTimeAgo(notification.timestamp) }}</p>
+              <div class="flex items-center justify-between mt-1">
+                <p class="text-xs text-gray-400">{{ notificationService.getTimeAgo(notification.createdAt) }}</p>
+                <span *ngIf="notification.priority === 'urgent' || notification.priority === 'high'" 
+                      class="text-xs px-2 py-0.5 rounded-full"
+                      [ngClass]="{
+                        'bg-red-100 text-red-700': notification.priority === 'urgent',
+                        'bg-orange-100 text-orange-700': notification.priority === 'high'
+                      }">
+                  {{ notification.priority }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -94,112 +106,95 @@ export interface Notification {
     }
   `]
 })
-export class NotificationsComponent {
+export class NotificationsComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
 
-  notifications: Notification[] = [
-    {
-      id: '1',
-      type: 'success',
-      title: 'Assignment Graded',
-      message: 'Your assignment "Math Quiz #3" has been graded. You scored 95/100!',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-      read: false
-    },
-    {
-      id: '2',
-      type: 'info',
-      title: 'New Assignment Posted',
-      message: 'Your teacher has posted a new assignment "English Essay" due next Friday.',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      read: false
-    },
-    {
-      id: '3',
-      type: 'warning',
-      title: 'Attendance Alert',
-      message: 'Your attendance rate is below 80%. Please ensure regular attendance.',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-      read: false
-    },
-    {
-      id: '4',
-      type: 'info',
-      title: 'Group Session Scheduled',
-      message: 'A new group session has been scheduled for tomorrow at 10:00 AM.',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      read: true
-    },
-    {
-      id: '5',
-      type: 'success',
-      title: 'Profile Updated',
-      message: 'Your profile information has been successfully updated.',
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      read: true
-    },
-    {
-      id: '6',
-      type: 'info',
-      title: 'Welcome!',
-      message: 'Welcome to Drose Online! Complete your profile to get started.',
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      read: true
-    }
-  ];
+  notifications: Notification[] = [];
+  loading = true;
+  unreadCount = 0;
 
-  get unreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
+  constructor(
+    public notificationService: NotificationService,
+    private router: Router,
+    private toastService: ToastService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadNotifications();
+    this.loadUnreadCount();
   }
 
-  markAsRead(notification: Notification): void {
-    notification.read = true;
-    if (notification.link) {
-      // Navigate to link if provided
-      console.log('Navigate to:', notification.link);
+  loadNotifications(): void {
+    this.loading = true;
+    this.notificationService.getNotifications({ limit: 10, unreadOnly: false }).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.notifications = response.data.notifications;
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading notifications:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  loadUnreadCount(): void {
+    this.notificationService.unreadCount$.subscribe(count => {
+      this.unreadCount = count;
+    });
+  }
+
+  handleNotificationClick(notification: Notification): void {
+    // Mark as read
+    if (!notification.read) {
+      this.notificationService.markAsRead(notification._id).subscribe({
+        next: () => {
+          notification.read = true;
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+        },
+        error: (error) => {
+          console.error('Error marking notification as read:', error);
+        }
+      });
+    }
+
+    // Navigate if actionUrl exists
+    if (notification.actionUrl) {
+      this.close.emit();
+      this.router.navigate([notification.actionUrl]);
     }
   }
 
   markAllAsRead(): void {
-    this.notifications.forEach(n => n.read = true);
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications.forEach(n => n.read = true);
+        this.unreadCount = 0;
+        this.toastService.success('All notifications marked as read');
+      },
+      error: (error) => {
+        console.error('Error marking all as read:', error);
+        this.toastService.error('Failed to mark all as read');
+      }
+    });
   }
 
   viewAllNotifications(): void {
-    console.log('View all notifications');
     this.close.emit();
-    // Navigate to notifications page if exists
+    this.router.navigate(['/dashboard/notifications']);
   }
 
-  getIconClasses(type: string): string {
-    const classes = {
-      info: 'bg-blue-100 text-blue-600',
-      success: 'bg-green-100 text-green-600',
-      warning: 'bg-yellow-100 text-yellow-600',
-      error: 'bg-red-100 text-red-600'
-    };
-    return classes[type as keyof typeof classes] || classes.info;
+  getIcon(notification: Notification): string {
+    return this.notificationService.getNotificationIcon(notification.type);
   }
 
-  getTimeAgo(date: Date): string {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    
-    const intervals = {
-      year: 31536000,
-      month: 2592000,
-      week: 604800,
-      day: 86400,
-      hour: 3600,
-      minute: 60
-    };
-
-    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
-      const interval = Math.floor(seconds / secondsInUnit);
-      if (interval >= 1) {
-        return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
-      }
-    }
-
-    return 'Just now';
+  getColorClass(notification: Notification): string {
+    return this.notificationService.getNotificationColorClass(
+      notification.color || 'blue', 
+      notification.priority
+    );
   }
 }
 
