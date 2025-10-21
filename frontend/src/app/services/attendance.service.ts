@@ -262,4 +262,61 @@ export class AttendanceService {
       headers: this.authService.getAuthHeaders()
     });
   }
+
+  // ============================================
+  // TAB-SPECIFIC ENDPOINTS
+  // ============================================
+
+  // Student: My Attendance Records
+  getMyAttendanceRecords(params?: {
+    page?: number;
+    limit?: number;
+    groupId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    status?: string;
+  }): Observable<ApiResponse<any>> {
+    let httpParams = new HttpParams();
+    
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key as keyof typeof params]) {
+          httpParams = httpParams.set(key, params[key as keyof typeof params] as string);
+        }
+      });
+    }
+
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/my-records`, {
+      params: httpParams,
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  // Student: My Schedule
+  getMySchedule(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/my-schedule`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  // Student: Today's Sessions
+  getTodaySessions(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/today-sessions`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  // Teacher: My Teaching Schedule
+  getMyTeachingSchedule(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/my-teaching-schedule`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+
+  // Teacher: Today's Teaching Sessions
+  getTodayTeachingSessions(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/today-teaching-sessions`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
 }
