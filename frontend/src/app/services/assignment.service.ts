@@ -177,6 +177,34 @@ export class AssignmentService {
     return this.api.get(`${this.ASSIGNMENTS_ENDPOINT}`, { ...params, courseId });
   }
 
+  // ==========================================
+  // ROLE-SPECIFIC METHODS (New)
+  // ==========================================
+
+  /**
+   * Get assignments for the current student (enrolled groups only)
+   * Used by students to see their assignments
+   */
+  getMyAssignments(params: QueryParams = {}): Observable<ApiResponse<any>> {
+    return this.api.get(`${this.ASSIGNMENTS_ENDPOINT}/my-assignments`, params);
+  }
+
+  /**
+   * Get assignments created by the current teacher
+   * Used by teachers to see their teaching assignments
+   */
+  getCurrentTeacherAssignments(params: QueryParams = {}): Observable<ApiResponse<any>> {
+    return this.api.get(`${this.ASSIGNMENTS_ENDPOINT}/teacher/assignments`, params);
+  }
+
+  /**
+   * Get all assignments (admin view)
+   * Alias for getAssignments() for clarity in role-based code
+   */
+  getAllAssignments(params: QueryParams = {}): Observable<ApiResponse<Assignment[]>> {
+    return this.getAssignments(params);
+  }
+
   // File Upload for Submissions (if implemented)
   uploadSubmissionFile(assignmentId: string, file: File): Observable<any> {
     const formData = new FormData();

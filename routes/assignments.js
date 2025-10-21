@@ -7,6 +7,183 @@ const { validate, validateQuery, assignmentSchema, paginationSchema } = require(
 
 const router = express.Router();
 
+// ==========================================
+// ROLE-SPECIFIC ENDPOINTS (Must come before generic routes)
+// ==========================================
+
+// @route   GET /api/assignments/my-assignments
+// @desc    Get assignments for current student (from enrolled groups/courses)
+// @access  Private (Student only)
+router.get('/my-assignments', authenticate, authorize('student'), validateQuery(paginationSchema), async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status, type, search } = req.query;
+    
+    // Get student's enrolled groups
+    const User = require('../models/User');
+    const student = await User.findById(req.user._id).select('academicInfo.groups');
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+    
+    const groupIds = student.academicInfo?.groups || [];
+    
+    // Build query
+    const query = {
+      $or: [
+        { groups: { $in: groupIds } }, // Assignments for student's groups
+      ],
+      status: { $in: ['published', 'closed'] } // Students only see published/closed
+    };
+    
+    // Apply additional filters
+    if (status) query.status = status;
+    if (type) query.type = type;
+    if (search) {
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { title: { $regex: search, $options: 'i' } },
+          { code: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ]
+      });
+    }
+    
+    const assignments = await Assignment.find(query)
+      .populate('course', 'name code')
+      .populate({
+        path: 'course',
+        populate: {
+          path: 'subject',
+          select: 'name code'
+        }
+      })
+      .populate('teacher', 'firstName lastName fullName')
+      .populate('groups', 'name code gradeLevel')
+      .sort({ dueDate: -1 })
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .lean();
+    
+    const total = await Assignment.countDocuments(query);
+    
+    // Include submission status for each assignment
+    const assignmentIds = assignments.map(a => a._id);
+    const submissions = await Submission.find({
+      assignment: { $in: assignmentIds },
+      student: req.user._id
+    }).select('assignment status grade submittedAt isLate').lean();
+    
+    const submissionMap = new Map(submissions.map(s => [s.assignment.toString(), s]));
+    
+    const assignmentsWithStatus = assignments.map(assignment => ({
+      ...assignment,
+      submission: submissionMap.get(assignment._id.toString()) || null,
+      hasSubmitted: submissionMap.has(assignment._id.toString())
+    }));
+    
+    res.json({
+      success: true,
+      data: {
+        assignments: assignmentsWithStatus,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get my assignments error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching your assignments' });
+  }
+});
+
+// @route   GET /api/assignments/teacher/assignments
+// @desc    Get assignments created by current teacher
+// @access  Private (Teacher only)
+router.get('/teacher/assignments', authenticate, authorize('teacher'), validateQuery(paginationSchema), async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status, type, search, courseId } = req.query;
+    
+    // Build query for teacher's assignments
+    const query = {
+      teacher: req.user._id
+    };
+    
+    // Apply additional filters
+    if (courseId) query.course = courseId;
+    if (status) query.status = status;
+    if (type) query.type = type;
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { code: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const assignments = await Assignment.find(query)
+      .populate('course', 'name code')
+      .populate({
+        path: 'course',
+        populate: {
+          path: 'subject',
+          select: 'name code'
+        }
+      })
+      .populate('teacher', 'firstName lastName fullName')
+      .populate('groups', 'name code gradeLevel currentEnrollment')
+      .sort({ dueDate: -1 })
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .lean();
+    
+    const total = await Assignment.countDocuments(query);
+    
+    // Add submission statistics for each assignment
+    const assignmentsWithStats = await Promise.all(
+      assignments.map(async (assignment) => {
+        const [totalSubmissions, gradedSubmissions, averageGrade] = await Promise.all([
+          Submission.countDocuments({ assignment: assignment._id }),
+          Submission.countDocuments({ assignment: assignment._id, status: 'graded' }),
+          Submission.aggregate([
+            { $match: { assignment: assignment._id, status: 'graded' } },
+            { $group: { _id: null, avg: { $avg: '$grade.percentage' } } }
+          ]).then(result => Math.round(result[0]?.avg || 0))
+        ]);
+        
+        return {
+          ...assignment,
+          stats: {
+            totalSubmissions,
+            gradedSubmissions,
+            pendingGrading: totalSubmissions - gradedSubmissions,
+            averageGrade
+          }
+        };
+      })
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        assignments: assignmentsWithStats,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get teacher assignments error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching teacher assignments' });
+  }
+});
+
 // @route   GET /api/assignments
 // @desc    Get assignments (filtered by user role)
 // @access  Private

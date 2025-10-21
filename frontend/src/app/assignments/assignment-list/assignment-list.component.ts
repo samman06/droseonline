@@ -4,7 +4,8 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AssignmentService, Assignment } from '../../services/assignment.service';
 import { ToastService } from '../../services/toast.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, User } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-assignment-list',
@@ -22,10 +23,21 @@ import { AuthService } from '../../services/auth.service';
               </svg>
             </div>
             <div>
-              <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Assignments
+              <!-- Role-specific headers -->
+              <h1 *ngIf="currentUser?.role === 'student'" class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                My Assignments
               </h1>
-              <p class="mt-1 text-gray-600">Manage assignments and track student submissions</p>
+              <h1 *ngIf="currentUser?.role === 'teacher'" class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                My Teaching Assignments
+              </h1>
+              <h1 *ngIf="currentUser?.role === 'admin'" class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                All Assignments
+              </h1>
+              
+              <!-- Role-specific descriptions -->
+              <p *ngIf="currentUser?.role === 'student'" class="mt-1 text-gray-600">View your assignments and submit work</p>
+              <p *ngIf="currentUser?.role === 'teacher'" class="mt-1 text-gray-600">Manage assignments and grade student submissions</p>
+              <p *ngIf="currentUser?.role === 'admin'" class="mt-1 text-gray-600">Manage all assignments and track student progress</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -38,7 +50,7 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
           <div class="mt-4 lg:mt-0 flex space-x-3">
-            <button (click)="exportAssignments()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
+            <button *ngIf="canExport" (click)="exportAssignments()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
@@ -418,7 +430,7 @@ import { AuthService } from '../../services/auth.service';
 export class AssignmentListComponent implements OnInit {
   assignments: Assignment[] = [];
   loading = false;
-  currentUser: any;
+  currentUser: User | null = null;
   searchTimeout: any;
   viewMode: 'grid' | 'list' = 'grid';
 
@@ -435,22 +447,43 @@ export class AssignmentListComponent implements OnInit {
   constructor(
     private assignmentService: AssignmentService,
     private toastService: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.currentUser;
-    this.loadAssignments();
+    // Subscribe to current user for role-based permissions
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.loadAssignments(); // Reload when user changes
+    });
   }
 
   loadAssignments(): void {
+    if (!this.currentUser) return;
+    
     this.loading = true;
     const params: any = { page: 1, limit: 50 };
     if (this.filters.type) params.type = this.filters.type;
     if (this.filters.status) params.status = this.filters.status;
     if (this.filters.search) params.search = this.filters.search;
 
-    this.assignmentService.getAssignments(params).subscribe({
+    // Role-specific data loading
+    let observable;
+    switch (this.currentUser.role) {
+      case 'student':
+        observable = this.assignmentService.getMyAssignments(params);
+        break;
+      case 'teacher':
+        observable = this.assignmentService.getCurrentTeacherAssignments(params);
+        break;
+      case 'admin':
+      default:
+        observable = this.assignmentService.getAllAssignments(params);
+        break;
+    }
+
+    observable.subscribe({
       next: (response) => {
         if (response.success && response.data) {
           // Handle nested data structure
@@ -476,17 +509,21 @@ export class AssignmentListComponent implements OnInit {
     this.loadAssignments();
   }
 
+  // PERMISSION GETTERS (using PermissionService)
   get canCreateAssignment(): boolean {
-    return this.currentUser?.role === 'admin' || this.currentUser?.role === 'teacher';
+    return this.permissionService.canCreateAssignment();
   }
 
   get isStudent(): boolean {
-    return this.currentUser?.role === 'student';
+    return this.permissionService.isStudent();
+  }
+  
+  get canExport(): boolean {
+    return this.permissionService.canExportData();
   }
 
   canEdit(assignment: Assignment): boolean {
-    if (this.currentUser?.role === 'admin') return true;
-    return assignment.teacher === this.currentUser?._id;
+    return this.permissionService.canEditAssignment(assignment);
   }
 
   canSubmit(assignment: Assignment): boolean {
