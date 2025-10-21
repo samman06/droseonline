@@ -79,6 +79,20 @@ export class ApiService {
     );
   }
 
+  // GET method without ID (for endpoints like /auth/profile)
+  getWithoutId<T>(endpoint: string): Observable<ApiResponse<T>> {
+    console.log(`Making GET request to: ${this.API_URL}/${endpoint}`);
+    
+    return this.http.get<ApiResponse<T>>(`${this.API_URL}/${endpoint}`, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap(response => {
+        console.log(`GET ${endpoint} response:`, response);
+      }),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
   // Generic POST method
   post<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
     console.log(`Making POST request to: ${this.API_URL}/${endpoint}`);

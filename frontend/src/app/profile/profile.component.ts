@@ -247,10 +247,29 @@ import { AvatarService } from '../services/avatar.service';
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-2">Current Grade</label>
                       <input 
+                        *ngIf="!isEditMode"
                         type="text"
                         [value]="profileUser.academicInfo?.currentGrade || 'Not Set'"
                         readonly
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg cursor-not-allowed">
+                      <select 
+                        *ngIf="isEditMode"
+                        formControlName="currentGrade"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white">
+                        <option value="">Select Grade</option>
+                        <option value="1">Grade 1</option>
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5">Grade 5</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12">Grade 12</option>
+                      </select>
                     </div>
                     
                     <div>
@@ -426,6 +445,7 @@ export class ProfileComponent implements OnInit {
       phone: [''],
       department: [''],
       specialization: [''],
+      currentGrade: [''], // Current grade for students
       avatar: [''] // Avatar field for image upload
     });
   }
@@ -434,15 +454,28 @@ export class ProfileComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    // If no userId in route, get current user from auth
+    // Always fetch fresh data from API
     if (!this.userId) {
-      // Subscribe to currentUser$ to get the latest user data
-      this.authService.currentUser$.subscribe(user => {
-        if (user) {
-          this.profileUser = user;
-          this.populateForm();
+      // Fetch current user's profile from API
+      this.api.getWithoutId('auth/profile').subscribe({
+        next: (response: any) => {
+          if (response.success && response.data) {
+            this.profileUser = response.data.user || response.data;
+            this.populateForm();
+            
+            // Update AuthService with fresh data
+            if (this.profileUser) {
+              this.authService.updateCurrentUser(this.profileUser);
+            }
+          }
+          this.loading = false;
+        },
+        error: (error: any) => {
+          console.error('Error loading profile:', error);
+          this.error = error.error?.message || 'Failed to load profile';
+          this.loading = false;
+          this.toastService.error(this.error);
         }
-        this.loading = false;
       });
       return;
     }
@@ -477,6 +510,7 @@ export class ProfileComponent implements OnInit {
         // department and specialization are in academicInfo
         department: (this.profileUser as any).academicInfo?.department || '',
         specialization: (this.profileUser as any).academicInfo?.specialization || '',
+        currentGrade: (this.profileUser as any).academicInfo?.currentGrade || '',
         avatar: avatar
       });
       
@@ -505,11 +539,30 @@ export class ProfileComponent implements OnInit {
     this.saving = true;
     const formData = this.profileForm.value;
     
+    // Filter out empty/null values and only send actual changes
+    const cleanData: any = {};
+    Object.keys(formData).forEach(key => {
+      const value = formData[key];
+      // Only include non-empty values
+      if (value !== null && value !== '' && value !== undefined) {
+        // For arrays, only include if not empty
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            cleanData[key] = value;
+          }
+        } else {
+          cleanData[key] = value;
+        }
+      }
+    });
+
+    console.log('Sending profile update:', cleanData);
+    
     // For updating own profile (no userId), use the putWithoutId method
     // For admin updating another user (with userId), use the regular put method
     const observable = this.userId 
-      ? this.api.put('users', this.userId, formData)
-      : this.api.putWithoutId('auth/profile', formData);
+      ? this.api.put('users', this.userId, cleanData)
+      : this.api.putWithoutId('auth/profile', cleanData);
 
     observable.subscribe({
       next: (response: any) => {
@@ -557,7 +610,19 @@ export class ProfileComponent implements OnInit {
 
   // UTILITY METHODS
   getUserCode(): string {
-    return (this.profileUser as any)?.code || 'N/A';
+    if (!this.profileUser) return 'N/A';
+    
+    const academicInfo = (this.profileUser as any)?.academicInfo;
+    if (!academicInfo) return 'N/A';
+    
+    // Students have studentId, Teachers and Admins have employeeId
+    if (this.profileUser.role === 'student') {
+      return academicInfo.studentId || 'N/A';
+    } else if (this.profileUser.role === 'teacher' || this.profileUser.role === 'admin') {
+      return academicInfo.employeeId || 'N/A';
+    }
+    
+    return 'N/A';
   }
 
   getMemberSinceDate(): string {

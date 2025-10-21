@@ -46,11 +46,13 @@ export class AppComponent implements OnInit {
           if (!response.success) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('userAvatar');
           }
         },
         error: () => {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          localStorage.removeItem('userAvatar');
         }
       });
     }

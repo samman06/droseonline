@@ -93,19 +93,6 @@
         </div>
       </div>
     </nav>
-
-    <!-- Bottom Actions -->
-    <div class="absolute bottom-0 w-full p-4 border-t border-gray-200">
-      <div class="space-y-2">
-        <button (click)="logout()"
-                class="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:text-red-900 hover:bg-red-50">
-          <svg class="mr-3 h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          Sign Out
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- Main Content Area -->
@@ -156,17 +143,99 @@
             </button>
           </div>
 
-          <!-- User Avatar -->
+          <!-- User Profile Dropdown -->
           <div *ngIf="currentUser" class="relative">
-            <button class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100">
-              <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-semibold">
-                {{ currentUser.firstName.charAt(0) }}{{ currentUser.lastName.charAt(0) }}
+            <button (click)="toggleProfileDropdown()" 
+                    class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <!-- Avatar Image or Initials -->
+              <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+                <img *ngIf="hasUserAvatar()" 
+                     [src]="getUserAvatar()" 
+                     [alt]="currentUser.fullName"
+                     class="w-full h-full object-cover" />
+                <div *ngIf="!hasUserAvatar()" 
+                     class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                  {{ getUserInitials() }}
+                </div>
               </div>
+              
+              <!-- User Info (Hidden on mobile) -->
               <div class="hidden md:block text-left">
-                <div class="text-sm font-medium text-gray-900">{{ currentUser.firstName }}</div>
-                <div class="text-xs text-gray-500">{{ currentUser.role | titlecase }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ currentUser.firstName }} {{ currentUser.lastName }}</div>
+                <div class="text-xs text-gray-500 capitalize">{{ currentUser.role }}</div>
               </div>
+              
+              <!-- Dropdown Arrow -->
+              <svg class="hidden md:block h-5 w-5 text-gray-400 transition-transform" 
+                   [class.rotate-180]="profileDropdownOpen"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
+
+            <!-- Dropdown Menu -->
+            <div *ngIf="profileDropdownOpen" 
+                 (click)="closeProfileDropdown()"
+                 class="fixed inset-0 z-40"
+                 style="background: transparent;"></div>
+            
+            <div *ngIf="profileDropdownOpen" 
+                 class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50 transform origin-top-right transition-all">
+              <!-- User Info Header -->
+              <div class="px-4 py-3 border-b border-gray-100">
+                <div class="flex items-center space-x-3">
+                  <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-indigo-100">
+                    <img *ngIf="hasUserAvatar()" 
+                         [src]="getUserAvatar()" 
+                         [alt]="currentUser.fullName"
+                         class="w-full h-full object-cover" />
+                    <div *ngIf="!hasUserAvatar()" 
+                         class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                      {{ getUserInitials() }}
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">{{ currentUser.fullName }}</p>
+                    <p class="text-xs text-gray-500 truncate">{{ currentUser.email }}</p>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1"
+                          [class]="getRoleColor(currentUser.role)">
+                      {{ currentUser.role | titlecase }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dropdown Items -->
+              <div class="py-2">
+                <a routerLink="profile" 
+                   (click)="closeProfileDropdown()"
+                   class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors">
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  My Profile
+                </a>
+                
+                <a routerLink="" 
+                   (click)="closeProfileDropdown()"
+                   class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors">
+                  <svg class="mr-3 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                  Dashboard
+                </a>
+                
+                <div class="border-t border-gray-100 my-2"></div>
+                
+                <button (click)="logout(); closeProfileDropdown()" 
+                        class="w-full flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors">
+                  <svg class="mr-3 h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign Out
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -14,18 +14,13 @@ export class DashboardLayoutComponent implements OnInit {
   currentUser: User | null = null;
   sidebarOpen = false;
   notifications = 3;
+  profileDropdownOpen = false;
 
   navigationItems = [
     {
       name: 'Dashboard',
       icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2zm0 0V9a2 2 0 012-2h14a2 2 0 012 2v2M7 7V5a2 2 0 012-2h6a2 2 0 012 2v2',
       route: '/dashboard',
-      roles: ['admin', 'teacher', 'student']
-    },
-    {
-      name: 'My Profile',
-      icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-      route: 'profile',
       roles: ['admin', 'teacher', 'student']
     },
     {
@@ -101,6 +96,29 @@ export class DashboardLayoutComponent implements OnInit {
 
   closeSidebar() {
     this.sidebarOpen = false;
+  }
+
+  toggleProfileDropdown() {
+    this.profileDropdownOpen = !this.profileDropdownOpen;
+  }
+
+  closeProfileDropdown() {
+    this.profileDropdownOpen = false;
+  }
+
+  getUserAvatar(): string {
+    if (!this.currentUser) return '';
+    const avatar = (this.currentUser as any).avatar;
+    return avatar || '';
+  }
+
+  hasUserAvatar(): boolean {
+    return !!this.getUserAvatar();
+  }
+
+  getUserInitials(): string {
+    if (!this.currentUser) return '?';
+    return `${this.currentUser.firstName.charAt(0)}${this.currentUser.lastName.charAt(0)}`;
   }
 
   hasRole(requiredRoles: string[]): boolean {

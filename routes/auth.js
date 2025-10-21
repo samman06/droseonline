@@ -194,6 +194,35 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
+// @route   GET /api/auth/profile
+// @desc    Get current user profile with all details
+// @access  Private
+router.get('/profile', authenticate, async (req, res) => {
+  try {
+    // Fetch fresh user data from database
+    const user = await User.findById(req.user._id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { user }
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // @route   PUT /api/auth/profile
 // @desc    Update user profile
 // @access  Private
@@ -202,6 +231,14 @@ router.put('/profile', authenticate, async (req, res) => {
     console.log('📝 Profile update request received');
     console.log('User ID:', req.user._id);
     console.log('Request body:', req.body);
+    
+    // SECURITY: Explicitly reject password updates
+    if (req.body.password || req.body.newPassword || req.body.currentPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update password through profile endpoint. Use change password endpoint instead.'
+      });
+    }
     
     const allowedUpdates = [
       'firstName', 
@@ -213,26 +250,42 @@ router.put('/profile', authenticate, async (req, res) => {
       'address',
       'department',
       'specialization',
+      'currentGrade',
       'avatar'
     ];
     const updates = {};
 
-    // Only include allowed fields
+    // Only include allowed fields with non-empty values
     Object.keys(req.body).forEach(key => {
       if (allowedUpdates.includes(key)) {
+        const value = req.body[key];
+        
+        // Skip empty strings, null, and undefined (but allow false and 0)
+        if (value === '' || value === null || value === undefined) {
+          return;
+        }
+        
+        // Skip empty arrays
+        if (Array.isArray(value) && value.length === 0) {
+          return;
+        }
+        
         // Map 'phone' to 'phoneNumber' for consistency
         if (key === 'phone') {
-          updates['phoneNumber'] = req.body[key];
+          updates['phoneNumber'] = value;
         }
-        // Map 'department' and 'specialization' to nested academicInfo paths
+        // Map 'department', 'specialization', and 'currentGrade' to nested academicInfo paths
         else if (key === 'department') {
-          updates['academicInfo.department'] = req.body[key];
+          updates['academicInfo.department'] = value;
         }
         else if (key === 'specialization') {
-          updates['academicInfo.specialization'] = req.body[key];
+          updates['academicInfo.specialization'] = value;
+        }
+        else if (key === 'currentGrade') {
+          updates['academicInfo.currentGrade'] = value;
         }
         else {
-          updates[key] = req.body[key];
+          updates[key] = value;
         }
       }
     });
