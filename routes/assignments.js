@@ -330,6 +330,14 @@ router.get('/:id', authenticate, async (req, res) => {
     } else if (req.user.role === 'teacher' && assignment.teacher._id.toString() === req.user._id.toString()) {
       hasAccess = true;
     } else if (req.user.role === 'student') {
+      // Students can only see published or closed assignments
+      if (!['published', 'closed'].includes(assignment.status)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. This assignment is not yet available.'
+        });
+      }
+      
       // Check if student is enrolled in any of the assignment's groups
       const User = require('../models/User');
       const student = await User.findById(req.user._id).populate('academicInfo.groups');
