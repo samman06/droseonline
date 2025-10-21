@@ -6,6 +6,7 @@ import { AuthService, User } from '../services/auth.service';
 import { PermissionService } from '../services/permission.service';
 import { ToastService } from '../services/toast.service';
 import { ApiService } from '../services/api.service';
+import { AvatarService } from '../services/avatar.service';
 
 @Component({
   selector: 'app-profile',
@@ -76,10 +77,59 @@ import { ApiService } from '../services/api.service';
               <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-5 rounded-full"></div>
               
               <div class="relative z-10 flex items-center gap-6">
-                <!-- Avatar -->
-                <div class="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 flex items-center justify-center text-white text-5xl font-bold">
-                  {{ getInitials(profileUser.firstName, profileUser.lastName) }}
+                <!-- Avatar with Upload -->
+                <div class="relative">
+                  <div class="w-32 h-32 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 overflow-hidden flex items-center justify-center text-white text-5xl font-bold">
+                    <!-- Avatar Image -->
+                    <img 
+                      *ngIf="hasAvatar()" 
+                      [src]="getCurrentAvatar()" 
+                      alt="{{ profileUser.firstName }} {{ profileUser.lastName }}"
+                      class="w-full h-full object-cover" />
+                    <!-- Initials Fallback -->
+                    <span *ngIf="!hasAvatar()">
+                      {{ getInitials(profileUser.firstName, profileUser.lastName) }}
+                    </span>
+                  </div>
+                  
+                  <!-- Upload Button (Edit Mode Only) -->
+                  <button
+                    *ngIf="isEditMode && canEdit"
+                    type="button"
+                    (click)="fileInput.click()"
+                    [disabled]="uploadingAvatar"
+                    class="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg border-2 border-indigo-500 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                    title="Upload photo">
+                    <svg *ngIf="!uploadingAvatar" class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <svg *ngIf="uploadingAvatar" class="animate-spin w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </button>
+                  
+                  <!-- Remove Button (Edit Mode + Avatar Exists) -->
+                  <button
+                    *ngIf="isEditMode && canEdit && hasAvatar()"
+                    type="button"
+                    (click)="clearAvatar()"
+                    class="absolute top-0 right-0 bg-red-500 rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
+                    title="Remove photo">
+                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
+                
+                <!-- Hidden File Input -->
+                <input
+                  #fileInput
+                  type="file"
+                  accept="image/*"
+                  (change)="onAvatarSelected($event)"
+                  class="hidden" />
                 
                 <!-- Basic Info -->
                 <div class="flex-1">
@@ -339,6 +389,8 @@ export class ProfileComponent implements OnInit {
   error = '';
   isEditMode = false;
   userId: string | null = null;
+  avatarPreview: string | null = null;
+  uploadingAvatar = false;
 
   constructor(
     private fb: FormBuilder,
@@ -347,7 +399,8 @@ export class ProfileComponent implements OnInit {
     private toastService: ToastService,
     private api: ApiService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private avatarService: AvatarService
   ) {}
 
   ngOnInit() {
@@ -372,7 +425,8 @@ export class ProfileComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
       department: [''],
-      specialization: ['']
+      specialization: [''],
+      avatar: [''] // Avatar field for image upload
     });
   }
 
@@ -413,6 +467,8 @@ export class ProfileComponent implements OnInit {
 
   populateForm() {
     if (this.profileUser) {
+      const avatar = (this.profileUser as any).avatar || '';
+      
       this.profileForm.patchValue({
         firstName: this.profileUser.firstName || '',
         lastName: this.profileUser.lastName || '',
@@ -420,8 +476,14 @@ export class ProfileComponent implements OnInit {
         phone: (this.profileUser as any).phoneNumber || (this.profileUser as any).phone || '',
         // department and specialization are in academicInfo
         department: (this.profileUser as any).academicInfo?.department || '',
-        specialization: (this.profileUser as any).academicInfo?.specialization || ''
+        specialization: (this.profileUser as any).academicInfo?.specialization || '',
+        avatar: avatar
       });
+      
+      // Set avatar preview if avatar exists
+      if (avatar) {
+        this.avatarPreview = avatar;
+      }
     }
   }
 
@@ -537,6 +599,61 @@ export class ProfileComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/dashboard/home']);
+  }
+
+  // Avatar upload methods
+  async onAvatarSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    this.uploadingAvatar = true;
+    this.error = '';
+
+    try {
+      // Validate and convert image
+      const base64Image = await this.avatarService.validateAndResizeImage(file);
+      
+      if (base64Image) {
+        // Set preview
+        this.avatarPreview = base64Image;
+        
+        // Update form
+        this.profileForm.patchValue({ avatar: base64Image });
+        
+        console.log('Avatar uploaded successfully');
+        this.toastService.success('Photo uploaded successfully');
+      }
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      this.error = error.message || 'Failed to upload avatar. Please try a different image.';
+      this.toastService.error(this.error);
+      this.clearAvatar();
+    } finally {
+      this.uploadingAvatar = false;
+    }
+  }
+
+  clearAvatar() {
+    this.avatarPreview = null;
+    this.profileForm.patchValue({ avatar: '' });
+  }
+
+  getAvatarUrl(): string {
+    if (this.avatarPreview) {
+      return this.avatarPreview;
+    }
+    if (this.profileUser) {
+      return this.avatarService.getAvatarUrl(this.profileUser, 128);
+    }
+    return '';
+  }
+
+  hasAvatar(): boolean {
+    return !!(this.avatarPreview || (this.profileUser as any)?.avatar);
+  }
+
+  getCurrentAvatar(): string {
+    return this.avatarPreview || (this.profileUser as any)?.avatar || '';
   }
 }
 
