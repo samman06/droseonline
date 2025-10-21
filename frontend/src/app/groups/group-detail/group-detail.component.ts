@@ -7,6 +7,8 @@ import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService, User } from '../../services/auth.service';
+import { PermissionService } from '../../services/permission.service';
 
 @Component({
   selector: 'app-group-detail',
@@ -32,21 +34,21 @@ import { ToastService } from '../../services/toast.service';
             </div>
       </div>
 
-          <!-- Action Buttons -->
-          <div class="flex items-center gap-2">
-            <button (click)="clone()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md" title="Clone Group">
+          <!-- Action Buttons - Admin/Teacher only -->
+          <div *ngIf="canEdit || canDelete" class="flex items-center gap-2">
+            <button *ngIf="canEdit" (click)="clone()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md" title="Clone Group">
               <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
               <span class="hidden sm:inline">Clone</span>
             </button>
-            <button (click)="edit()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md">
+            <button *ngIf="canEdit" (click)="edit()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
               <span class="hidden sm:inline">Edit</span>
             </button>
-            <button (click)="delete()" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm hover:shadow-md">
+            <button *ngIf="canDelete" (click)="delete()" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm hover:shadow-md">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
@@ -148,6 +150,7 @@ import { ToastService } from '../../services/toast.service';
                 Overview
               </button>
               <button 
+                *ngIf="showStudentsTab"
                 (click)="activeTab = 'students'"
                 [class.border-indigo-600]="activeTab === 'students'"
                 [class.text-indigo-600]="activeTab === 'students'"
@@ -316,9 +319,11 @@ import { ToastService } from '../../services/toast.service';
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="text-lg font-bold text-gray-900">Enrolled Students</h3>
-                  <p class="text-sm text-gray-600 mt-1">Manage student enrollment for this group</p>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ canManageStudents ? 'Manage student enrollment for this group' : 'View students enrolled in this group' }}
+                  </p>
                 </div>
-                <button (click)="openAddStudentModal()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
+                <button *ngIf="canManageStudents" (click)="openAddStudentModal()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
@@ -383,11 +388,14 @@ import { ToastService } from '../../services/toast.service';
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {{ studentEnrollment?.enrollmentDate | date:'short' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td *ngIf="canManageStudents" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button (click)="removeStudent(studentEnrollment?.student?._id || studentEnrollment?.student?.id)" 
                                   class="text-red-600 hover:text-red-900">
                             Remove
                           </button>
+                        </td>
+                        <td *ngIf="!canManageStudents" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-400">
+                          —
                         </td>
                       </tr>
                       <tr *ngIf="!group?.students || group?.students.length === 0">
@@ -406,9 +414,11 @@ import { ToastService } from '../../services/toast.service';
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="text-lg font-bold text-gray-900">Assignments</h3>
-                  <p class="text-sm text-gray-600 mt-1">View and manage assignments for this group</p>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ canCreateAssignment ? 'View and manage assignments for this group' : 'View your assignment results' }}
+                  </p>
                 </div>
-                <button (click)="createAssignmentForGroup()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
+                <button *ngIf="canCreateAssignment" (click)="createAssignmentForGroup()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
@@ -511,9 +521,12 @@ import { ToastService } from '../../services/toast.service';
                 <div class="flex items-center justify-between mb-6">
                   <div>
                     <h3 class="text-lg font-bold text-gray-900">Attendance Overview</h3>
-                    <p class="text-sm text-gray-600 mt-1">Track and manage attendance for this group</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                      {{ canMarkAttendance ? 'Track and manage attendance for this group' : 'View your attendance records' }}
+                    </p>
                   </div>
                   <button 
+                    *ngIf="canMarkAttendance"
                     (click)="markAttendance()"
                     class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -585,8 +598,11 @@ import { ToastService } from '../../services/toast.service';
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                     <p class="text-gray-600 font-medium">No attendance records yet</p>
-                    <p class="text-sm text-gray-500 mt-1">Mark attendance to start tracking</p>
+                    <p class="text-sm text-gray-500 mt-1">
+                      {{ canMarkAttendance ? 'Mark attendance to start tracking' : 'Attendance will appear here once recorded' }}
+                    </p>
                     <button 
+                      *ngIf="canMarkAttendance"
                       (click)="markAttendance()"
                       class="mt-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-all">
                       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,6 +768,9 @@ export class GroupDetailComponent implements OnInit {
   attendanceStats: any = null;
   recentAttendance: any[] = [];
   loadingAttendance = false;
+  
+  // Role-based properties
+  currentUser: User | null = null;
 
   constructor(
     private groupService: GroupService,
@@ -760,12 +779,46 @@ export class GroupDetailComponent implements OnInit {
     private route: ActivatedRoute, 
     private router: Router, 
     private confirmation: ConfirmationService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService,
+    public permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
+    // Subscribe to current user for role-based permissions
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+    
     const id = this.route.snapshot.paramMap.get('id')!;
     this.groupService.getGroup(id).subscribe({ next: res => this.group = res.data?.group });
+  }
+  
+  // PERMISSION GETTERS (for template use)
+  get canEdit(): boolean {
+    return this.permissionService.canEditGroup(this.group);
+  }
+  
+  get canDelete(): boolean {
+    return this.permissionService.canDeleteGroup(this.group);
+  }
+  
+  get canManageStudents(): boolean {
+    // Only admin and teacher can manage (add/remove) students
+    return this.permissionService.isAdmin() || this.permissionService.isTeacher();
+  }
+  
+  get canCreateAssignment(): boolean {
+    return this.permissionService.canCreateAssignment();
+  }
+  
+  get canMarkAttendance(): boolean {
+    return this.permissionService.canMarkAttendance();
+  }
+  
+  get showStudentsTab(): boolean {
+    // Hide students tab for student role (students shouldn't see other students)
+    return this.currentUser?.role !== 'student';
   }
 
   goBack(): void {
