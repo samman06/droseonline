@@ -90,6 +90,12 @@ export class DashboardLayoutComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Close dropdowns on route change
+    this.router.events.subscribe(() => {
+      this.closeProfileDropdown();
+      this.closeNotificationsDropdown();
+    });
   }
 
   toggleSidebar() {
