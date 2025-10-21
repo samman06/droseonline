@@ -2,19 +2,21 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
+import { NotificationsComponent } from '../../shared/notifications/notifications.component';
 
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NotificationsComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.scss']
 })
 export class DashboardLayoutComponent implements OnInit {
   currentUser: User | null = null;
   sidebarOpen = false;
-  notifications = 3;
+  notificationCount = 3;
   profileDropdownOpen = false;
+  notificationsDropdownOpen = false;
 
   navigationItems = [
     {
@@ -100,10 +102,24 @@ export class DashboardLayoutComponent implements OnInit {
 
   toggleProfileDropdown() {
     this.profileDropdownOpen = !this.profileDropdownOpen;
+    if (this.profileDropdownOpen) {
+      this.notificationsDropdownOpen = false; // Close notifications if open
+    }
   }
 
   closeProfileDropdown() {
     this.profileDropdownOpen = false;
+  }
+
+  toggleNotificationsDropdown() {
+    this.notificationsDropdownOpen = !this.notificationsDropdownOpen;
+    if (this.notificationsDropdownOpen) {
+      this.profileDropdownOpen = false; // Close profile if open
+    }
+  }
+
+  closeNotificationsDropdown() {
+    this.notificationsDropdownOpen = false;
   }
 
   getUserAvatar(): string {
