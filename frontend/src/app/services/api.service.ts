@@ -109,6 +109,21 @@ export class ApiService {
     );
   }
 
+  // PUT method without ID (for endpoints like /auth/profile)
+  putWithoutId<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
+    console.log(`Making PUT request to: ${this.API_URL}/${endpoint}`);
+    console.log('With data:', data);
+
+    return this.http.put<ApiResponse<T>>(`${this.API_URL}/${endpoint}`, data, {
+      headers: this.authService.getAuthHeaders()
+    }).pipe(
+      tap(response => {
+        console.log(`PUT ${endpoint} response:`, response);
+      }),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
   // Generic DELETE method
   delete<T>(endpoint: string, id: string): Observable<ApiResponse<T>> {
     console.log(`Making DELETE request to: ${this.API_URL}/${endpoint}/${id}`);

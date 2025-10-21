@@ -290,6 +290,13 @@ export class AuthService {
       );
   }
 
+  // Method to manually update current user (useful after profile updates)
+  updateCurrentUser(user: User): void {
+    console.log('🔄 Updating current user in AuthService:', user);
+    this.currentUserSubject.next(user);
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
   forgotPassword(email: string): Observable<any> {
     if (this.USE_MOCK) {
       // Mock forgot password - always return success

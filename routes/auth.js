@@ -69,6 +69,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       message: 'User registered successfully',
       data: {
         user: {
+          _id: user._id,
           id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -76,6 +77,10 @@ router.post('/register', validate(registerSchema), async (req, res) => {
           role: user.role,
           fullName: user.fullName,
           isActive: user.isActive,
+          phoneNumber: user.phoneNumber,
+          dateOfBirth: user.dateOfBirth,
+          address: user.address,
+          createdAt: user.createdAt,
           academicInfo: user.academicInfo
         },
         token
@@ -137,6 +142,7 @@ router.post('/login', sensitiveOperationLimit, validate(loginSchema), async (req
       message: 'Login successful',
       data: {
         user: {
+          _id: user._id,
           id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -146,6 +152,10 @@ router.post('/login', sensitiveOperationLimit, validate(loginSchema), async (req
           avatar: user.avatar,
           isActive: user.isActive,
           lastLogin: user.lastLogin,
+          phoneNumber: user.phoneNumber,
+          dateOfBirth: user.dateOfBirth,
+          address: user.address,
+          createdAt: user.createdAt,
           academicInfo: user.academicInfo
         },
         token
@@ -187,23 +197,78 @@ router.get('/me', authenticate, async (req, res) => {
 // @route   PUT /api/auth/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/profile', authenticate, validate(updateProfileSchema), async (req, res) => {
+router.put('/profile', authenticate, async (req, res) => {
   try {
-    const allowedUpdates = ['firstName', 'lastName', 'phoneNumber', 'dateOfBirth', 'address'];
+    console.log('📝 Profile update request received');
+    console.log('User ID:', req.user._id);
+    console.log('Request body:', req.body);
+    
+    const allowedUpdates = [
+      'firstName', 
+      'lastName', 
+      'email',
+      'phone',
+      'phoneNumber', 
+      'dateOfBirth', 
+      'address',
+      'department',
+      'specialization'
+    ];
     const updates = {};
 
     // Only include allowed fields
     Object.keys(req.body).forEach(key => {
       if (allowedUpdates.includes(key)) {
-        updates[key] = req.body[key];
+        // Map 'phone' to 'phoneNumber' for consistency
+        if (key === 'phone') {
+          updates['phoneNumber'] = req.body[key];
+        }
+        // Map 'department' and 'specialization' to nested academicInfo paths
+        else if (key === 'department') {
+          updates['academicInfo.department'] = req.body[key];
+        }
+        else if (key === 'specialization') {
+          updates['academicInfo.specialization'] = req.body[key];
+        }
+        else {
+          updates[key] = req.body[key];
+        }
       }
     });
 
+    console.log('Updates to apply:', updates);
+
+    // Check if email is being updated and if it's already taken
+    if (updates.email) {
+      const existingUser = await User.findOne({ 
+        email: updates.email, 
+        _id: { $ne: req.user._id } 
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already in use by another user'
+        });
+      }
+    }
+
+    console.log('Updating user in database...');
     const user = await User.findByIdAndUpdate(
       req.user._id,
       updates,
       { new: true, runValidators: true }
-    );
+    ).select('-password');
+    
+    console.log('✅ User updated successfully:', user ? 'User found' : 'User NOT found');
+    if (user) {
+      console.log('Updated user data:', {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber
+      });
+    }
 
     if (!user) {
       return res.status(404).json({
