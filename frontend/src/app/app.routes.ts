@@ -140,6 +140,10 @@ export const routes: Routes = [
             canActivate: [RoleGuard],
             data: { roles: ['admin', 'teacher'] },
             loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./announcements/announcement-detail/announcement-detail.component').then(m => m.AnnouncementDetailComponent)
           }
         ]
       },

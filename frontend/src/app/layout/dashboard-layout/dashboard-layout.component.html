@@ -32,24 +32,6 @@
       </button>
     </div>
 
-    <!-- User Info -->
-    <div *ngIf="currentUser" class="px-6 py-4 border-b border-gray-200">
-      <div class="flex items-center">
-        <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
-          {{ currentUser.firstName.charAt(0) }}{{ currentUser.lastName.charAt(0) }}
-        </div>
-        <div class="ml-3 flex-1">
-          <div class="text-sm font-medium text-gray-900">{{ currentUser.fullName }}</div>
-          <div class="flex items-center mt-1">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                  [class]="getRoleColor(currentUser.role)">
-              {{ currentUser.role | titlecase }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Navigation -->
     <nav class="mt-4 px-3">
       <div class="space-y-1">

@@ -51,7 +51,7 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
     if (status && req.user.role === 'admin') query.status = status;
 
     const announcements = await Announcement.find(query)
-      .populate('author', 'firstName lastName fullName role')
+      .populate('author', 'firstName lastName fullName role avatar email')
       .populate('targetGroups', 'name code')
       .populate('targetCourses', 'name code')
       .limit(limit * 1)
@@ -86,6 +86,58 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
   }
 });
 
+// @route   GET /api/announcements/:id
+// @desc    Get single announcement details
+// @access  Private
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id)
+      .populate('author', 'firstName lastName fullName role avatar email')
+      .populate('targetGroups', 'name code')
+      .populate('targetCourses', 'name code')
+      .populate({
+        path: 'comments.user',
+        select: 'firstName lastName fullName avatar email'
+      })
+      .populate({
+        path: 'comments.replies.user',
+        select: 'firstName lastName fullName avatar email'
+      });
+
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    // Check if user has access to this announcement
+    const userRole = req.user.role;
+    const canView = await checkAnnouncementAccess(announcement, req.user);
+
+    if (!canView && userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view this announcement'
+      });
+    }
+
+    // Mark as read
+    await announcement.markAsRead(req.user._id, req.ip);
+
+    res.json({
+      success: true,
+      data: { announcement }
+    });
+  } catch (error) {
+    console.error('Get announcement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching announcement'
+    });
+  }
+});
+
 // @route   POST /api/announcements
 // @desc    Create new announcement
 // @access  Private (Admin/Teacher)
@@ -100,7 +152,7 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(announcem
     await announcement.save();
 
     const populatedAnnouncement = await Announcement.findById(announcement._id)
-      .populate('author', 'firstName lastName fullName')
+      .populate('author', 'firstName lastName fullName role avatar email')
       .populate('targetGroups', 'name code')
       .populate('targetCourses', 'name code');
 
@@ -117,5 +169,222 @@ router.post('/', authenticate, authorize('admin', 'teacher'), validate(announcem
     });
   }
 });
+
+// @route   PUT /api/announcements/:id
+// @desc    Update announcement
+// @access  Private (Admin or Author)
+router.put('/:id', authenticate, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    // Check permissions: admin or author
+    if (req.user.role !== 'admin' && announcement.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to edit this announcement'
+      });
+    }
+
+    // Update fields
+    const updateFields = [
+      'title', 'content', 'summary', 'type', 'priority', 'audience',
+      'targetGroups', 'targetCourses', 'targetUsers', 'publishAt', 'expiresAt',
+      'status', 'isUrgent', 'isPinned', 'allowComments', 'tags',
+      'eventDetails', 'notificationSettings'
+    ];
+
+    updateFields.forEach(field => {
+      if (req.body[field] !== undefined) {
+        announcement[field] = req.body[field];
+      }
+    });
+
+    await announcement.save();
+
+    const updatedAnnouncement = await Announcement.findById(announcement._id)
+      .populate('author', 'firstName lastName fullName role avatar email')
+      .populate('targetGroups', 'name code')
+      .populate('targetCourses', 'name code');
+
+    res.json({
+      success: true,
+      message: 'Announcement updated successfully',
+      data: { announcement: updatedAnnouncement }
+    });
+  } catch (error) {
+    console.error('Update announcement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating announcement'
+    });
+  }
+});
+
+// @route   DELETE /api/announcements/:id
+// @desc    Delete announcement
+// @access  Private (Admin or Author)
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    // Check permissions: admin or author
+    if (req.user.role !== 'admin' && announcement.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this announcement'
+      });
+    }
+
+    await Announcement.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Announcement deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete announcement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting announcement'
+    });
+  }
+});
+
+// @route   POST /api/announcements/:id/comment
+// @desc    Add comment to announcement
+// @access  Private
+router.post('/:id/comment', authenticate, async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content is required'
+      });
+    }
+
+    const announcement = await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    if (!announcement.allowComments) {
+      return res.status(403).json({
+        success: false,
+        message: 'Comments are not allowed on this announcement'
+      });
+    }
+
+    await announcement.addComment(req.user._id, content);
+
+    const updatedAnnouncement = await Announcement.findById(announcement._id)
+      .populate({
+        path: 'comments.user',
+        select: 'firstName lastName fullName avatar email'
+      });
+
+    res.json({
+      success: true,
+      message: 'Comment added successfully',
+      data: { announcement: updatedAnnouncement }
+    });
+  } catch (error) {
+    console.error('Add comment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while adding comment'
+    });
+  }
+});
+
+// @route   POST /api/announcements/:id/like
+// @desc    Toggle like on announcement
+// @access  Private
+router.post('/:id/like', authenticate, async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    await announcement.toggleLike(req.user._id);
+
+    res.json({
+      success: true,
+      message: 'Like toggled successfully',
+      data: { 
+        likes: announcement.stats.likes,
+        isLiked: announcement.likes.some(like => like.user.toString() === req.user._id.toString())
+      }
+    });
+  } catch (error) {
+    console.error('Toggle like error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while toggling like'
+    });
+  }
+});
+
+// Helper function to check announcement access
+async function checkAnnouncementAccess(announcement, user) {
+  // Published announcements are accessible if:
+  // 1. User role matches audience
+  // 2. User is in targetUsers
+  // 3. User is in a group that's targeted
+  // 4. User is in a course that's targeted
+
+  if (announcement.status !== 'published') {
+    // Only author and admin can see non-published
+    return announcement.author.toString() === user._id.toString() || user.role === 'admin';
+  }
+
+  // Check audience
+  if (announcement.audience === 'all') return true;
+  if (announcement.audience === 'students' && user.role === 'student') return true;
+  if (announcement.audience === 'teachers' && user.role === 'teacher') return true;
+  if (announcement.audience === 'admins' && user.role === 'admin') return true;
+
+  // Check specific targeting
+  if (announcement.targetUsers && announcement.targetUsers.some(u => u.toString() === user._id.toString())) {
+    return true;
+  }
+
+  // Check groups (for students)
+  if (user.role === 'student' && announcement.targetGroups && announcement.targetGroups.length > 0) {
+    const User = require('../models/User');
+    const student = await User.findById(user._id).populate('academicInfo.groups');
+    const userGroupIds = student.academicInfo.groups.map(g => g._id.toString());
+    const targetGroupIds = announcement.targetGroups.map(g => g._id.toString());
+    if (userGroupIds.some(gid => targetGroupIds.includes(gid))) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 module.exports = router;

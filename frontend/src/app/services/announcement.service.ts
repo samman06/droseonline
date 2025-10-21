@@ -6,42 +6,87 @@ export interface Announcement {
   _id?: string;
   title: string;
   content: string;
-  type: 'general' | 'academic' | 'event' | 'emergency' | 'maintenance' | 'holiday';
+  summary?: string;
+  type: 'general' | 'academic' | 'event' | 'emergency' | 'maintenance' | 'policy' | 'exam' | 'assignment';
   priority: 'low' | 'normal' | 'high' | 'urgent';
   audience: 'all' | 'students' | 'teachers' | 'admins' | 'specific_groups' | 'specific_courses' | 'specific_users';
-  targetGroups?: string[];
-  targetCourses?: string[];
+  targetGroups?: any[];
+  targetCourses?: any[];
   targetUsers?: string[];
   author: string | any;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'scheduled' | 'published' | 'expired' | 'archived';
   publishAt?: Date;
   expiresAt?: Date;
+  isUrgent?: boolean;
   isPinned?: boolean;
+  allowComments?: boolean;
   attachments?: {
-    name: string;
-    url: string;
-    type: string;
+    filename: string;
+    originalName: string;
+    path: string;
     size: number;
+    mimetype: string;
+    uploadDate: Date;
+  }[];
+  images?: {
+    filename: string;
+    path: string;
+    caption?: string;
+    altText?: string;
+  }[];
+  eventDetails?: {
+    eventDate?: Date;
+    startTime?: string;
+    endTime?: string;
+    location?: string;
+    maxParticipants?: number;
+    registrationRequired?: boolean;
+    registrationDeadline?: Date;
+    contactPerson?: string;
+    additionalInfo?: string;
+  };
+  notificationSettings?: {
+    sendEmail?: boolean;
+    sendPush?: boolean;
+    sendSMS?: boolean;
+    notifyImmediately?: boolean;
+  };
+  readBy?: {
+    user: string | any;
+    readAt: Date;
+    ipAddress?: string;
+  }[];
+  likes?: {
+    user: string | any;
+    likedAt: Date;
   }[];
   comments?: {
+    _id?: string;
     user: string | any;
     content: string;
     createdAt: Date;
+    isEdited?: boolean;
+    editedAt?: Date;
+    replies?: {
+      user: string | any;
+      content: string;
+      createdAt: Date;
+    }[];
   }[];
-  views?: {
-    user: string;
-    viewedAt: Date;
-  }[];
-  settings?: {
-    allowComments?: boolean;
-    requireAcknowledgment?: boolean;
-    sendEmail?: boolean;
-    sendNotification?: boolean;
-  };
+  tags?: string[];
   stats?: {
-    totalViews?: number;
-    totalComments?: number;
-    totalAcknowledgments?: number;
+    views?: number;
+    uniqueViews?: number;
+    likes?: number;
+    comments?: number;
+    shares?: number;
+    clickThroughRate?: number;
+  };
+  approval?: {
+    required?: boolean;
+    approvedBy?: string | any;
+    approvedAt?: Date;
+    rejectionReason?: string;
   };
   createdAt?: Date;
   updatedAt?: Date;
@@ -112,8 +157,13 @@ export class AnnouncementService {
     return this.api.get(`${this.ANNOUNCEMENTS_ENDPOINT}/${announcementId}/comments`, params);
   }
 
-  addComment(announcementId: string, content: string): Observable<ApiResponse<AnnouncementComment>> {
-    return this.api.post(`${this.ANNOUNCEMENTS_ENDPOINT}/${announcementId}/comments`, { content });
+  addComment(announcementId: string, content: string): Observable<ApiResponse<Announcement>> {
+    return this.api.post(`${this.ANNOUNCEMENTS_ENDPOINT}/${announcementId}/comment`, { content });
+  }
+
+  // Like/Unlike
+  toggleLike(announcementId: string): Observable<ApiResponse<any>> {
+    return this.api.post(`${this.ANNOUNCEMENTS_ENDPOINT}/${announcementId}/like`, {});
   }
 
   updateComment(announcementId: string, commentId: string, content: string): Observable<ApiResponse<AnnouncementComment>> {
