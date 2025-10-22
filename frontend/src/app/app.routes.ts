@@ -350,6 +350,27 @@ export const routes: Routes = [
         loadComponent: () => import('./analytics/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
       },
       {
+        path: 'materials',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher', 'student'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./materials/material-list/material-list.component').then(m => m.MaterialListComponent)
+          },
+          {
+            path: 'upload',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] }, // Only teachers and admins can upload
+            loadComponent: () => import('./materials/material-upload/material-upload.component').then(m => m.MaterialUploadComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./materials/material-detail/material-detail.component').then(m => m.MaterialDetailComponent)
+          }
+        ]
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
       },
