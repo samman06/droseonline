@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SubjectService } from '../../services/subject.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-subject-detail',
@@ -25,9 +26,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <h1 class="text-3xl font-bold text-gray-900">{{ subject?.name }}</h1>
           <p class="text-gray-600">Code: {{ subject?.code }}</p>
         </div>
-        <div class="space-x-3">
+        <!-- Only admins can edit/delete subjects -->
+        <div *ngIf="isAdmin()" class="space-x-3">
           <button (click)="edit()" class="btn-edit">Edit</button>
           <button (click)="delete()" class="btn-danger">Delete</button>
+        </div>
+        <div *ngIf="!isAdmin()" class="text-sm text-gray-500 italic">
+          Read-only access
         </div>
       </div>
 
@@ -54,8 +59,17 @@ import { ConfirmationService } from '../../services/confirmation.service';
 })
 export class SubjectDetailComponent implements OnInit {
   subject: any;
+  currentUser: any;
 
-  constructor(private subjectService: SubjectService, private route: ActivatedRoute, private router: Router, private confirmation: ConfirmationService) {}
+  constructor(
+    private subjectService: SubjectService, 
+    private route: ActivatedRoute, 
+    private router: Router, 
+    private confirmation: ConfirmationService,
+    private authService: AuthService
+  ) {
+    this.currentUser = this.authService.currentUser;
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
@@ -64,6 +78,10 @@ export class SubjectDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/dashboard/subjects']);
+  }
+
+  isAdmin(): boolean {
+    return this.currentUser?.role === 'admin';
   }
 
   edit(): void { this.router.navigate(['/dashboard/subjects', this.subject?.id || this.subject?._id, 'edit']); }

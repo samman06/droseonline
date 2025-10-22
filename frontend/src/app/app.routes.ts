@@ -261,10 +261,14 @@ export const routes: Routes = [
           },
           {
             path: 'new',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin'] }, // Only admin can create subjects
             loadComponent: () => import('./subjects/subject-create/subject-create.component').then(m => m.SubjectCreateComponent)
           },
           {
             path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin'] }, // Only admin can edit subjects
             loadComponent: () => import('./subjects/subject-edit/subject-edit.component').then(m => m.SubjectEditComponent)
           }
         ]

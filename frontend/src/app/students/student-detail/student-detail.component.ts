@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Student {
   id: string;
@@ -93,7 +94,9 @@ interface Student {
                 </div>
               </div>
               <div class="flex space-x-3">
+                <!-- Only admins can edit/delete students -->
                 <button 
+                  *ngIf="isAdmin()"
                   (click)="editStudent()"
                   class="btn-secondary"
                 >
@@ -103,6 +106,7 @@ interface Student {
                   Edit
                 </button>
                 <button 
+                  *ngIf="isAdmin()"
                   (click)="deleteStudent()"
                   class="btn-danger"
                 >
@@ -404,13 +408,18 @@ export class StudentDetailComponent implements OnInit {
   loadingAttendance = false;
   error: string | null = null;
 
+  currentUser: any;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private studentService: StudentService,
     private attendanceService: AttendanceService,
-    private confirmationService: ConfirmationService
-  ) {}
+    private confirmationService: ConfirmationService,
+    private authService: AuthService
+  ) {
+    this.currentUser = this.authService.currentUser;
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -490,6 +499,10 @@ export class StudentDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/dashboard/students']);
+  }
+
+  isAdmin(): boolean {
+    return this.currentUser?.role === 'admin';
   }
 
   editStudent(): void {

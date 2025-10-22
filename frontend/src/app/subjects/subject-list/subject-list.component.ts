@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { SubjectService } from '../../services/subject.service';
 import { ConfirmationService } from '../../services/confirmation.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-subject-list',
@@ -46,7 +47,12 @@ import { ConfirmationService } from '../../services/confirmation.service';
               </svg>
               Export Data
             </button>
-            <button (click)="navigateToCreate()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
+            <!-- Only admins can create new subjects -->
+            <button 
+              *ngIf="isAdmin()"
+              (click)="navigateToCreate()" 
+              class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+            >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
@@ -98,8 +104,11 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900">No subjects found</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by adding a new subject.</p>
-        <div class="mt-6">
+        <p class="mt-1 text-sm text-gray-500">
+          <span *ngIf="isAdmin()">Get started by adding a new subject.</span>
+          <span *ngIf="!isAdmin()">No subjects available at this time.</span>
+        </p>
+        <div *ngIf="isAdmin()" class="mt-6">
           <button (click)="navigateToCreate()" class="btn-primary">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -127,7 +136,9 @@ import { ConfirmationService } from '../../services/confirmation.service';
 
           <!-- Card Actions -->
           <div class="px-6 py-4 bg-gray-50 flex items-center justify-end space-x-2">
+            <!-- Only admins can edit/delete subjects -->
             <button 
+              *ngIf="isAdmin()"
               (click)="editSubject(subject)" 
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all duration-200"
               title="Edit Subject"
@@ -138,6 +149,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
               Edit
             </button>
             <button 
+              *ngIf="isAdmin()"
               (click)="deleteSubject(subject)" 
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-all duration-200"
               title="Delete Subject"
@@ -147,6 +159,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
               </svg>
               Delete
             </button>
+            <!-- Teachers see read-only view -->
+            <span *ngIf="!isAdmin()" class="text-sm text-gray-500 italic">Read-only access</span>
           </div>
         </div>
       </div>
@@ -163,10 +177,18 @@ export class SubjectListComponent implements OnInit {
   subjects: any[] = [];
   isLoading = false;
   private searchDebounce: any;
+  currentUser: any;
 
   filters: any = { search: '', limit: 100 };
 
-  constructor(private subjectService: SubjectService, private router: Router, private confirmation: ConfirmationService) {}
+  constructor(
+    private subjectService: SubjectService, 
+    private router: Router, 
+    private confirmation: ConfirmationService,
+    private authService: AuthService
+  ) {
+    this.currentUser = this.authService.currentUser;
+  }
 
   ngOnInit(): void { this.loadSubjects(); }
 
@@ -207,6 +229,10 @@ export class SubjectListComponent implements OnInit {
   removeFilter(key: 'search'): void {
     (this.filters as any)[key] = '';
     this.loadSubjects();
+  }
+
+  isAdmin(): boolean {
+    return this.currentUser?.role === 'admin';
   }
 
   navigateToCreate(): void { this.router.navigate(['/dashboard/subjects/new']); }
