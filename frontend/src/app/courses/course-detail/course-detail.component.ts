@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { CourseService } from '../../services/course.service';
+import { MaterialService, Material } from '../../services/material.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 
@@ -264,19 +265,85 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Course Materials -->
-        <div *ngIf="canEdit" class="bg-white rounded-lg shadow-sm p-6">
+        <div class="bg-white rounded-lg shadow-sm p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold text-gray-900">Course Materials</h2>
-            <button class="text-sm text-blue-600 hover:text-blue-800">
+            <button *ngIf="canEdit" 
+                    (click)="uploadMaterial()"
+                    class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg inline-flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
               Upload Material
             </button>
           </div>
-          
-          <div class="text-center py-8 text-gray-500">
-            <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+          <!-- Materials Grid -->
+          <div *ngIf="materials.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div *ngFor="let material of materials" 
+                 (click)="viewMaterial(material)"
+                 class="border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-purple-300 transition-all cursor-pointer">
+              <!-- Material Icon & Type -->
+              <div class="flex items-start justify-between mb-3">
+                <div class="p-2 bg-gray-100 rounded-lg">
+                  <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(material.fileName)"></path>
+                  </svg>
+                </div>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full" [ngClass]="getTypeBadgeClass(material.type)">
+                  {{ material.type | titlecase }}
+                </span>
+              </div>
+              
+              <!-- Material Title -->
+              <h3 class="font-semibold text-gray-900 mb-2 truncate" [title]="material.title">
+                {{ material.title }}
+              </h3>
+              
+              <!-- Material Description -->
+              <p *ngIf="material.description" class="text-sm text-gray-600 mb-3 line-clamp-2">
+                {{ material.description }}
+              </p>
+              
+              <!-- Material Meta -->
+              <div class="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-200">
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    {{ material.stats.viewCount || 0 }}
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    {{ material.stats.downloadCount || 0 }}
+                  </div>
+                </div>
+                <span *ngIf="material.fileSize" class="text-gray-500">
+                  {{ material.fileSizeFormatted }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="materials.length === 0" class="text-center py-12 text-gray-500">
+            <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
             </svg>
-            <p>No materials uploaded yet</p>
+            <p class="text-lg font-medium mb-2">No Materials Available</p>
+            <p class="text-sm text-gray-500 mb-4">Course materials and resources will appear here</p>
+            <button *ngIf="canEdit" 
+                    (click)="uploadMaterial()"
+                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md text-sm">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Upload First Material
+            </button>
           </div>
         </div>
       </div>
@@ -287,12 +354,14 @@ export class CourseDetailComponent implements OnInit {
   course: any = null;
   students: any[] = [];
   assignments: any[] = [];
+  materials: Material[] = [];
   loading = false;
   courseId: string | null = null;
   currentUser: any;
 
   constructor(
     private courseService: CourseService,
+    private materialService: MaterialService,
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
@@ -307,6 +376,7 @@ export class CourseDetailComponent implements OnInit {
       this.loadCourse();
       this.loadStudents();
       this.loadAssignments();
+      this.loadMaterials();
     } else {
       this.toastService.showApiError({ message: 'Invalid course' });
       this.router.navigate(['/dashboard/courses']);
@@ -360,6 +430,62 @@ export class CourseDetailComponent implements OnInit {
         console.error('Failed to load assignments', error);
       }
     });
+  }
+
+  loadMaterials(): void {
+    if (!this.courseId) return;
+    
+    this.materialService.getMaterials({ course: this.courseId }).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.materials = response.data.materials || [];
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load materials', error);
+      }
+    });
+  }
+
+  uploadMaterial(): void {
+    this.router.navigate(['/dashboard/materials/upload'], {
+      queryParams: { course: this.courseId }
+    });
+  }
+
+  viewMaterial(material: Material): void {
+    this.router.navigate(['/dashboard/materials', material._id]);
+  }
+
+  getFileIcon(fileName?: string): string {
+    if (!fileName) return 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z';
+    
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    
+    if (['pdf'].includes(ext || '')) {
+      return 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z';
+    } else if (['doc', 'docx'].includes(ext || '')) {
+      return 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z';
+    } else if (['ppt', 'pptx'].includes(ext || '')) {
+      return 'M7 21a2 2 0 002 2h6a2 2 0 002-2V5.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0010.586 3H9a2 2 0 00-2 2v16z';
+    } else if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) {
+      return 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z';
+    }
+    
+    return 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z';
+  }
+
+  getTypeBadgeClass(type: string): string {
+    const colors: any = {
+      'file': 'bg-blue-100 text-blue-800',
+      'document': 'bg-purple-100 text-purple-800',
+      'link': 'bg-green-100 text-green-800',
+      'video': 'bg-red-100 text-red-800',
+      'presentation': 'bg-yellow-100 text-yellow-800',
+      'image': 'bg-pink-100 text-pink-800',
+      'other': 'bg-gray-100 text-gray-800'
+    };
+    return colors[type] || 'bg-gray-100 text-gray-800';
   }
 
   exportRoster(): void {
