@@ -304,9 +304,9 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const assignment = await Assignment.findById(req.params.id)
-      .populate('course', 'name code groups')
       .populate({
         path: 'course',
+        select: 'name code groups subject teacher',
         populate: {
           path: 'subject',
           select: 'name code credits'
@@ -327,11 +327,19 @@ router.get('/:id', authenticate, async (req, res) => {
     
     if (req.user.role === 'admin') {
       hasAccess = true;
-    } else if (req.user.role === 'teacher' && assignment.teacher._id.toString() === req.user._id.toString()) {
-      hasAccess = true;
+    } else if (req.user.role === 'teacher') {
+      // Check if teacher owns this assignment (via teacher field or course.teacher)
+      const teacherId = assignment.teacher?._id || assignment.teacher;
+      const courseTeacherId = assignment.course?.teacher?._id || assignment.course?.teacher;
+      
+      if (teacherId && teacherId.toString() === req.user._id.toString()) {
+        hasAccess = true;
+      } else if (courseTeacherId && courseTeacherId.toString() === req.user._id.toString()) {
+        hasAccess = true;
+      }
     } else if (req.user.role === 'student') {
       // Students can only see published or closed assignments
-      if (!['published', 'closed'].includes(assignment.status)) {
+      if (!['published', 'closed', 'graded'].includes(assignment.status)) {
         return res.status(403).json({
           success: false,
           message: 'Access denied. This assignment is not yet available.'
@@ -340,10 +348,22 @@ router.get('/:id', authenticate, async (req, res) => {
       
       // Check if student is enrolled in any of the assignment's groups
       const User = require('../models/User');
-      const student = await User.findById(req.user._id).populate('academicInfo.groups');
-      const studentGroupIds = student.academicInfo.groups.map(g => g._id.toString());
+      const student = await User.findById(req.user._id);
+      
+      // Get student's group IDs from academicInfo.groups
+      const studentGroupIds = (student.academicInfo?.groups || []).map(g => g.toString());
       const assignmentGroupIds = assignment.groups.map(g => g._id.toString());
+      
       hasAccess = studentGroupIds.some(sgId => assignmentGroupIds.includes(sgId));
+      
+      // Debug logging
+      console.log('Student access check:', {
+        studentId: req.user._id,
+        studentGroups: studentGroupIds,
+        assignmentGroups: assignmentGroupIds,
+        assignmentStatus: assignment.status,
+        hasAccess
+      });
     }
 
     if (!hasAccess) {

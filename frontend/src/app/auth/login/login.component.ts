@@ -20,27 +20,29 @@ export class LoginComponent implements OnInit {
   demoCredentials = [
     {
       category: 'Administrators',
-      icon: '👤',
+      icon: '👑',
       users: [
-        { email: 'admin@droseonline.com', password: 'password123', name: 'System Administrator', role: 'admin' },
+        { email: 'admin@droseonline.com', password: 'admin123', name: 'System Administrator', role: 'admin' },
       ]
     },
     {
       category: 'Teachers',
       icon: '👨‍🏫',
       users: [
-        { email: 'sarah.johnson@droseonline.com', password: 'password123', name: 'Dr. Sarah Johnson', role: 'teacher' },
-        { email: 'michael.davis@droseonline.com', password: 'password123', name: 'Prof. Michael Davis', role: 'teacher' },
-        { email: 'emily.wilson@droseonline.com', password: 'password123', name: 'Dr. Emily Wilson', role: 'teacher' },
+        { email: 'ahmed.hassan@school.eg', password: 'teacher123', name: 'Dr. Ahmed Hassan', role: 'teacher' },
+        { email: 'fatma.ali@school.eg', password: 'teacher123', name: 'Dr. Fatma Ali', role: 'teacher' },
+        { email: 'mohamed.ibrahim@school.eg', password: 'teacher123', name: 'Prof. Mohamed Ibrahim', role: 'teacher' },
+        { email: 'omar.khaled@school.eg', password: 'teacher123', name: 'Dr. Omar Khaled', role: 'teacher' },
       ]
     },
     {
       category: 'Students',
       icon: '👨‍🎓',
       users: [
-        { email: 'ahmed.hassan0@student.droseonline.com', password: 'password123', name: 'Ahmed Hassan', role: 'student' },
-        { email: 'fatima.ali1@student.droseonline.com', password: 'password123', name: 'Fatima Ali', role: 'student' },
-        { email: 'mohamed.ibrahim2@student.droseonline.com', password: 'password123', name: 'Mohamed Ibrahim', role: 'student' },
+        { email: 'youssef.ahmed@student.eg', password: 'student123', name: 'Youssef Ahmed', role: 'student' },
+        { email: 'mariam.mohamed@student.eg', password: 'student123', name: 'Mariam Mohamed', role: 'student' },
+        { email: 'hassan.mahmoud@student.eg', password: 'student123', name: 'Hassan Mahmoud', role: 'student' },
+        { email: 'karim.hassan@student.eg', password: 'student123', name: 'Karim Hassan', role: 'student' },
       ]
     }
   ];

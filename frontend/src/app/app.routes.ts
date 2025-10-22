@@ -322,6 +322,12 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'calendar',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher', 'student'] },
+        loadComponent: () => import('./calendar/calendar-view/calendar-view.component').then(m => m.CalendarViewComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
       },

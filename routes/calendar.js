@@ -60,8 +60,13 @@ router.get('/my-calendar', authenticate, asyncHandler(async (req, res) => {
     }).select('_id name code course schedule');
     userGroups = groups;
   } else if (user.role === 'teacher') {
+    // For teachers, first get their courses, then find groups for those courses
+    const Course = require('../models/Course');
+    const teacherCourses = await Course.find({ teacher: user._id }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+    
     const groups = await Group.find({
-      teacher: user._id
+      course: { $in: courseIds }
     }).populate('course', 'name').select('_id name code course schedule');
     userGroups = groups;
   } else if (user.role === 'admin') {
@@ -225,8 +230,13 @@ router.get('/upcoming', authenticate, asyncHandler(async (req, res) => {
     }).select('_id');
     groupIds = groups.map(g => g._id);
   } else if (user.role === 'teacher') {
+    // For teachers, first get their courses, then find groups for those courses
+    const Course = require('../models/Course');
+    const teacherCourses = await Course.find({ teacher: user._id }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+    
     const groups = await Group.find({
-      teacher: user._id
+      course: { $in: courseIds }
     }).select('_id');
     groupIds = groups.map(g => g._id);
   }

@@ -83,6 +83,12 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
       icon: 'M10 34l-8-8 8-8 1.414 1.414L5.828 25h14.344L14.586 19.414 16 18l8 8-8 8z',
       route: 'announcements',
       roles: ['admin', 'teacher', 'student']
+    },
+    {
+      name: 'Calendar',
+      icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+      route: 'calendar',
+      roles: ['admin', 'teacher', 'student']
     }
   ];
 
