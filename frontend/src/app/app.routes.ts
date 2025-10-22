@@ -68,16 +68,26 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/dashboard-home/dashboard-home.component').then(m => m.DashboardHomeComponent)
       },
       {
+        path: 'my-students',
+        canActivate: [RoleGuard],
+        data: { roles: ['teacher'] },
+        loadComponent: () => import('./students/teacher-students-list/teacher-students-list.component').then(m => m.TeacherStudentsListComponent)
+      },
+      {
         path: 'students',
         canActivate: [RoleGuard],
         data: { roles: ['admin', 'teacher'] },
         children: [
           {
             path: '',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin'] },
             loadComponent: () => import('./students/student-list/student-list.component').then(m => m.StudentListComponent)
           },
           {
             path: 'new',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin'] },
             loadComponent: () => import('./students/student-create/student-create.component').then(m => m.StudentCreateComponent)
           },
           {
@@ -86,6 +96,8 @@ export const routes: Routes = [
           },
           {
             path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin'] },
             loadComponent: () => import('./students/student-edit/student-edit.component').then(m => m.StudentEditComponent)
           }
         ]
