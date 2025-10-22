@@ -11,21 +11,45 @@ const { validate, validateQuery, updateProfileSchema, paginationSchema } = requi
 const router = express.Router();
 
 // @route   GET /api/students
-// @desc    Get all students
+// @desc    Get all students (Admin: all, Teacher: only their enrolled students)
 // @access  Private (Admin/Teacher)
 router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, year, grade, currentYear, isActive, groupId } = req.query;
-    console.log("--------------------------------------------");
-    
-    console.log('GET /api/students - Query params:', req.query);
-    console.log('isActive param:', isActive, 'type:', typeof isActive);
-    console.log('year param:', year, 'type:', typeof year);
-    console.log('grade param:', grade, 'type:', typeof grade);
     
     // Build query for students only
     const query = { role: 'student' };
     const andConditions = [];
+    
+    // For teachers, only show students enrolled in their courses/groups
+    if (req.user.role === 'teacher') {
+      // Get teacher's courses
+      const teacherCourses = await Course.find({ teacher: req.user._id }).select('_id');
+      const courseIds = teacherCourses.map(c => c._id);
+      
+      // Get groups for those courses
+      const teacherGroups = await Group.find({ course: { $in: courseIds } }).select('_id');
+      const groupIds = teacherGroups.map(g => g._id);
+      
+      // Only show students enrolled in these groups
+      if (groupIds.length > 0) {
+        query['academicInfo.groups'] = { $in: groupIds };
+      } else {
+        // Teacher has no groups, return empty result
+        return res.json({
+          success: true,
+          data: {
+            students: [],
+            pagination: {
+              total: 0,
+              pages: 0,
+              page: parseInt(page),
+              limit: parseInt(limit)
+            }
+          }
+        });
+      }
+    }
     
     if (search) {
       andConditions.push({
@@ -48,17 +72,27 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
     if (currentYear) query['academicInfo.currentYear'] = parseInt(currentYear);
     if (isActive !== undefined && isActive !== '') {
       query.isActive = isActive === 'true';
-      console.log('Applied isActive filter:', query.isActive);
     }
-    if (groupId) query['academicInfo.groups'] = groupId;
+    if (groupId) {
+      // For teachers, verify they have access to this group
+      if (req.user.role === 'teacher') {
+        const teacherCourses = await Course.find({ teacher: req.user._id }).select('_id');
+        const courseIds = teacherCourses.map(c => c._id);
+        const group = await Group.findOne({ _id: groupId, course: { $in: courseIds } });
+        if (!group) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access denied. You do not have access to this group.'
+          });
+        }
+      }
+      query['academicInfo.groups'] = groupId;
+    }
     
     // Combine all conditions with $and if there are multiple $or conditions
     if (andConditions.length > 0) {
       query.$and = andConditions;
-      console.log('andConditions array:', JSON.stringify(andConditions, null, 2));
     }
-
-    console.log('Final MongoDB query:', JSON.stringify(query, null, 2));
 
     const students = await User.find(query)
       .select('-password')
@@ -91,7 +125,7 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
 });
 
 // @route   GET /api/students/:id
-// @desc    Get student profile
+// @desc    Get student profile (Admin: any student, Teacher: only their students)
 // @access  Private (Admin/Teacher/Own Profile)
 router.get('/:id', authenticate, async (req, res) => {
   try {
@@ -112,6 +146,25 @@ router.get('/:id', authenticate, async (req, res) => {
         success: false,
         message: 'Student not found'
       });
+    }
+
+    // For teachers, verify they have access to this student
+    if (req.user.role === 'teacher') {
+      const teacherCourses = await Course.find({ teacher: req.user._id }).select('_id');
+      const courseIds = teacherCourses.map(c => c._id);
+      
+      const teacherGroups = await Group.find({ course: { $in: courseIds } }).select('_id');
+      const groupIds = teacherGroups.map(g => g._id.toString());
+      
+      const studentGroupIds = (student.academicInfo?.groups || []).map(g => g._id.toString());
+      const hasAccess = studentGroupIds.some(sgId => groupIds.includes(sgId));
+      
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. This student is not enrolled in your courses.'
+        });
+      }
     }
 
     // Get additional student statistics
