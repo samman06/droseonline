@@ -344,6 +344,12 @@ export const routes: Routes = [
         loadComponent: () => import('./calendar/calendar-view/calendar-view.component').then(m => m.CalendarViewComponent)
       },
       {
+        path: 'analytics',
+        canActivate: [RoleGuard],
+        data: { roles: ['admin', 'teacher'] }, // Teachers and admins can view analytics
+        loadComponent: () => import('./analytics/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
       },
