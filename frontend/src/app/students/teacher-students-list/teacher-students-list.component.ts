@@ -50,16 +50,43 @@ interface Student {
               </div>
             </div>
           </div>
-          <button 
-            (click)="exportStudents()" 
-            class="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-200 border border-white/30 inline-flex items-center shadow-lg"
-            [disabled]="students.length === 0"
-          >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            Export List
-          </button>
+          <div class="flex gap-3">
+            <!-- View Toggle -->
+            <div class="inline-flex bg-white/20 backdrop-blur-sm rounded-xl p-1 border border-white/30">
+              <button 
+                (click)="setViewMode('card')"
+                [class]="viewMode === 'card' 
+                  ? 'px-4 py-2 bg-white text-purple-600 rounded-lg shadow-md font-medium transition-all' 
+                  : 'px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all'"
+                title="Card View"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+              </button>
+              <button 
+                (click)="setViewMode('table')"
+                [class]="viewMode === 'table' 
+                  ? 'px-4 py-2 bg-white text-purple-600 rounded-lg shadow-md font-medium transition-all' 
+                  : 'px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all'"
+                title="Table View"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            <button 
+              (click)="exportStudents()" 
+              class="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-200 border border-white/30 inline-flex items-center shadow-lg"
+              [disabled]="students.length === 0"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Export List
+            </button>
+          </div>
         </div>
       </div>
 
@@ -165,8 +192,8 @@ interface Student {
           </p>
         </div>
 
-        <!-- Students Grid -->
-        <div *ngIf="!isLoading && students.length > 0" class="p-6">
+        <!-- Card View -->
+        <div *ngIf="!isLoading && students.length > 0 && viewMode === 'card'" class="p-6">
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div *ngFor="let student of students; trackBy: trackByStudentId" 
                  class="bg-white border-2 border-gray-200 rounded-xl p-6 hover:shadow-xl hover:border-purple-300 transition-all duration-200 cursor-pointer"
@@ -216,9 +243,89 @@ interface Student {
               </button>
             </div>
           </div>
+        </div>
 
-          <!-- Pagination -->
-          <div *ngIf="pagination.pages > 1" class="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
+        <!-- Table View -->
+        <div *ngIf="!isLoading && students.length > 0 && viewMode === 'table'" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Student
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Student ID
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Grade
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Email
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Groups
+                </th>
+                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let student of students; trackBy: trackByStudentId" 
+                  class="hover:bg-purple-50 transition-colors cursor-pointer"
+                  (click)="viewStudent(student)">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-12 w-12">
+                      <div class="h-12 w-12 bg-gradient-to-br from-purple-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                        {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-semibold text-gray-900">
+                        {{ student.fullName }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900 font-medium">{{ student.academicInfo.studentId }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {{ student.academicInfo.currentGrade }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-600">{{ student.email }}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      {{ student.academicInfo.groups?.length || 0 }} Groups
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    (click)="viewStudent(student); $event.stopPropagation()"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all"
+                  >
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination (for both views) -->
+        <div *ngIf="!isLoading && students.length > 0" class="p-6">
+          <div *ngIf="pagination.pages > 1" class="flex items-center justify-between border-t border-gray-200 pt-6">
             <div class="text-sm text-gray-700">
               Showing <span class="font-semibold">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to
               <span class="font-semibold">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of
@@ -268,6 +375,7 @@ export class TeacherStudentsListComponent implements OnInit {
   students: Student[] = [];
   isLoading = false;
   currentUser: any;
+  viewMode: 'card' | 'table' = 'card';
   
   filters = {
     search: '',
@@ -291,6 +399,11 @@ export class TeacherStudentsListComponent implements OnInit {
     private authService: AuthService
   ) {
     this.currentUser = this.authService.currentUser;
+    // Load saved view preference
+    const savedView = localStorage.getItem('teacherStudentViewMode');
+    if (savedView === 'card' || savedView === 'table') {
+      this.viewMode = savedView;
+    }
   }
 
   ngOnInit(): void {
@@ -331,6 +444,11 @@ export class TeacherStudentsListComponent implements OnInit {
 
   viewStudent(student: Student): void {
     this.router.navigate(['/dashboard/students', student._id || student.id]);
+  }
+
+  setViewMode(mode: 'card' | 'table'): void {
+    this.viewMode = mode;
+    localStorage.setItem('teacherStudentViewMode', mode);
   }
 
   onFiltersChange(): void {
