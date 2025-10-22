@@ -176,8 +176,8 @@ export class MaterialDetailComponent implements OnInit {
     this.loading = true;
     this.materialService.getMaterial(id).subscribe({
       next: (response) => {
-        if (response.success && response.data?.material) {
-          this.material = response.data.material;
+        if (response.success && response.data) {
+          this.material = response.data;
         }
         this.loading = false;
       },

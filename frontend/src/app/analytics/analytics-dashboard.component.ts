@@ -445,7 +445,7 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
           tooltip: {
             callbacks: {
               label: function(context) {
-                return 'Attendance: ' + context.parsed.y.toFixed(1) + '%';
+                return 'Attendance: ' + (context.parsed.y?.toFixed(1) || 0) + '%';
               }
             }
           }
