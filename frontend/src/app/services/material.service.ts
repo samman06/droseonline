@@ -122,8 +122,14 @@ export class MaterialService {
 
   /**
    * Update material
+   * Note: Accepts both Partial<Material> and FormData for file replacement
    */
-  updateMaterial(id: string, material: Partial<Material>): Observable<ApiResponse<Material>> {
+  updateMaterial(id: string, material: Partial<Material> | FormData): Observable<ApiResponse<Material>> {
+    // If it's FormData (file upload/replacement), use HttpClient directly
+    if (material instanceof FormData) {
+      return this.http.put<ApiResponse<Material>>(`${this.apiUrl}/${id}`, material);
+    }
+    // Otherwise use ApiService (JSON)
     return this.api.put<Material>(this.endpoint, id, material);
   }
 
@@ -175,6 +181,33 @@ export class MaterialService {
         }
       }
     });
+  }
+
+  /**
+   * Fetch text file content
+   */
+  getTextFileContent(fileUrl: string): Observable<string> {
+    // Helper function to get full URL
+    const getFullUrl = (url: string): string => {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+      }
+      const baseUrl = environment.apiBaseUrl.replace('/api', '');
+      return `${baseUrl}${url}`;
+    };
+
+    return this.http.get(getFullUrl(fileUrl), { responseType: 'text' });
+  }
+
+  /**
+   * Helper to get full URL from relative path
+   */
+  getFullUrl(url: string): string {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const baseUrl = environment.apiBaseUrl.replace('/api', '');
+    return `${baseUrl}${url}`;
   }
 }
 

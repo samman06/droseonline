@@ -365,6 +365,12 @@ export const routes: Routes = [
             loadComponent: () => import('./materials/material-upload/material-upload.component').then(m => m.MaterialUploadComponent)
           },
           {
+            path: ':id/edit',
+            canActivate: [RoleGuard],
+            data: { roles: ['admin', 'teacher'] }, // Only teachers and admins can edit
+            loadComponent: () => import('./materials/material-edit/material-edit.component').then(m => m.MaterialEditComponent)
+          },
+          {
             path: ':id',
             loadComponent: () => import('./materials/material-detail/material-detail.component').then(m => m.MaterialDetailComponent)
           }

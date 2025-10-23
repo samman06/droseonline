@@ -112,17 +112,17 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
               </a>
             </div>
 
-            <!-- Image Preview -->
-            <div *ngIf="material.type === 'image'" class="flex justify-center">
+            <!-- Image Preview (check both type and file extension) -->
+            <div *ngIf="(material.type === 'image' || isImageFile(material.fileName)) && material.fileUrl" class="flex justify-center">
               <img [src]="getFullUrl(material.fileUrl)" 
                    [alt]="material.title"
-                   class="max-w-full max-h-[600px] rounded-lg shadow-lg">
+                   class="max-w-full max-h-[600px] rounded-lg shadow-lg"
+                   (error)="onImageError($event)">
             </div>
 
-            <!-- Video Preview -->
-            <div *ngIf="material.type === 'video'" class="aspect-video">
-              <video *ngIf="material.fileUrl" 
-                     controls 
+            <!-- Video Preview (check both type and file extension) -->
+            <div *ngIf="(material.type === 'video' || isVideoFile(material.fileName)) && material.fileUrl" class="aspect-video">
+              <video controls 
                      class="w-full h-full rounded-lg">
                 <source [src]="getFullUrl(material.fileUrl)">
                 Your browser does not support the video tag.
@@ -147,8 +147,63 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
             </div>
 
             <!-- Text Files Preview -->
-            <div *ngIf="isTextFile(material.fileName) && material.fileUrl" class="bg-gray-900 text-green-400 p-6 rounded-lg font-mono text-sm overflow-auto max-h-[800px]">
-              <pre class="whitespace-pre-wrap">Loading content...</pre>
+            <div *ngIf="isTextFile(material.fileName) && material.fileUrl" class="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+              <!-- File Header -->
+              <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                  </svg>
+                  <span class="text-white font-medium">{{ material.fileName }}</span>
+                  <span class="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">{{ getLanguageFromExtension(material.fileName) }}</span>
+                </div>
+                <button (click)="copyToClipboard()"
+                        [disabled]="loadingTextContent"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+
+              <!-- Loading State -->
+              <div *ngIf="loadingTextContent" class="flex items-center justify-center py-12">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+
+              <!-- Error State -->
+              <div *ngIf="textFileError && !loadingTextContent" class="px-6 py-12 text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-red-600">{{ textFileError }}</p>
+              </div>
+
+              <!-- Content with Line Numbers -->
+              <div *ngIf="!loadingTextContent && !textFileError && textFileContent" 
+                   class="bg-white overflow-x-auto max-h-[800px]">
+                <div class="flex font-mono text-sm">
+                  <!-- Line Numbers -->
+                  <div class="bg-gray-100 text-gray-500 px-4 py-4 select-none border-r border-gray-200 sticky left-0">
+                    <div *ngFor="let line of getTextWithLineNumbers(); let i = index" class="leading-6 text-right">
+                      {{ i + 1 }}
+                    </div>
+                  </div>
+                  
+                  <!-- Code Content -->
+                  <div class="flex-1 px-4 py-4 overflow-x-auto">
+                    <pre class="leading-6 whitespace-pre"><code *ngFor="let line of getTextWithLineNumbers()" class="block">{{ line }}</code></pre>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File Info Footer -->
+              <div *ngIf="!loadingTextContent && !textFileError && textFileContent" 
+                   class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
+                <span>{{ getTextWithLineNumbers().length }} lines</span>
+                <span>{{ (textFileContent.length / 1024).toFixed(2) }} KB</span>
+              </div>
             </div>
 
             <!-- Audio Preview -->
@@ -189,6 +244,9 @@ export class MaterialDetailComponent implements OnInit {
   material: Material | null = null;
   loading = false;
   currentUser: any;
+  textFileContent: string = '';
+  loadingTextContent: boolean = false;
+  textFileError: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -214,6 +272,11 @@ export class MaterialDetailComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.material = response.data;
+          
+          // If it's a text file, load its content
+          if (this.material.fileUrl && this.isTextFile(this.material.fileName)) {
+            this.loadTextFileContent(this.material.fileUrl);
+          }
         }
         this.loading = false;
       },
@@ -222,6 +285,22 @@ export class MaterialDetailComponent implements OnInit {
         this.toastService.error('Failed to load material');
         this.loading = false;
         this.goBack();
+      }
+    });
+  }
+
+  loadTextFileContent(fileUrl: string): void {
+    this.loadingTextContent = true;
+    this.textFileError = '';
+    this.materialService.getTextFileContent(fileUrl).subscribe({
+      next: (content) => {
+        this.textFileContent = content;
+        this.loadingTextContent = false;
+      },
+      error: (error) => {
+        console.error('Error loading text file:', error);
+        this.textFileError = 'Failed to load file content';
+        this.loadingTextContent = false;
       }
     });
   }
@@ -241,10 +320,38 @@ export class MaterialDetailComponent implements OnInit {
     return material.type === 'image' || 
            material.type === 'video' || 
            material.type === 'link' ||
+           this.isImageFile(material.fileName) ||
+           this.isVideoFile(material.fileName) ||
            this.isPdf(material.fileName) ||
            this.isOfficeDocument(material.fileName) ||
            this.isTextFile(material.fileName) ||
            this.isAudio(material.fileName);
+  }
+
+  isImageFile(fileName?: string): boolean {
+    if (!fileName) return false;
+    const ext = fileName.toLowerCase();
+    return ext.endsWith('.jpg') || 
+           ext.endsWith('.jpeg') || 
+           ext.endsWith('.png') || 
+           ext.endsWith('.gif') || 
+           ext.endsWith('.webp') ||
+           ext.endsWith('.svg') ||
+           ext.endsWith('.bmp') ||
+           ext.endsWith('.ico');
+  }
+
+  isVideoFile(fileName?: string): boolean {
+    if (!fileName) return false;
+    const ext = fileName.toLowerCase();
+    return ext.endsWith('.mp4') || 
+           ext.endsWith('.webm') || 
+           ext.endsWith('.ogg') || 
+           ext.endsWith('.mov') || 
+           ext.endsWith('.avi') ||
+           ext.endsWith('.mkv') ||
+           ext.endsWith('.wmv') ||
+           ext.endsWith('.flv');
   }
 
   isPdf(fileName?: string): boolean {
@@ -318,6 +425,64 @@ export class MaterialDetailComponent implements OnInit {
     // Relative path - prepend backend base URL
     const baseUrl = environment.apiBaseUrl.replace('/api', '');
     return `${baseUrl}${url}`;
+  }
+
+  getFileExtension(fileName?: string): string {
+    if (!fileName) return '';
+    return fileName.split('.').pop()?.toLowerCase() || '';
+  }
+
+  getLanguageFromExtension(fileName?: string): string {
+    const ext = this.getFileExtension(fileName);
+    const languageMap: { [key: string]: string } = {
+      'js': 'JavaScript',
+      'ts': 'TypeScript',
+      'py': 'Python',
+      'java': 'Java',
+      'cpp': 'C++',
+      'c': 'C',
+      'cs': 'C#',
+      'go': 'Go',
+      'rb': 'Ruby',
+      'php': 'PHP',
+      'html': 'HTML',
+      'css': 'CSS',
+      'scss': 'SCSS',
+      'json': 'JSON',
+      'xml': 'XML',
+      'yaml': 'YAML',
+      'yml': 'YAML',
+      'md': 'Markdown',
+      'sql': 'SQL',
+      'sh': 'Shell',
+      'bash': 'Bash',
+      'txt': 'Plain Text',
+      'log': 'Log',
+      'csv': 'CSV'
+    };
+    return languageMap[ext] || 'Text';
+  }
+
+  getTextWithLineNumbers(): string[] {
+    if (!this.textFileContent) return [];
+    return this.textFileContent.split('\n');
+  }
+
+  copyToClipboard(): void {
+    if (!this.textFileContent) return;
+    
+    navigator.clipboard.writeText(this.textFileContent).then(() => {
+      this.toastService.success('Content copied to clipboard');
+    }).catch(() => {
+      this.toastService.error('Failed to copy content');
+    });
+  }
+
+  onImageError(event: any): void {
+    console.error('Image failed to load:', event);
+    console.log('Attempted URL:', event.target?.src);
+    console.log('Material fileUrl:', this.material?.fileUrl);
+    this.toastService.error('Failed to load image. Check console for details.');
   }
 
   downloadMaterial(): void {

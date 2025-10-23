@@ -248,9 +248,18 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('fil
 
 /**
  * PUT /api/materials/:id
- * Update material
+ * Update material (with optional file replacement)
  */
-router.put('/:id', authenticate, authorize('admin', 'teacher'), asyncHandler(async (req, res) => {
+router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.single('file'), asyncHandler(async (req, res) => {
+  console.log('\n========================================');
+  console.log('PUT /api/materials/:id - UPDATE REQUEST');
+  console.log('Material ID:', req.params.id);
+  console.log('User:', req.user.email, '(', req.user.role, ')');
+  console.log('Body:', req.body);
+  console.log('File:', req.file ? req.file.filename : 'No new file');
+  console.log('Replace file:', req.body.replaceFile);
+  console.log('========================================');
+
   const material = await Material.findById(req.params.id);
   
   if (!material) {
@@ -262,13 +271,90 @@ router.put('/:id', authenticate, authorize('admin', 'teacher'), asyncHandler(asy
     throw new AppError('You can only update your own materials', 403);
   }
 
-  Object.assign(material, req.body);
+  // Store old file path for deletion if replacing
+  const oldFilePath = material.fileUrl ? path.join(__dirname, '..', material.fileUrl) : null;
+
+  // Update basic fields
+  if (req.body.title) material.title = req.body.title;
+  if (req.body.description !== undefined) material.description = req.body.description;
+  if (req.body.type) material.type = req.body.type;
+  if (req.body.category) material.category = req.body.category;
+  if (req.body.course) material.course = req.body.course;
+  
+  // Update groups
+  if (req.body.groups) {
+    try {
+      material.groups = typeof req.body.groups === 'string' 
+        ? JSON.parse(req.body.groups) 
+        : req.body.groups;
+    } catch (e) {
+      console.error('Failed to parse groups:', e);
+    }
+  }
+
+  // Handle file replacement
+  if (req.body.replaceFile === 'true') {
+    console.log('🔄 Replacing file...');
+    
+    // If new file uploaded
+    if (req.file) {
+      console.log('New file uploaded:', req.file.filename);
+      
+      // Delete old file from disk
+      if (oldFilePath && fs.existsSync(oldFilePath)) {
+        try {
+          fs.unlinkSync(oldFilePath);
+          console.log('✅ Old file deleted:', oldFilePath);
+        } catch (err) {
+          console.error('⚠️ Failed to delete old file:', err.message);
+        }
+      }
+      
+      // Update with new file info
+      material.fileUrl = `/uploads/materials/${req.file.filename}`;
+      material.fileName = req.file.originalname;
+      material.fileSize = req.file.size;
+      material.mimeType = req.file.mimetype;
+      material.externalUrl = undefined; // Clear external URL if was a link before
+      
+      console.log('Updated file info:', {
+        fileUrl: material.fileUrl,
+        fileName: material.fileName,
+        fileSize: material.fileSize
+      });
+    }
+    // If replacing with external URL (for links)
+    else if (req.body.externalUrl) {
+      console.log('New external URL:', req.body.externalUrl);
+      
+      // Delete old file from disk if exists
+      if (oldFilePath && fs.existsSync(oldFilePath)) {
+        try {
+          fs.unlinkSync(oldFilePath);
+          console.log('✅ Old file deleted:', oldFilePath);
+        } catch (err) {
+          console.error('⚠️ Failed to delete old file:', err.message);
+        }
+      }
+      
+      // Update with new link
+      material.externalUrl = req.body.externalUrl;
+      material.fileUrl = undefined;
+      material.fileName = undefined;
+      material.fileSize = undefined;
+      material.mimeType = undefined;
+    }
+  }
+
   await material.save();
 
   await material.populate([
     { path: 'course', select: 'name code' },
     { path: 'uploadedBy', select: 'firstName lastName email' }
   ]);
+
+  console.log('Material updated successfully');
+  console.log('========================================\n');
 
   res.json({
     success: true,
