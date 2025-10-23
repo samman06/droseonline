@@ -43,12 +43,14 @@ export class ApiInterceptor implements HttpInterceptor {
       tokenPreview: token ? token.substring(0, 20) + '...' : 'null'
     });
 
-    // Clone the request and add common headers
-    const headers: any = {
-      'Content-Type': 'application/json',
-      'X-App-Version': this.configService.version,
-      'X-Environment': this.configService.isProduction ? 'production' : 'development'
-    };
+    // Clone the request and add headers
+    const headers: any = {};
+
+    // Don't set Content-Type for FormData (browser sets it automatically with boundary)
+    // For other requests, set Content-Type to application/json
+    if (!(request.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Add Authorization header if token exists
     if (token) {

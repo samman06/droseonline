@@ -145,23 +145,33 @@ export class MaterialService {
    * Download material
    */
   downloadMaterial(material: Material): void {
+    // Helper function to get full URL
+    const getFullUrl = (url: string): string => {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url; // Already a full URL (external link)
+      }
+      // Relative path - prepend backend base URL
+      const baseUrl = environment.apiBaseUrl.replace('/api', ''); // Remove /api suffix
+      return `${baseUrl}${url}`;
+    };
+
     // Track download
     this.trackDownload(material._id).subscribe({
       next: (response) => {
         if (response.success && response.data?.fileUrl) {
-          window.open(response.data.fileUrl, '_blank');
+          window.open(getFullUrl(response.data.fileUrl), '_blank');
         } else if (material.fileUrl) {
-          window.open(material.fileUrl, '_blank');
+          window.open(getFullUrl(material.fileUrl), '_blank');
         } else if (material.externalUrl) {
-          window.open(material.externalUrl, '_blank');
+          window.open(getFullUrl(material.externalUrl), '_blank');
         }
       },
       error: () => {
         // Try to download anyway
         if (material.fileUrl) {
-          window.open(material.fileUrl, '_blank');
+          window.open(getFullUrl(material.fileUrl), '_blank');
         } else if (material.externalUrl) {
-          window.open(material.externalUrl, '_blank');
+          window.open(getFullUrl(material.externalUrl), '_blank');
         }
       }
     });

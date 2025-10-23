@@ -7,51 +7,24 @@ require('dotenv').config();
 
 const app = express();
 
-
-
+// CORS configuration - must be BEFORE other middleware
+// Simplified to allow all origins in development
 app.use(cors({
-  origin: "http://localhost:4200", // Angular dev
+  origin: true, // Allow all origins in development
   credentials: true,
-  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Authorization'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 }));
-
 
 // Security middleware
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false // Disable CSP to allow iframe embedding
 }));
-
-// Enhanced CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
-    : [
-        'http://localhost:4200',
-        'http://127.0.0.1:4200',
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://localhost:8080',
-        'http://127.0.0.1:8080'
-      ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'Origin',
-    'X-Requested-With',
-    'Content-Type',
-    'Accept',
-    'Authorization',
-    'Cache-Control',
-    'X-Access-Token'
-  ],
-  exposedHeaders: ['Authorization'],
-  optionsSuccessStatus: 200
-}));
-
-// Handle preflight requests for all routes
-app.options('*', cors());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -62,7 +35,13 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
+// Skip JSON parsing for multipart/form-data (file uploads)
+app.use((req, res, next) => {
+  if (req.headers['content-type'] && req.headers['content-type'].startsWith('multipart/form-data')) {
+    return next(); // Skip JSON parsing for file uploads
+  }
+  express.json({ limit: '10mb' })(req, res, next);
+});
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve uploaded files

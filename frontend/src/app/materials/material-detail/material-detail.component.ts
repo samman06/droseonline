@@ -5,11 +5,14 @@ import { MaterialService, Material } from '../../services/material.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { environment } from '../../../environments/environment';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { NgxDocViewerModule } from 'ngx-doc-viewer';
 
 @Component({
   selector: 'app-material-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NgxExtendedPdfViewerModule, NgxDocViewerModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto">
@@ -100,7 +103,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
               </svg>
               <p class="text-lg font-medium text-gray-900 mb-4">External Link</p>
-              <a [href]="material.fileUrl" target="_blank" rel="noopener noreferrer"
+              <a [href]="getFullUrl(material.externalUrl || material.fileUrl)" target="_blank" rel="noopener noreferrer"
                  class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
@@ -111,7 +114,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
             <!-- Image Preview -->
             <div *ngIf="material.type === 'image'" class="flex justify-center">
-              <img [src]="material.fileUrl" 
+              <img [src]="getFullUrl(material.fileUrl)" 
                    [alt]="material.title"
                    class="max-w-full max-h-[600px] rounded-lg shadow-lg">
             </div>
@@ -121,24 +124,57 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
               <video *ngIf="material.fileUrl" 
                      controls 
                      class="w-full h-full rounded-lg">
-                <source [src]="material.fileUrl">
+                <source [src]="getFullUrl(material.fileUrl)">
                 Your browser does not support the video tag.
               </video>
             </div>
 
-            <!-- Document/PDF Preview -->
-            <div *ngIf="material.type === 'document' && isPdf(material.fileName) && material.fileUrl" class="h-[800px]">
-              <iframe [src]="getSafeUrl(material.fileUrl!)" 
-                      class="w-full h-full border-0 rounded-lg"></iframe>
+            <!-- PDF Preview (using ngx-extended-pdf-viewer) -->
+            <div *ngIf="isPdf(material.fileName) && material.fileUrl" class="bg-gray-100 rounded-lg p-4">
+              <ngx-extended-pdf-viewer 
+                [src]="getFullUrl(material.fileUrl)"
+                [height]="'800px'">
+              </ngx-extended-pdf-viewer>
+            </div>
+
+            <!-- Office Documents Preview (Word, Excel, PowerPoint) -->
+            <div *ngIf="isOfficeDocument(material.fileName) && material.fileUrl" class="h-[800px]">
+              <ngx-doc-viewer 
+                [url]="getFullUrl(material.fileUrl)"
+                viewer="google"
+                style="width:100%;height:100%">
+              </ngx-doc-viewer>
+            </div>
+
+            <!-- Text Files Preview -->
+            <div *ngIf="isTextFile(material.fileName) && material.fileUrl" class="bg-gray-900 text-green-400 p-6 rounded-lg font-mono text-sm overflow-auto max-h-[800px]">
+              <pre class="whitespace-pre-wrap">Loading content...</pre>
+            </div>
+
+            <!-- Audio Preview -->
+            <div *ngIf="isAudio(material.fileName) && material.fileUrl" class="flex justify-center py-8">
+              <audio controls class="w-full max-w-2xl">
+                <source [src]="getFullUrl(material.fileUrl)">
+                Your browser does not support the audio element.
+              </audio>
             </div>
 
             <!-- Generic File Preview -->
             <div *ngIf="!canPreview(material)" class="text-center py-12">
-              <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-              </svg>
+              <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl mb-4">
+                <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+              </div>
               <p class="text-lg font-medium text-gray-900 mb-2">Preview not available</p>
-              <p class="text-gray-600 mb-4">Download the file to view its contents</p>
+              <p class="text-gray-600 mb-4">{{ getFileTypeDescription(material.fileName) }}</p>
+              <button (click)="downloadMaterial()"
+                      class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Download to View
+              </button>
             </div>
           </div>
 
@@ -205,15 +241,83 @@ export class MaterialDetailComponent implements OnInit {
     return material.type === 'image' || 
            material.type === 'video' || 
            material.type === 'link' ||
-           this.isPdf(material.fileName);
+           this.isPdf(material.fileName) ||
+           this.isOfficeDocument(material.fileName) ||
+           this.isTextFile(material.fileName) ||
+           this.isAudio(material.fileName);
   }
 
   isPdf(fileName?: string): boolean {
     return fileName?.toLowerCase().endsWith('.pdf') || false;
   }
 
+  isOfficeDocument(fileName?: string): boolean {
+    if (!fileName) return false;
+    const ext = fileName.toLowerCase();
+    return ext.endsWith('.doc') || 
+           ext.endsWith('.docx') || 
+           ext.endsWith('.xls') || 
+           ext.endsWith('.xlsx') || 
+           ext.endsWith('.ppt') || 
+           ext.endsWith('.pptx');
+  }
+
+  isTextFile(fileName?: string): boolean {
+    if (!fileName) return false;
+    const ext = fileName.toLowerCase();
+    return ext.endsWith('.txt') || 
+           ext.endsWith('.md') || 
+           ext.endsWith('.json') || 
+           ext.endsWith('.xml') ||
+           ext.endsWith('.csv') ||
+           ext.endsWith('.log');
+  }
+
+  isAudio(fileName?: string): boolean {
+    if (!fileName) return false;
+    const ext = fileName.toLowerCase();
+    return ext.endsWith('.mp3') || 
+           ext.endsWith('.wav') || 
+           ext.endsWith('.ogg') || 
+           ext.endsWith('.m4a') ||
+           ext.endsWith('.aac');
+  }
+
+  getFileTypeDescription(fileName?: string): string {
+    if (!fileName) return 'Download the file to view its contents';
+    
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const descriptions: { [key: string]: string } = {
+      'zip': 'Compressed archive file',
+      'rar': 'Compressed archive file',
+      '7z': 'Compressed archive file',
+      'exe': 'Executable file',
+      'apk': 'Android application',
+      'dmg': 'Mac application',
+      'iso': 'Disk image file',
+      'sql': 'Database file',
+      'db': 'Database file',
+      'psd': 'Photoshop document',
+      'ai': 'Adobe Illustrator file',
+      'sketch': 'Sketch design file',
+      'fig': 'Figma design file'
+    };
+    
+    return descriptions[ext || ''] || 'Download the file to view its contents';
+  }
+
   getSafeUrl(url: string): SafeResourceUrl {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    return this.sanitizer.bypassSecurityTrustResourceUrl(this.getFullUrl(url));
+  }
+
+  getFullUrl(url?: string): string {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url; // Already a full URL
+    }
+    // Relative path - prepend backend base URL
+    const baseUrl = environment.apiBaseUrl.replace('/api', '');
+    return `${baseUrl}${url}`;
   }
 
   downloadMaterial(): void {
