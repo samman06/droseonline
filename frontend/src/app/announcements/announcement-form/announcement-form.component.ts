@@ -59,11 +59,13 @@ import { AuthService } from '../../services/auth.service';
           </label>
           <select formControlName="type" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="general">General</option>
-            <option value="urgent">Urgent</option>
+            <option value="academic">Academic</option>
             <option value="event">Event</option>
-            <option value="exam">Exam</option>
-            <option value="holiday">Holiday</option>
+            <option value="emergency">Emergency</option>
             <option value="maintenance">Maintenance</option>
+            <option value="policy">Policy</option>
+            <option value="exam">Exam</option>
+            <option value="assignment">Assignment</option>
           </select>
         </div>
 
@@ -72,9 +74,9 @@ import { AuthService } from '../../services/auth.service';
           <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
           <select formControlName="priority" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="low">Low</option>
-            <option value="medium">Medium</option>
+            <option value="normal">Normal</option>
             <option value="high">High</option>
-            <option value="critical">Critical</option>
+            <option value="urgent">Urgent</option>
           </select>
         </div>
 
@@ -207,15 +209,19 @@ export class AnnouncementFormComponent implements OnInit {
   }
 
   initForm(): void {
+    // Set publishAt to current datetime by default (for immediate publishing)
+    const now = new Date();
+    const currentDateTime = now.toISOString().slice(0, 16); // Format: "YYYY-MM-DDTHH:mm"
+    
     this.announcementForm = this.fb.group({
       title: ['', [Validators.required]],
       content: ['', [Validators.required, Validators.minLength(10)]],
       type: ['general', Validators.required],
-      priority: ['medium'],
+      priority: ['normal'],
       targetAudienceAll: [true],
       targetAudienceStudents: [false],
       targetAudienceTeachers: [false],
-      publishAt: [''],
+      publishAt: [currentDateTime], // Default to now
       expiresAt: [''],
       isPinned: [false],
       allowComments: [true],
@@ -319,13 +325,16 @@ export class AnnouncementFormComponent implements OnInit {
   prepareFormData(): any {
     const formValue = this.announcementForm.value;
     
-    // Determine target audience
-    const targetAudience: string[] = [];
+    // Determine audience (backend expects single string, not array)
+    let audience = 'all'; // default
     if (formValue.targetAudienceAll) {
-      targetAudience.push('all');
-    } else {
-      if (formValue.targetAudienceStudents) targetAudience.push('students');
-      if (formValue.targetAudienceTeachers) targetAudience.push('teachers');
+      audience = 'all';
+    } else if (formValue.targetAudienceStudents && formValue.targetAudienceTeachers) {
+      audience = 'all'; // Both selected = all
+    } else if (formValue.targetAudienceStudents) {
+      audience = 'students';
+    } else if (formValue.targetAudienceTeachers) {
+      audience = 'teachers';
     }
 
     // Parse tags
@@ -338,13 +347,14 @@ export class AnnouncementFormComponent implements OnInit {
       content: formValue.content,
       type: formValue.type,
       priority: formValue.priority,
-      targetAudience,
+      audience, // Changed from targetAudience array to audience string
       publishAt: formValue.publishAt || new Date().toISOString(),
       expiresAt: formValue.expiresAt || undefined,
       isPinned: formValue.isPinned,
       allowComments: formValue.allowComments,
       sendEmail: formValue.sendEmail,
-      tags
+      tags,
+      status: 'published' // Add status field
     };
   }
 
