@@ -420,7 +420,7 @@ export class MaterialUploadComponent implements OnInit {
     }
     
     if (this.formData.type === 'link') {
-      formData.append('link', this.formData.link);
+      formData.append('externalUrl', this.formData.link);
     } else if (this.selectedFile) {
       formData.append('file', this.selectedFile);
     }

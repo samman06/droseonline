@@ -270,6 +270,9 @@ export class MaterialListComponent implements OnInit {
   }
 
   loadMaterials(): void {
+    console.log("--------------------------------");
+    console.log('Loading materials');
+    console.log('Filters:', this.filters);
     this.loading = true;
     this.materialService.getMaterials(this.filters).subscribe({
       next: (response) => {

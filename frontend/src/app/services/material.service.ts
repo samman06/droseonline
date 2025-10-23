@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { ApiService } from './api.service';
 
 export interface Material {
@@ -86,8 +88,12 @@ export interface MaterialsResponse {
 })
 export class MaterialService {
   private endpoint = 'materials';
+  private apiUrl = `${environment.apiBaseUrl}/materials`;
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private http: HttpClient
+  ) {}
 
   /**
    * Get all materials with filters
@@ -105,9 +111,13 @@ export class MaterialService {
 
   /**
    * Create new material
+   * Note: Uses HttpClient directly for FormData support (file uploads)
    */
-  createMaterial(material: Partial<Material>): Observable<ApiResponse<Material>> {
-    return this.api.post<Material>(this.endpoint, material);
+  createMaterial(material: Partial<Material> | FormData): Observable<ApiResponse<Material>> {
+    // Use HttpClient directly for FormData (file uploads)
+    // The interceptor will add the Authorization header
+    // But we don't set Content-Type for FormData (browser sets it with boundary)
+    return this.http.post<ApiResponse<Material>>(this.apiUrl, material);
   }
 
   /**

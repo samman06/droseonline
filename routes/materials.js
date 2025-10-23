@@ -1,10 +1,40 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const Material = require('../models/Material');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const { authenticate, authorize } = require('../middleware/auth');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/materials');
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept all file types for now
+    cb(null, true);
+  }
+});
 
 /**
  * GET /api/materials
@@ -150,25 +180,68 @@ router.get('/:id', authenticate, asyncHandler(async (req, res) => {
 
 /**
  * POST /api/materials
- * Create new material
+ * Create new material with file upload
  */
-router.post('/', authenticate, authorize('admin', 'teacher'), asyncHandler(async (req, res) => {
+router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('file'), asyncHandler(async (req, res) => {
+  console.log('\n========================================');
+  console.log('POST /api/materials');
+  console.log('User:', req.user.email, '(', req.user.role, ')');
+  console.log('Body:', req.body);
+  console.log('File:', req.file ? req.file.filename : 'No file');
+  console.log('========================================');
+
   const materialData = {
-    ...req.body,
+    title: req.body.title,
+    description: req.body.description,
+    type: req.body.type,
+    category: req.body.category,
+    course: req.body.course,
+    visibility: req.body.visibility || 'all_students',
     uploadedBy: req.user._id
   };
 
+  // Handle groups (might be JSON string from FormData)
+  if (req.body.groups) {
+    try {
+      materialData.groups = typeof req.body.groups === 'string' 
+        ? JSON.parse(req.body.groups) 
+        : req.body.groups;
+    } catch (e) {
+      console.error('Failed to parse groups:', e);
+    }
+  }
+
+  // Handle file upload
+  if (req.file) {
+    materialData.fileUrl = `/uploads/materials/${req.file.filename}`;
+    materialData.fileName = req.file.originalname;
+    materialData.fileSize = req.file.size;
+    materialData.mimeType = req.file.mimetype;
+  }
+
+  // Handle external URL (for links)
+  if (req.body.externalUrl) {
+    materialData.externalUrl = req.body.externalUrl;
+  }
+
+  console.log('Creating material with data:', materialData);
+
   const material = new Material(materialData);
   await material.save();
+
+  console.log('Material created with ID:', material._id);
 
   await material.populate([
     { path: 'course', select: 'name code' },
     { path: 'uploadedBy', select: 'firstName lastName email' }
   ]);
 
+  console.log('Material populated successfully');
+  console.log('========================================\n');
+
   res.status(201).json({
     success: true,
-    message: 'Material created successfully',
+    message: 'Material uploaded successfully',
     data: material
   });
 }));
