@@ -7,12 +7,11 @@ import { AuthService } from '../../services/auth.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { environment } from '../../../environments/environment';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
-import { NgxDocViewerModule } from 'ngx-doc-viewer';
 
 @Component({
   selector: 'app-material-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgxExtendedPdfViewerModule, NgxDocViewerModule],
+  imports: [CommonModule, RouterModule, NgxExtendedPdfViewerModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto">
@@ -95,7 +94,61 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
 
           <!-- Material Preview -->
           <div class="bg-white rounded-xl shadow-lg p-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Preview</h2>
+            <!-- File Navigation (if multiple files) -->
+            <div *ngIf="hasMultipleFiles()" class="mb-6">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-900">Files ({{ allFiles.length }})</h2>
+                <div class="flex items-center gap-2">
+                  <button (click)="previousFile()"
+                          [disabled]="currentFileIndex === 0"
+                          class="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                  <span class="text-sm text-gray-600 px-3">{{ currentFileIndex + 1 }} / {{ allFiles.length }}</span>
+                  <button (click)="nextFile()"
+                          [disabled]="currentFileIndex === allFiles.length - 1"
+                          class="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- File Thumbnails -->
+              <div class="flex gap-2 overflow-x-auto pb-2">
+                <button *ngFor="let file of allFiles; let i = index"
+                        (click)="selectFile(i)"
+                        [class]="currentFileIndex === i ? 'border-2 border-blue-500 bg-blue-50' : 'border-2 border-gray-200 bg-white'"
+                        class="flex-shrink-0 p-3 rounded-lg hover:bg-blue-50 transition-colors min-w-[120px]">
+                  <div class="text-xs font-medium text-gray-900 truncate mb-1">{{ file.fileName }}</div>
+                  <div class="text-xs text-gray-500">{{ formatFileSize(file.fileSize) }}</div>
+                  <div class="mt-1">
+                    <span class="inline-block px-2 py-0.5 text-xs rounded-full"
+                          [class]="getTypeBadgeClass(material.type || 'file')">
+                      {{ getCurrentFileType(file) }}
+                    </span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Current File Info -->
+              <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900">{{ getCurrentFile().fileName }}</p>
+                    <p class="text-xs text-gray-600">{{ formatFileSize(getCurrentFile().fileSize) }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h2 *ngIf="!hasMultipleFiles()" class="text-xl font-bold text-gray-900 mb-4">Preview</h2>
             
             <!-- Link Preview -->
             <div *ngIf="material.type === 'link'" class="text-center py-12">
@@ -113,49 +166,72 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
             </div>
 
             <!-- Image Preview (check both type and file extension) -->
-            <div *ngIf="(material.type === 'image' || isImageFile(material.fileName)) && material.fileUrl" class="flex justify-center">
-              <img [src]="getFullUrl(material.fileUrl)" 
+            <div *ngIf="(material.type === 'image' || isImageFile(getCurrentFile().fileName)) && getCurrentFile().fileUrl" class="flex justify-center">
+              <img [src]="getFullUrl(getCurrentFile().fileUrl)" 
                    [alt]="material.title"
                    class="max-w-full max-h-[600px] rounded-lg shadow-lg"
                    (error)="onImageError($event)">
             </div>
 
             <!-- Video Preview (check both type and file extension) -->
-            <div *ngIf="(material.type === 'video' || isVideoFile(material.fileName)) && material.fileUrl" class="aspect-video">
+            <div *ngIf="(material.type === 'video' || isVideoFile(getCurrentFile().fileName)) && getCurrentFile().fileUrl" class="aspect-video">
               <video controls 
                      class="w-full h-full rounded-lg">
-                <source [src]="getFullUrl(material.fileUrl)">
+                <source [src]="getFullUrl(getCurrentFile().fileUrl)">
                 Your browser does not support the video tag.
               </video>
             </div>
 
             <!-- PDF Preview (using ngx-extended-pdf-viewer) -->
-            <div *ngIf="isPdf(material.fileName) && material.fileUrl" class="bg-gray-100 rounded-lg p-4">
+            <div *ngIf="isPdf(getCurrentFile().fileName) && getCurrentFile().fileUrl" class="bg-gray-100 rounded-lg p-4">
               <ngx-extended-pdf-viewer 
-                [src]="getFullUrl(material.fileUrl)"
+                [src]="getFullUrl(getCurrentFile().fileUrl)"
                 [height]="'800px'">
               </ngx-extended-pdf-viewer>
             </div>
 
             <!-- Office Documents Preview (Word, Excel, PowerPoint) -->
-            <div *ngIf="isOfficeDocument(material.fileName) && material.fileUrl" class="h-[800px]">
-              <ngx-doc-viewer 
-                [url]="getFullUrl(material.fileUrl)"
-                viewer="google"
-                style="width:100%;height:100%">
-              </ngx-doc-viewer>
+            <div *ngIf="isOfficeDocument(getCurrentFile().fileName) && getCurrentFile().fileUrl" class="flex flex-col items-center justify-center bg-gray-50 rounded-lg p-12 border-2 border-dashed border-gray-300 min-h-[400px]">
+              <svg class="w-24 h-24 text-blue-500 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ getCurrentFile().fileName }}</h3>
+              <p class="text-gray-600 mb-6 text-center max-w-md">
+                Office documents (Word, Excel, PowerPoint) cannot be previewed directly in the browser.
+                <br>Please download to view the file.
+              </p>
+              <div class="flex gap-3">
+                <a [href]="getFullUrl(getCurrentFile().fileUrl)" 
+                   download
+                   class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                  </svg>
+                  Download File
+                </a>
+                <button (click)="openInNewTab(getCurrentFile().fileUrl)"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                  </svg>
+                  Open in New Tab
+                </button>
+              </div>
+              <p class="text-sm text-gray-500 mt-6">
+                💡 Supported formats: .doc, .docx, .xls, .xlsx, .ppt, .pptx
+              </p>
             </div>
 
             <!-- Text Files Preview -->
-            <div *ngIf="isTextFile(material.fileName) && material.fileUrl" class="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+            <div *ngIf="isTextFile(getCurrentFile().fileName) && getCurrentFile().fileUrl" class="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
               <!-- File Header -->
               <div class="bg-gradient-to-r from-gray-800 to-gray-900 px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                   <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                   </svg>
-                  <span class="text-white font-medium">{{ material.fileName }}</span>
-                  <span class="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">{{ getLanguageFromExtension(material.fileName) }}</span>
+                  <span class="text-white font-medium">{{ getCurrentFile().fileName }}</span>
+                  <span class="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">{{ getLanguageFromExtension(getCurrentFile().fileName) }}</span>
                 </div>
                 <button (click)="copyToClipboard()"
                         [disabled]="loadingTextContent"
@@ -207,9 +283,9 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
             </div>
 
             <!-- Audio Preview -->
-            <div *ngIf="isAudio(material.fileName) && material.fileUrl" class="flex justify-center py-8">
+            <div *ngIf="isAudio(getCurrentFile().fileName) && getCurrentFile().fileUrl" class="flex justify-center py-8">
               <audio controls class="w-full max-w-2xl">
-                <source [src]="getFullUrl(material.fileUrl)">
+                <source [src]="getFullUrl(getCurrentFile().fileUrl)">
                 Your browser does not support the audio element.
               </audio>
             </div>
@@ -247,6 +323,8 @@ export class MaterialDetailComponent implements OnInit {
   textFileContent: string = '';
   loadingTextContent: boolean = false;
   textFileError: string = '';
+  currentFileIndex: number = 0;
+  allFiles: Array<{fileUrl: string; fileName: string; fileSize: number; mimeType: string}> = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -273,9 +351,35 @@ export class MaterialDetailComponent implements OnInit {
         if (response.success && response.data) {
           this.material = response.data;
           
-          // If it's a text file, load its content
-          if (this.material.fileUrl && this.isTextFile(this.material.fileName)) {
-            this.loadTextFileContent(this.material.fileUrl);
+          // Build list of all files (support both single and multiple files)
+          this.allFiles = [];
+          
+          // Add primary file if exists
+          if (this.material.fileUrl) {
+            this.allFiles.push({
+              fileUrl: this.material.fileUrl,
+              fileName: this.material.fileName || 'Unknown',
+              fileSize: this.material.fileSize || 0,
+              mimeType: this.material.mimeType || ''
+            });
+          }
+          
+          // Add additional files if exists
+          if (this.material.files && this.material.files.length > 0) {
+            this.allFiles.push(...this.material.files);
+          }
+          
+          console.log('📁 Material loaded:', {
+            title: this.material.title,
+            primaryFile: this.material.fileUrl ? this.material.fileName : 'None',
+            additionalFiles: this.material.files?.length || 0,
+            totalFiles: this.allFiles.length,
+            allFiles: this.allFiles
+          });
+          
+          // Load text content for current file if it's a text file
+          if (this.allFiles.length > 0 && this.isTextFile(this.getCurrentFile().fileName)) {
+            this.loadTextFileContent(this.getCurrentFile().fileUrl);
           }
         }
         this.loading = false;
@@ -479,10 +583,10 @@ export class MaterialDetailComponent implements OnInit {
   }
 
   onImageError(event: any): void {
+    // Log for debugging but don't show toast - UI already handles preview states
     console.error('Image failed to load:', event);
     console.log('Attempted URL:', event.target?.src);
     console.log('Material fileUrl:', this.material?.fileUrl);
-    this.toastService.error('Failed to load image. Check console for details.');
   }
 
   downloadMaterial(): void {
@@ -490,6 +594,11 @@ export class MaterialDetailComponent implements OnInit {
       this.materialService.downloadMaterial(this.material);
       this.toastService.success('Download started');
     }
+  }
+
+  openInNewTab(fileUrl: string): void {
+    const fullUrl = this.getFullUrl(fileUrl);
+    window.open(fullUrl, '_blank');
   }
 
   editMaterial(): void {
@@ -528,6 +637,70 @@ export class MaterialDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/dashboard/materials']);
+  }
+
+  // Multi-file support methods
+  hasMultipleFiles(): boolean {
+    return this.allFiles.length > 1;
+  }
+
+  getCurrentFile() {
+    if (this.allFiles.length === 0) {
+      return { fileUrl: '', fileName: '', fileSize: 0, mimeType: '' };
+    }
+    return this.allFiles[this.currentFileIndex] || this.allFiles[0];
+  }
+
+  nextFile(): void {
+    if (this.currentFileIndex < this.allFiles.length - 1) {
+      this.currentFileIndex++;
+      this.loadCurrentFileContent();
+    }
+  }
+
+  previousFile(): void {
+    if (this.currentFileIndex > 0) {
+      this.currentFileIndex--;
+      this.loadCurrentFileContent();
+    }
+  }
+
+  selectFile(index: number): void {
+    if (index >= 0 && index < this.allFiles.length) {
+      this.currentFileIndex = index;
+      this.loadCurrentFileContent();
+    }
+  }
+
+  private loadCurrentFileContent(): void {
+    const currentFile = this.getCurrentFile();
+    // If it's a text file, reload content
+    if (this.isTextFile(currentFile.fileName)) {
+      this.loadTextFileContent(currentFile.fileUrl);
+    } else {
+      // Clear text content if switching to non-text file
+      this.textFileContent = '';
+      this.textFileError = '';
+    }
+  }
+
+  getCurrentFileType(file: any): string {
+    const fileName = file.fileName;
+    if (this.isImageFile(fileName)) return 'image';
+    if (this.isVideoFile(fileName)) return 'video';
+    if (this.isPdf(fileName)) return 'pdf';
+    if (this.isOfficeDocument(fileName)) return 'office';
+    if (this.isTextFile(fileName)) return 'text';
+    if (this.isAudio(fileName)) return 'audio';
+    return 'other';
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   }
 }
 

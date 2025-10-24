@@ -61,6 +61,34 @@ const materialSchema = new mongoose.Schema({
     }
   },
   
+  // Multiple Files Support
+  files: [{
+    fileUrl: {
+      type: String,
+      required: true
+    },
+    fileName: {
+      type: String,
+      required: true
+    },
+    fileSize: {
+      type: Number,
+      min: 0
+    },
+    mimeType: {
+      type: String
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: 500
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
   // Relationships
   course: {
     type: mongoose.Schema.Types.ObjectId,

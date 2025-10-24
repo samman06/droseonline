@@ -31,6 +31,13 @@ export interface Material {
   fileSize?: number;
   mimeType?: string;
   externalUrl?: string;
+  files?: Array<{
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedAt?: string;
+  }>;
   uploadedBy?: {
     _id: string;
     firstName: string;

@@ -32,46 +32,86 @@ import { GroupService } from '../../services/group.service';
               Back
             </button>
             <h1 class="text-4xl font-bold text-gray-900 mb-2">✏️ Edit Material</h1>
-            <p class="text-gray-600">Update material information and optionally replace the file</p>
+            <p class="text-gray-600">Update material information and files</p>
           </div>
 
           <!-- Edit Form -->
           <div class="bg-white rounded-xl shadow-xl p-8">
             <form (ngSubmit)="onSubmit()">
               
-              <!-- Current File Info -->
-              <div *ngIf="material?.fileUrl || material?.externalUrl" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 class="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  Current File
-                </h3>
-                <div class="flex items-center gap-3">
-                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                  </svg>
-                  <div>
-                    <p class="font-medium text-gray-900">{{ material?.fileName || 'External Link' }}</p>
-                    <p *ngIf="material?.fileSizeFormatted" class="text-sm text-gray-600">{{ material?.fileSizeFormatted }}</p>
+              <!-- Upload Mode Toggle -->
+              <div class="mb-6 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <span class="text-sm font-semibold text-gray-700">Material Type:</span>
+                <div class="flex gap-2">
+                  <button type="button"
+                          (click)="switchToFileMode()"
+                          [class]="!isLinkMode ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'"
+                          class="px-4 py-2 rounded-lg font-medium transition-colors">
+                    📁 Files
+                  </button>
+                  <button type="button"
+                          (click)="switchToLinkMode()"
+                          [class]="isLinkMode ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'"
+                          class="px-4 py-2 rounded-lg font-medium transition-colors">
+                    🔗 External Link
+                  </button>
+                </div>
+              </div>
+
+              <!-- Current Files Info -->
+              <div *ngIf="!isLinkMode && existingFiles.length > 0 && !replaceFiles" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-semibold text-green-900 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Current Files ({{ existingFiles.length }})
+                  </h3>
+                  <button type="button"
+                          (click)="replaceFiles = true"
+                          class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    Replace Files
+                  </button>
+                </div>
+                <div class="space-y-2 mt-3">
+                  <div *ngFor="let file of existingFiles" class="flex items-center gap-3 p-2 bg-white rounded border border-green-200">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900">{{ file.fileName }}</p>
+                      <p class="text-xs text-gray-600">{{ formatFileSize(file.fileSize) }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Material Type Selection -->
-              <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Material Type *</label>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <!-- Current Link Info -->
+              <div *ngIf="isLinkMode && material?.externalUrl && !replaceFiles" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-semibold text-green-900 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    Current Link
+                  </h3>
                   <button type="button"
-                          *ngFor="let type of materialTypes"
-                          (click)="selectType(type.value)"
-                          [class]="getTypeButtonClass(type.value)"
-                          class="p-4 border-2 rounded-xl transition-all duration-200 hover:shadow-md">
-                    <div [innerHTML]="type.icon" class="w-8 h-8 mx-auto mb-2"></div>
-                    <span class="text-sm font-medium">{{ type.label }}</span>
+                          (click)="replaceFiles = true"
+                          class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    Replace Link
                   </button>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Changing type may require replacing the file/link</p>
+                <p class="text-sm text-blue-600 truncate mt-2">{{ material?.externalUrl }}</p>
+              </div>
+
+              <!-- Auto-detected Type Badge (if new files selected) -->
+              <div *ngIf="selectedFiles.length > 0 && !isLinkMode" class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-sm text-gray-700">
+                  Material Type: <span class="font-semibold text-blue-700">{{ formData.type | titlecase }}</span> (auto-detected)
+                </span>
               </div>
 
               <!-- Title -->
@@ -82,7 +122,7 @@ import { GroupService } from '../../services/group.service';
                        name="title"
                        required
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                       placeholder="e.g., Chapter 1 - Introduction to Algebra">
+                       placeholder="e.g., Chapter 1 - Introduction">
               </div>
 
               <!-- Description -->
@@ -92,28 +132,43 @@ import { GroupService } from '../../services/group.service';
                           name="description"
                           rows="4"
                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Provide a brief description of this material..."></textarea>
+                          placeholder="Describe this material..."></textarea>
               </div>
 
               <!-- Category -->
               <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Category *</label>
+                <div class="flex items-center justify-between mb-2">
+                  <label class="block text-sm font-semibold text-gray-700">Category *</label>
+                  <button type="button"
+                          *ngIf="selectedFiles.length > 0 && getSuggestedCategory()"
+                          (click)="applySuggestedCategory()"
+                          class="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Use Suggested: {{ getCategoryLabel(getSuggestedCategory()) }}
+                  </button>
+                </div>
                 <select [(ngModel)]="formData.category"
                         name="category"
                         required
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                   <option value="">Select a category</option>
-                  <option value="lecture_notes">Lecture Notes</option>
-                  <option value="reading">Reading Material</option>
-                  <option value="video">Video Tutorial</option>
-                  <option value="practice">Practice Exercises</option>
-                  <option value="syllabus">Syllabus</option>
-                  <option value="exam_material">Exam Material</option>
-                  <option value="supplementary">Supplementary Material</option>
+                  <option value="lecture_notes">📝 Lecture Notes</option>
+                  <option value="reading">📖 Reading Material</option>
+                  <option value="video">🎬 Video Tutorial</option>
+                  <option value="practice">✏️ Practice Exercises</option>
+                  <option value="syllabus">📋 Syllabus</option>
+                  <option value="exam_material">📄 Exam Material</option>
+                  <option value="supplementary">📚 Supplementary Material</option>
+                  <option value="other">📎 Other</option>
                 </select>
+                <p *ngIf="selectedFiles.length > 0" class="text-xs text-gray-500 mt-2">
+                  💡 Category auto-suggested based on new file types
+                </p>
               </div>
 
-              <!-- Course Selection -->
+              <!-- Course -->
               <div class="mb-6">
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Course *</label>
                 <select [(ngModel)]="formData.course"
@@ -123,19 +178,19 @@ import { GroupService } from '../../services/group.service';
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                   <option value="">Select a course</option>
                   <option *ngFor="let course of courses" [value]="course._id">
-                    {{ course.name }}
+                    {{ course.code }} - {{ course.name }}
                   </option>
                 </select>
               </div>
 
-              <!-- Group Selection (Optional) -->
-              <div class="mb-6" *ngIf="groups.length > 0">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Groups (Optional)</label>
-                <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                  <label *ngFor="let group of groups" class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+              <!-- Groups (Optional) -->
+              <div *ngIf="groups.length > 0" class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Specific Groups (Optional)</label>
+                <div class="grid grid-cols-2 gap-3 p-4 border border-gray-300 rounded-lg max-h-48 overflow-y-auto">
+                  <label *ngFor="let group of groups" class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
                     <input type="checkbox"
                            [value]="group._id"
-                           [checked]="isGroupSelected(group._id)"
+                           [checked]="formData.groups?.includes(group._id)"
                            (change)="toggleGroup(group._id, $event)"
                            class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
                     <span class="text-sm text-gray-700">{{ group.name }}</span>
@@ -144,122 +199,139 @@ import { GroupService } from '../../services/group.service';
                 <p class="text-xs text-gray-500 mt-2">Select specific groups or leave empty for all course students</p>
               </div>
 
-              <!-- Replace File Section -->
+              <!-- File Upload or Link -->
               <div class="mb-6">
-                <div class="flex items-center justify-between mb-3">
-                  <label class="block text-sm font-semibold text-gray-700">
-                    {{ formData.type === 'link' ? 'Update Link' : 'Replace File' }} (Optional)
-                  </label>
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox"
-                           [(ngModel)]="replaceFile"
-                           name="replaceFile"
-                           class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
-                    <span class="text-sm text-gray-600">Replace {{ formData.type === 'link' ? 'link' : 'file' }}</span>
-                  </label>
-                </div>
-
-                <div *ngIf="replaceFile">
-                  <!-- Link Input -->
-                  <input *ngIf="formData.type === 'link'"
-                         type="url"
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  {{ isLinkMode ? 'Link URL *' : 'File Upload' }}
+                  <span *ngIf="!isLinkMode && !replaceFiles" class="text-gray-500 font-normal">(Optional - keep existing or replace)</span>
+                </label>
+                
+                <!-- Link Input -->
+                <div *ngIf="isLinkMode">
+                  <input type="url"
                          [(ngModel)]="formData.link"
                          name="link"
+                         [required]="isLinkMode && replaceFiles"
                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                          placeholder="https://example.com/resource">
-                  
-                  <!-- File Upload -->
-                  <div *ngIf="formData.type !== 'link'"
-                       class="relative"
-                       (dragover)="onDragOver($event)"
-                       (dragleave)="onDragLeave($event)"
-                       (drop)="onDrop($event)">
-                    <div [class]="getDropzoneClass()"
-                         class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200">
-                      
-                      <!-- Selected File Info -->
-                      <div *ngIf="selectedFile" class="mb-4">
-                        <div class="inline-flex items-center gap-3 bg-purple-50 px-6 py-3 rounded-lg">
-                          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                          </svg>
-                          <div class="text-left">
-                            <p class="font-medium text-gray-900">{{ selectedFile.name }}</p>
-                            <p class="text-sm text-gray-500">{{ formatFileSize(selectedFile.size) }}</p>
-                          </div>
-                          <button type="button"
-                                  (click)="removeFile()"
-                                  class="ml-4 text-red-500 hover:text-red-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <p *ngIf="!selectedFile" class="text-sm text-gray-700 mb-2">
-                        {{ isDragging ? 'Drop file here' : 'Drag & drop new file here or' }}
-                      </p>
-                      
-                      <input type="file"
-                             #fileInput
-                             (change)="onFileSelected($event)"
-                             class="hidden"
-                             [accept]="getAcceptedFileTypes()">
-                      
-                      <button *ngIf="!selectedFile"
-                              type="button"
-                              (click)="fileInput.click()"
-                              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-                        Browse Files
-                      </button>
-                      
-                      <p class="text-xs text-gray-500 mt-3">
-                        Max file size: 50MB
-                      </p>
-                    </div>
-                  </div>
-
-                  <p class="text-xs text-yellow-600 mt-2 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  <p class="text-xs text-gray-500 mt-2">💡 Enter a URL to external resources (YouTube, Google Drive, etc.)</p>
+                </div>
+                
+                <!-- File Upload with Drag & Drop -->
+                <div *ngIf="!isLinkMode && replaceFiles"
+                     class="relative"
+                     (dragover)="onDragOver($event)"
+                     (dragleave)="onDragLeave($event)"
+                     (drop)="onDrop($event)">
+                  <div [class]="getDropzoneClass()"
+                       class="border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200">
+                    
+                    <!-- Upload Icon -->
+                    <svg class="w-16 h-16 mx-auto mb-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
                     </svg>
-                    The current file will be permanently replaced
-                  </p>
+                    
+                    <p class="text-lg font-medium text-gray-700 mb-2">
+                      {{ isDragging ? 'Drop files here' : 'Drag & drop files here' }}
+                    </p>
+                    <p class="text-sm text-gray-500 mb-4">Upload one or multiple files • or</p>
+                    
+                    <input type="file"
+                           #fileInput
+                           (change)="onFileSelected($event)"
+                           multiple
+                           class="hidden">
+                    
+                    <button type="button"
+                            (click)="fileInput.click()"
+                            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors font-medium shadow-lg">
+                      Browse Files
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 mt-4">
+                      Max: 50MB per file | PDF, DOC, PPT, Images, Videos, and more
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Files List -->
+              <div *ngIf="selectedFiles.length > 0" class="mt-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-sm font-semibold text-gray-700">📎 New Files ({{ selectedFiles.length }})</h3>
+                  <button type="button"
+                          (click)="clearAllFiles()"
+                          class="text-sm text-red-600 hover:text-red-700">
+                    Clear All
+                  </button>
                 </div>
 
-                <p *ngIf="!replaceFile" class="text-sm text-gray-500 italic">
-                  Leave unchecked to keep the current {{ formData.type === 'link' ? 'link' : 'file' }}
-                </p>
+                <div class="space-y-3">
+                  <div *ngFor="let fileData of selectedFiles; let i = index" 
+                       class="flex items-start gap-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <!-- File Icon -->
+                    <div class="flex-shrink-0 mt-1">
+                      <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+
+                    <!-- File Info and Description -->
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-2">
+                        <p class="font-medium text-gray-900 truncate">{{ fileData.file.name }}</p>
+                        <span class="text-xs text-gray-500">{{ formatFileSize(fileData.file.size) }}</span>
+                      </div>
+                      
+                      <!-- Optional Description -->
+                      <textarea [(ngModel)]="fileData.description"
+                                placeholder="Optional description for this file..."
+                                rows="2"
+                                [name]="'fileDesc-' + i"
+                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                    </div>
+
+                    <!-- Remove Button -->
+                    <button type="button"
+                            (click)="removeFile(i)"
+                            class="flex-shrink-0 mt-1 text-red-500 hover:text-red-700">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <!-- Upload Progress -->
-              <div *ngIf="uploadProgress > 0 && uploadProgress < 100" class="mb-6">
-                <div class="bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-full transition-all duration-300"
+              <div *ngIf="uploading" class="mb-6">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium text-gray-700">Updating...</span>
+                  <span class="text-sm font-medium text-purple-600">{{ uploadProgress }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div class="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
                        [style.width.%]="uploadProgress"></div>
                 </div>
-                <p class="text-sm text-gray-600 mt-2 text-center">Updating... {{ uploadProgress }}%</p>
               </div>
 
-              <!-- Actions -->
-              <div class="flex gap-4">
+              <!-- Form Actions -->
+              <div class="flex gap-4 pt-6 border-t border-gray-200">
                 <button type="button"
                         (click)="goBack()"
-                        [disabled]="updating"
+                        [disabled]="uploading"
                         class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                   Cancel
                 </button>
                 <button type="submit"
-                        [disabled]="!isFormValid() || updating"
+                        [disabled]="!isFormValid() || uploading"
                         class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl">
-                  {{ updating ? 'Updating...' : 'Update Material' }}
+                  {{ uploading ? 'Updating...' : 'Update Material' }}
                 </button>
               </div>
             </form>
           </div>
         </div>
-
       </div>
     </div>
   `,
@@ -269,12 +341,9 @@ export class MaterialEditComponent implements OnInit {
   materialId: string = '';
   material: Material | null = null;
   loading = false;
-  updating = false;
-  uploadProgress = 0;
-  replaceFile = false;
-
+  
   formData: any = {
-    type: 'document',
+    type: 'file',
     title: '',
     description: '',
     category: '',
@@ -283,19 +352,15 @@ export class MaterialEditComponent implements OnInit {
     link: ''
   };
 
-  materialTypes = [
-    { value: 'document', label: 'Document', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>' },
-    { value: 'presentation', label: 'Presentation', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>' },
-    { value: 'video', label: 'Video', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' },
-    { value: 'image', label: 'Image', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>' },
-    { value: 'link', label: 'Link', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>' },
-    { value: 'file', label: 'Other File', icon: '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>' }
-  ];
-
   courses: any[] = [];
   groups: any[] = [];
-  selectedFile: File | null = null;
+  selectedFiles: Array<{file: File, description: string, id: string}> = [];
+  existingFiles: Array<{fileName: string, fileSize: number, fileUrl: string}> = [];
   isDragging = false;
+  uploading = false;
+  uploadProgress = 0;
+  isLinkMode = false;
+  replaceFiles = false;
 
   constructor(
     private materialService: MaterialService,
@@ -340,6 +405,9 @@ export class MaterialEditComponent implements OnInit {
   populateForm(): void {
     if (!this.material) return;
 
+    // Determine if it's a link or file
+    this.isLinkMode = this.material.type === 'link' && !!this.material.externalUrl;
+
     this.formData = {
       type: this.material.type,
       title: this.material.title,
@@ -349,6 +417,25 @@ export class MaterialEditComponent implements OnInit {
       groups: this.material.groups?.map(g => g._id) || [],
       link: this.material.externalUrl || ''
     };
+
+    // Build existing files list
+    this.existingFiles = [];
+    if (this.material.fileUrl) {
+      this.existingFiles.push({
+        fileName: this.material.fileName || 'File',
+        fileSize: this.material.fileSize || 0,
+        fileUrl: this.material.fileUrl
+      });
+    }
+    if (this.material.files && this.material.files.length > 0) {
+      this.material.files.forEach(file => {
+        this.existingFiles.push({
+          fileName: file.fileName,
+          fileSize: file.fileSize,
+          fileUrl: file.fileUrl
+        });
+      });
+    }
 
     // Load groups for the selected course
     if (this.formData.course) {
@@ -393,28 +480,25 @@ export class MaterialEditComponent implements OnInit {
     });
   }
 
-  selectType(type: string): void {
-    this.formData.type = type;
-    // Clear file selection when changing type
-    this.selectedFile = null;
+  switchToFileMode(): void {
+    this.isLinkMode = false;
+    this.formData.type = 'file';
+    if (this.selectedFiles.length > 0) {
+      this.formData.type = this.detectFileType(this.selectedFiles[0].file);
+    }
   }
 
-  getTypeButtonClass(type: string): string {
-    return this.formData.type === type
-      ? 'border-purple-500 bg-purple-50 text-purple-700'
-      : 'border-gray-200 bg-white text-gray-700';
-  }
-
-  isGroupSelected(groupId: string): boolean {
-    return this.formData.groups.includes(groupId);
+  switchToLinkMode(): void {
+    this.isLinkMode = true;
+    this.formData.type = 'link';
+    this.selectedFiles = [];
+    this.replaceFiles = false;
   }
 
   toggleGroup(groupId: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     if (checked) {
-      if (!this.formData.groups.includes(groupId)) {
-        this.formData.groups.push(groupId);
-      }
+      this.formData.groups.push(groupId);
     } else {
       this.formData.groups = this.formData.groups.filter((id: string) => id !== groupId);
     }
@@ -433,51 +517,104 @@ export class MaterialEditComponent implements OnInit {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging = false;
-    
+
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      this.handleFile(files[0]);
+      this.handleFiles(Array.from(files));
     }
+  }
+
+  getDropzoneClass(): string {
+    return this.isDragging
+      ? 'border-purple-500 bg-purple-50'
+      : 'border-gray-300 bg-gray-50 hover:border-purple-400';
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.handleFile(input.files[0]);
+      this.handleFiles(Array.from(input.files));
     }
   }
 
-  handleFile(file: File): void {
-    // Validate file size (50MB max)
-    const maxSize = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSize) {
-      this.toastService.error('File size exceeds 50MB limit');
-      return;
+  handleFiles(files: File[]): void {
+    files.forEach(file => {
+      // Validate file size (50MB max)
+      const maxSize = 50 * 1024 * 1024; // 50MB
+      if (file.size > maxSize) {
+        this.toastService.error(`${file.name} exceeds 50MB limit`);
+        return;
+      }
+      
+      this.selectedFiles.push({
+        file: file,
+        description: '',
+        id: Date.now() + '-' + Math.random()
+      });
+    });
+
+    if (files.length > 0) {
+      this.toastService.success(`${files.length} file(s) added`);
+      
+      // Auto-detect material type from first file
+      if (this.selectedFiles.length > 0) {
+        this.formData.type = this.detectFileType(this.selectedFiles[0].file);
+      }
     }
-    
-    this.selectedFile = file;
   }
 
-  removeFile(): void {
-    this.selectedFile = null;
-  }
+  detectFileType(file: File): string {
+    const fileName = file.name.toLowerCase();
+    const mimeType = file.type.toLowerCase();
 
-  getDropzoneClass(): string {
-    if (this.isDragging) {
-      return 'border-purple-500 bg-purple-50';
+    // Images
+    if (mimeType.startsWith('image/') || 
+        /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/.test(fileName)) {
+      return 'image';
     }
-    return 'border-gray-300 hover:border-purple-400 hover:bg-purple-50/30';
+
+    // Videos
+    if (mimeType.startsWith('video/') || 
+        /\.(mp4|webm|ogg|mov|avi|mkv|wmv|flv)$/.test(fileName)) {
+      return 'video';
+    }
+
+    // PDFs and Documents
+    if (mimeType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      return 'document';
+    }
+
+    if (/\.(doc|docx|txt)$/.test(fileName) || 
+        mimeType.includes('word') ||
+        mimeType.includes('document') ||
+        mimeType.includes('text')) {
+      return 'document';
+    }
+
+    // Presentations
+    if (/\.(ppt|pptx)$/.test(fileName) || 
+        mimeType.includes('presentation') ||
+        mimeType.includes('powerpoint')) {
+      return 'presentation';
+    }
+
+    // Spreadsheets (treat as document)
+    if (/\.(xls|xlsx)$/.test(fileName) || 
+        mimeType.includes('spreadsheet') ||
+        mimeType.includes('excel')) {
+      return 'document';
+    }
+
+    // Default
+    return 'file';
   }
 
-  getAcceptedFileTypes(): string {
-    const types: any = {
-      'document': '.pdf,.doc,.docx,.txt',
-      'presentation': '.ppt,.pptx,.pdf',
-      'video': '.mp4,.mov,.avi,.mkv,.webm',
-      'image': '.jpg,.jpeg,.png,.gif,.webp',
-      'file': '*'
-    };
-    return types[this.formData.type] || '*';
+  removeFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+  }
+
+  clearAllFiles(): void {
+    this.selectedFiles = [];
   }
 
   formatFileSize(bytes: number): string {
@@ -489,29 +626,40 @@ export class MaterialEditComponent implements OnInit {
   }
 
   isFormValid(): boolean {
-    if (!this.formData.title || !this.formData.category || !this.formData.course) {
+    const hasTitle = !!this.formData.title;
+    const hasCategory = !!this.formData.category;
+    const hasCourse = !!this.formData.course;
+    
+    if (!hasTitle || !hasCategory || !hasCourse) {
       return false;
     }
     
-    // If replacing a link, validate the link
-    if (this.replaceFile && this.formData.type === 'link') {
-      return !!this.formData.link;
+    // For link mode
+    if (this.isLinkMode) {
+      // If replacing link, must have new link
+      if (this.replaceFiles) {
+        return !!this.formData.link;
+      }
+      // Otherwise just need existing link or new link
+      return !!this.formData.link || !!this.material?.externalUrl;
     }
     
-    // If replacing a file, validate the file
-    if (this.replaceFile && this.formData.type !== 'link') {
-      return !!this.selectedFile;
+    // For file mode
+    // If replacing files, must have new files
+    if (this.replaceFiles) {
+      return this.selectedFiles.length > 0;
     }
     
+    // Otherwise, can update without new files (keep existing)
     return true;
   }
 
   onSubmit(): void {
-    if (!this.isFormValid() || this.updating) {
+    if (!this.isFormValid() || this.uploading) {
       return;
     }
 
-    this.updating = true;
+    this.uploading = true;
     this.uploadProgress = 0;
 
     const formData = new FormData();
@@ -525,14 +673,21 @@ export class MaterialEditComponent implements OnInit {
       formData.append('groups', JSON.stringify(this.formData.groups));
     }
     
-    // Include file replacement if user chose to replace
-    if (this.replaceFile) {
+    // Only send replaceFile if we're actually replacing
+    if (this.replaceFiles) {
       formData.append('replaceFile', 'true');
       
-      if (this.formData.type === 'link') {
+      if (this.isLinkMode) {
         formData.append('externalUrl', this.formData.link);
-      } else if (this.selectedFile) {
-        formData.append('file', this.selectedFile);
+      } else if (this.selectedFiles.length > 0) {
+        // Append all files
+        this.selectedFiles.forEach((fileData, index) => {
+          formData.append('files', fileData.file);
+        });
+        
+        // Append file descriptions as JSON
+        const descriptions = this.selectedFiles.map(f => f.description);
+        formData.append('fileDescriptions', JSON.stringify(descriptions));
       }
     }
 
@@ -557,7 +712,7 @@ export class MaterialEditComponent implements OnInit {
         clearInterval(progressInterval);
         console.error('Update error:', error);
         this.toastService.error(error.error?.userMessage || 'Failed to update material');
-        this.updating = false;
+        this.uploading = false;
         this.uploadProgress = 0;
       }
     });
@@ -570,5 +725,59 @@ export class MaterialEditComponent implements OnInit {
       this.router.navigate(['/dashboard/materials']);
     }
   }
-}
 
+  getSuggestedCategory(): string {
+    if (this.selectedFiles.length === 0) return '';
+    
+    const types = this.selectedFiles.map(f => this.detectFileType(f.file));
+    const hasVideo = types.includes('video');
+    const hasDocument = types.includes('document');
+    const hasPresentation = types.includes('presentation');
+    const hasImage = types.includes('image');
+    
+    // Suggest based on file type combinations
+    if (hasVideo) {
+      return 'video';
+    } else if (hasPresentation) {
+      return 'lecture_notes';
+    } else if (hasDocument) {
+      // Check file names for hints
+      const fileNames = this.selectedFiles.map(f => f.file.name.toLowerCase());
+      if (fileNames.some(name => name.includes('syllabus'))) {
+        return 'syllabus';
+      } else if (fileNames.some(name => name.includes('exam') || name.includes('test') || name.includes('quiz'))) {
+        return 'exam_material';
+      } else if (fileNames.some(name => name.includes('practice') || name.includes('exercise') || name.includes('homework'))) {
+        return 'practice';
+      } else {
+        return 'reading';
+      }
+    } else if (hasImage) {
+      return 'supplementary';
+    }
+    
+    return 'other';
+  }
+
+  getCategoryLabel(category: string): string {
+    const labels: { [key: string]: string } = {
+      'lecture_notes': 'Lecture Notes',
+      'reading': 'Reading Material',
+      'video': 'Video Tutorial',
+      'practice': 'Practice Exercises',
+      'syllabus': 'Syllabus',
+      'exam_material': 'Exam Material',
+      'supplementary': 'Supplementary Material',
+      'other': 'Other'
+    };
+    return labels[category] || category;
+  }
+
+  applySuggestedCategory(): void {
+    const suggested = this.getSuggestedCategory();
+    if (suggested) {
+      this.formData.category = suggested;
+      this.toastService.success(`Category set to: ${this.getCategoryLabel(suggested)}`);
+    }
+  }
+}

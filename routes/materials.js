@@ -180,14 +180,14 @@ router.get('/:id', authenticate, asyncHandler(async (req, res) => {
 
 /**
  * POST /api/materials
- * Create new material with file upload
+ * Create new material with file upload (supports multiple files)
  */
-router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('file'), asyncHandler(async (req, res) => {
+router.post('/', authenticate, authorize('admin', 'teacher'), upload.array('files', 10), asyncHandler(async (req, res) => {
   console.log('\n========================================');
   console.log('POST /api/materials');
   console.log('User:', req.user.email, '(', req.user.role, ')');
   console.log('Body:', req.body);
-  console.log('File:', req.file ? req.file.filename : 'No file');
+  console.log('Files:', req.files ? req.files.length : 0);
   console.log('========================================');
 
   const materialData = {
@@ -197,7 +197,8 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('fil
     category: req.body.category,
     course: req.body.course,
     visibility: req.body.visibility || 'all_students',
-    uploadedBy: req.user._id
+    uploadedBy: req.user._id,
+    files: []
   };
 
   // Handle groups (might be JSON string from FormData)
@@ -211,12 +212,42 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('fil
     }
   }
 
-  // Handle file upload
-  if (req.file) {
-    materialData.fileUrl = `/uploads/materials/${req.file.filename}`;
-    materialData.fileName = req.file.originalname;
-    materialData.fileSize = req.file.size;
-    materialData.mimeType = req.file.mimetype;
+  // Parse file descriptions
+  let fileDescriptions = [];
+  if (req.body.fileDescriptions) {
+    try {
+      fileDescriptions = JSON.parse(req.body.fileDescriptions);
+    } catch (e) {
+      console.error('Failed to parse file descriptions:', e);
+    }
+  }
+
+  // Handle multiple file uploads
+  if (req.files && req.files.length > 0) {
+    console.log(`Processing ${req.files.length} files`);
+    
+    // First file is the primary file
+    const firstFile = req.files[0];
+    materialData.fileUrl = `/uploads/materials/${firstFile.filename}`;
+    materialData.fileName = firstFile.originalname;
+    materialData.fileSize = firstFile.size;
+    materialData.mimeType = firstFile.mimetype;
+
+    // Additional files go to files array
+    for (let i = 1; i < req.files.length; i++) {
+      const file = req.files[i];
+      materialData.files.push({
+        fileUrl: `/uploads/materials/${file.filename}`,
+        fileName: file.originalname,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        description: fileDescriptions[i] || '',
+        uploadedAt: new Date()
+      });
+    }
+
+    console.log(`Primary file: ${firstFile.originalname}`);
+    console.log(`Additional files: ${materialData.files.length}`);
   }
 
   // Handle external URL (for links)
@@ -230,6 +261,7 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('fil
   await material.save();
 
   console.log('Material created with ID:', material._id);
+  console.log('Total files:', 1 + (materialData.files?.length || 0));
 
   await material.populate([
     { path: 'course', select: 'name code' },
@@ -241,7 +273,7 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('fil
 
   res.status(201).json({
     success: true,
-    message: 'Material uploaded successfully',
+    message: `Material uploaded successfully with ${req.files ? req.files.length : 0} file(s)`,
     data: material
   });
 }));
@@ -250,14 +282,14 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.single('fil
  * PUT /api/materials/:id
  * Update material (with optional file replacement)
  */
-router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.single('file'), asyncHandler(async (req, res) => {
+router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.array('files', 10), asyncHandler(async (req, res) => {
   console.log('\n========================================');
   console.log('PUT /api/materials/:id - UPDATE REQUEST');
   console.log('Material ID:', req.params.id);
   console.log('User:', req.user.email, '(', req.user.role, ')');
   console.log('Body:', req.body);
-  console.log('File:', req.file ? req.file.filename : 'No new file');
-  console.log('Replace file:', req.body.replaceFile);
+  console.log('Files:', req.files ? req.files.length : 0);
+  console.log('Replace files:', req.body.replaceFile);
   console.log('========================================');
 
   const material = await Material.findById(req.params.id);
@@ -271,8 +303,16 @@ router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.single('f
     throw new AppError('You can only update your own materials', 403);
   }
 
-  // Store old file path for deletion if replacing
-  const oldFilePath = material.fileUrl ? path.join(__dirname, '..', material.fileUrl) : null;
+  // Store old files for deletion if replacing
+  const oldFiles = [];
+  if (material.fileUrl) {
+    oldFiles.push(path.join(__dirname, '..', material.fileUrl));
+  }
+  if (material.files && material.files.length > 0) {
+    material.files.forEach(file => {
+      oldFiles.push(path.join(__dirname, '..', file.fileUrl));
+    });
+  }
 
   // Update basic fields
   if (req.body.title) material.title = req.body.title;
@@ -294,14 +334,11 @@ router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.single('f
 
   // Handle file replacement
   if (req.body.replaceFile === 'true') {
-    console.log('🔄 Replacing file...');
+    console.log('🔄 Replacing files...');
     
-    // If new file uploaded
-    if (req.file) {
-      console.log('New file uploaded:', req.file.filename);
-      
-      // Delete old file from disk
-      if (oldFilePath && fs.existsSync(oldFilePath)) {
+    // Delete all old files from disk
+    oldFiles.forEach(oldFilePath => {
+      if (fs.existsSync(oldFilePath)) {
         try {
           fs.unlinkSync(oldFilePath);
           console.log('✅ Old file deleted:', oldFilePath);
@@ -309,33 +346,50 @@ router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.single('f
           console.error('⚠️ Failed to delete old file:', err.message);
         }
       }
+    });
+    
+    // If new files uploaded
+    if (req.files && req.files.length > 0) {
+      console.log(`Processing ${req.files.length} new files`);
       
-      // Update with new file info
-      material.fileUrl = `/uploads/materials/${req.file.filename}`;
-      material.fileName = req.file.originalname;
-      material.fileSize = req.file.size;
-      material.mimeType = req.file.mimetype;
+      // Parse file descriptions
+      let fileDescriptions = [];
+      if (req.body.fileDescriptions) {
+        try {
+          fileDescriptions = JSON.parse(req.body.fileDescriptions);
+        } catch (e) {
+          console.error('Failed to parse file descriptions:', e);
+        }
+      }
+      
+      // First file is the primary file
+      const firstFile = req.files[0];
+      material.fileUrl = `/uploads/materials/${firstFile.filename}`;
+      material.fileName = firstFile.originalname;
+      material.fileSize = firstFile.size;
+      material.mimeType = firstFile.mimetype;
       material.externalUrl = undefined; // Clear external URL if was a link before
       
-      console.log('Updated file info:', {
-        fileUrl: material.fileUrl,
-        fileName: material.fileName,
-        fileSize: material.fileSize
-      });
+      // Additional files go to files array
+      material.files = [];
+      for (let i = 1; i < req.files.length; i++) {
+        const file = req.files[i];
+        material.files.push({
+          fileUrl: `/uploads/materials/${file.filename}`,
+          fileName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          description: fileDescriptions[i] || '',
+          uploadedAt: new Date()
+        });
+      }
+      
+      console.log(`Primary file: ${firstFile.originalname}`);
+      console.log(`Additional files: ${material.files.length}`);
     }
     // If replacing with external URL (for links)
     else if (req.body.externalUrl) {
       console.log('New external URL:', req.body.externalUrl);
-      
-      // Delete old file from disk if exists
-      if (oldFilePath && fs.existsSync(oldFilePath)) {
-        try {
-          fs.unlinkSync(oldFilePath);
-          console.log('✅ Old file deleted:', oldFilePath);
-        } catch (err) {
-          console.error('⚠️ Failed to delete old file:', err.message);
-        }
-      }
       
       // Update with new link
       material.externalUrl = req.body.externalUrl;
@@ -343,6 +397,7 @@ router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.single('f
       material.fileName = undefined;
       material.fileSize = undefined;
       material.mimeType = undefined;
+      material.files = [];
     }
   }
 
