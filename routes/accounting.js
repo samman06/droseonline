@@ -67,18 +67,174 @@ router.get('/summary', authenticate, checkTeacherAccess, async (req, res) => {
     // Get financial summary from transactions
     const summary = await FinancialTransaction.getFinancialSummary(req.user._id, start, end);
     
-    // Get student payment stats
-    const paymentStats = await StudentPayment.getTeacherStats(req.user._id);
+    // Get student payment stats from StudentPayment model (old manual payments)
+    const oldPaymentStats = await StudentPayment.getTeacherStats(req.user._id);
+    
+    // Calculate student payment stats from attendance-based revenue
+    const attendancePaymentStats = await StudentPayment.aggregate([
+      { 
+        $match: { 
+          teacher: req.user._id,
+          paymentType: 'session_based'
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$totalAmount' },
+          totalPaid: { $sum: '$paidAmount' },
+          totalPending: { $sum: '$remainingAmount' },
+          totalOverdue: {
+            $sum: {
+              $cond: [
+                { $eq: ['$status', 'overdue'] },
+                '$remainingAmount',
+                0
+              ]
+            }
+          },
+          totalStudents: { $addToSet: '$student' },
+          paymentCount: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalRevenue: 1,
+          totalPaid: 1,
+          totalPending: 1,
+          totalOverdue: 1,
+          totalStudents: { $size: '$totalStudents' },
+          paymentCount: 1
+        }
+      }
+    ]);
+    
+    // Get actual attendance-based revenue from groups (more reliable than StudentPayment)
+    // Groups don't have teacher field - need to find through courses first
+    const teacherCoursesForAggregate = await Course.find({ teacher: req.user._id }).select('_id');
+    const courseIdsForAggregate = teacherCoursesForAggregate.map(c => c._id);
+    
+    const groupRevenueAggregate = await Group.aggregate([
+      { $match: { course: { $in: courseIdsForAggregate } } },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$totalRevenue' },
+          totalSessions: { $sum: '$totalSessionsHeld' }
+        }
+      }
+    ]);
+    
+    const attendanceBasedRevenue = groupRevenueAggregate[0] || { totalRevenue: 0, totalSessions: 0 };
+    
+    // Calculate payment stats directly from Groups (attendance-based system)
+    // In this system: attendance = payment (when student attends, they pay)
+    // Groups don't have teacher directly - they have course.teacher
+    const teacherCourses = await Course.find({ teacher: req.user._id }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+    
+    const teacherGroups = await Group.find({ course: { $in: courseIds } })
+      .select('totalRevenue totalSessionsHeld pricePerSession students')
+      .lean();
+    
+    // Calculate total expected revenue and sessions info
+    let totalExpectedRevenue = 0;
+    let totalSessionsHeld = 0;
+    let totalStudentsEnrolled = 0;
+    
+    for (const group of teacherGroups) {
+      totalExpectedRevenue += group.totalRevenue || 0;
+      totalSessionsHeld += group.totalSessionsHeld || 0;
+      totalStudentsEnrolled += group.students?.length || 0;
+    }
+    
+    // In attendance-based system:
+    // - Total Revenue = what has been earned through attendance
+    // - All revenue is considered "paid" since attendance = payment
+    // - Pending/Overdue = 0 (no concept of pending in attendance-based system)
+    const paymentStats = {
+      totalRevenue: totalExpectedRevenue,
+      totalExpected: totalExpectedRevenue,
+      totalPaid: totalExpectedRevenue, // All attendance revenue is considered paid
+      totalPending: 0, // No pending in attendance-based system
+      totalOverdue: 0, // No overdue in attendance-based system
+      paidStudents: 0, // Not applicable in attendance-based system
+      partiallyPaidStudents: 0,
+      pendingStudents: 0,
+      overdueStudents: 0,
+      totalStudents: totalStudentsEnrolled,
+      totalSessions: totalSessionsHeld,
+      paymentCount: totalSessionsHeld // Each session is a "payment"
+    };
     
     // Get monthly trend
     const trend = await FinancialTransaction.getMonthlyTrend(req.user._id, 6);
+    
+    // Get revenue by groups (from new revenue tracking system)
+    const groupRevenue = await Group.find({
+      teacher: req.user._id,
+      totalRevenue: { $gt: 0 }
+    })
+    .select('name code totalRevenue totalSessionsHeld pricePerSession students')
+    .populate('course', 'name code')
+    .sort('-totalRevenue')
+    .limit(10)
+    .lean();
+    
+    // Get revenue by courses (from new revenue tracking system)
+    const courseRevenue = await Course.find({
+      teacher: req.user._id,
+      totalRevenue: { $gt: 0 }
+    })
+    .select('name code totalRevenue totalSessionsHeld')
+    .populate('subject', 'name')
+    .sort('-totalRevenue')
+    .limit(10)
+    .lean();
+    
+    // Calculate total from attendance-based revenue
+    const totalAttendanceRevenue = await Group.aggregate([
+      { $match: { teacher: req.user._id } },
+      { $group: {
+        _id: null,
+        totalRevenue: { $sum: '$totalRevenue' },
+        totalSessions: { $sum: '$totalSessionsHeld' }
+      }}
+    ]);
     
     res.json({
       success: true,
       data: {
         ...summary,
         studentPayments: paymentStats,
-        trend
+        trend,
+        // New revenue tracking data
+        groupRevenue: groupRevenue.map(g => ({
+          _id: g._id,
+          name: g.name,
+          code: g.code,
+          courseName: g.course?.name,
+          courseCode: g.course?.code,
+          totalRevenue: g.totalRevenue || 0,
+          totalSessions: g.totalSessionsHeld || 0,
+          pricePerSession: g.pricePerSession || 0,
+          studentCount: g.students?.length || 0,
+          avgRevenuePerSession: g.totalSessionsHeld > 0 ? (g.totalRevenue / g.totalSessionsHeld) : 0
+        })),
+        courseRevenue: courseRevenue.map(c => ({
+          _id: c._id,
+          name: c.name,
+          code: c.code,
+          subjectName: c.subject?.name,
+          totalRevenue: c.totalRevenue || 0,
+          totalSessions: c.totalSessionsHeld || 0,
+          avgRevenuePerSession: c.totalSessionsHeld > 0 ? (c.totalRevenue / c.totalSessionsHeld) : 0
+        })),
+        attendanceRevenue: {
+          total: totalAttendanceRevenue[0]?.totalRevenue || 0,
+          totalSessions: totalAttendanceRevenue[0]?.totalSessions || 0
+        }
       }
     });
   } catch (error) {

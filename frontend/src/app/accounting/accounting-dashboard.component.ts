@@ -131,71 +131,208 @@ import { AuthService } from '../services/auth.service';
             </div>
           </div>
 
+          <!-- Attendance-Based Revenue Card (if available) -->
+          <div *ngIf="summary.attendanceRevenue && summary.attendanceRevenue.total > 0" 
+               class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-white text-xl font-bold mb-2">📊 Attendance-Based Revenue</h2>
+                <p class="text-emerald-100 text-sm">Revenue calculated from marked attendance sessions</p>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-white/80 text-sm">Total Revenue</p>
+                    <p class="text-3xl font-bold text-white">{{ formatCurrency(summary.attendanceRevenue.total) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-white/80 text-sm">Sessions Completed</p>
+                    <p class="text-3xl font-bold text-white">{{ summary.attendanceRevenue.totalSessions }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-white/20 p-4 rounded-2xl">
+                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Column Layout -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Revenue by Groups -->
+            <div *ngIf="summary.groupRevenue && summary.groupRevenue.length > 0" 
+                 class="bg-white rounded-2xl shadow-lg p-6">
+              <h2 class="text-xl font-bold text-gray-900 mb-6">💰 Revenue by Group</h2>
+              <div class="space-y-3">
+                <div *ngFor="let group of summary.groupRevenue" 
+                     class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:shadow-md transition-all">
+                  <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-gray-900">{{ group.name }}</h3>
+                      <p class="text-xs text-gray-600">{{ group.code }} • {{ group.courseName }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-lg font-bold text-emerald-600">{{ formatCurrency(group.totalRevenue) }}</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-200">
+                    <div class="text-center">
+                      <p class="text-xs text-gray-600">Sessions</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ group.totalSessions }}</p>
+                    </div>
+                    <div class="text-center">
+                      <p class="text-xs text-gray-600">Students</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ group.studentCount }}</p>
+                    </div>
+                    <div class="text-center">
+                      <p class="text-xs text-gray-600">Avg/Session</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ formatCurrency(group.avgRevenuePerSession) }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 text-center">
+                <a routerLink="/dashboard/groups" 
+                   class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                  View All Groups →
+                </a>
+              </div>
+            </div>
+
+            <!-- Revenue by Courses -->
+            <div *ngIf="summary.courseRevenue && summary.courseRevenue.length > 0" 
+                 class="bg-white rounded-2xl shadow-lg p-6">
+              <h2 class="text-xl font-bold text-gray-900 mb-6">📚 Revenue by Course</h2>
+              <div class="space-y-3">
+                <div *ngFor="let course of summary.courseRevenue" 
+                     class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:shadow-md transition-all">
+                  <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-gray-900">{{ course.name }}</h3>
+                      <p class="text-xs text-gray-600">{{ course.code }} • {{ course.subjectName }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-lg font-bold text-emerald-600">{{ formatCurrency(course.totalRevenue) }}</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-purple-200">
+                    <div class="text-center">
+                      <p class="text-xs text-gray-600">Sessions</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ course.totalSessions }}</p>
+                    </div>
+                    <div class="text-center">
+                      <p class="text-xs text-gray-600">Avg/Session</p>
+                      <p class="text-sm font-semibold text-gray-900">{{ formatCurrency(course.avgRevenuePerSession) }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 text-center">
+                <a routerLink="/dashboard/courses" 
+                   class="text-sm text-purple-600 hover:text-purple-800 font-medium">
+                  View All Courses →
+                </a>
+              </div>
+            </div>
+          </div>
+
           <!-- Two Column Layout -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Pending & Overdue Payments -->
             <div class="bg-white rounded-2xl shadow-lg p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-6">Payment Status</h2>
+              <h2 class="text-xl font-bold text-gray-900 mb-6">💳 Revenue Status</h2>
               <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+                <!-- Total Revenue Earned -->
+                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border-2 border-emerald-300">
                   <div class="flex items-center gap-3">
-                    <div class="bg-yellow-500 p-2 rounded-lg">
-                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="font-semibold text-gray-900">Pending Payments</p>
-                      <p class="text-sm text-gray-600">Awaiting collection</p>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-2xl font-bold text-yellow-600">{{ formatCurrency(summary.studentPayments.totalPending) }}</p>
-                  </div>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-red-50 rounded-xl border border-red-200">
-                  <div class="flex items-center gap-3">
-                    <div class="bg-red-500 p-2 rounded-lg">
-                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p class="font-semibold text-gray-900">Overdue Payments</p>
-                      <p class="text-sm text-gray-600">Requires attention</p>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-2xl font-bold text-red-600">{{ formatCurrency(summary.studentPayments.totalOverdue) }}</p>
-                  </div>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
-                  <div class="flex items-center gap-3">
-                    <div class="bg-green-500 p-2 rounded-lg">
-                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="bg-emerald-500 p-3 rounded-lg">
+                      <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
                     </div>
                     <div>
-                      <p class="font-semibold text-gray-900">Total Collected</p>
-                      <p class="text-sm text-gray-600">From students</p>
+                      <p class="font-bold text-gray-900 text-lg">Total Revenue Earned</p>
+                      <p class="text-sm text-gray-600">
+                        From {{ summary.studentPayments.totalSessions || 0 }} session(s) • 
+                        {{ summary.studentPayments.totalStudents || 0 }} students enrolled
+                      </p>
                     </div>
                   </div>
                   <div class="text-right">
-                    <p class="text-2xl font-bold text-green-600">{{ formatCurrency(summary.studentPayments.totalRevenue) }}</p>
+                    <p class="text-3xl font-bold text-emerald-600">{{ formatCurrency(summary.studentPayments.totalRevenue) }}</p>
+                    <p class="text-xs text-emerald-600 font-medium mt-1">✓ Collected via attendance</p>
                   </div>
+                </div>
+
+                <!-- Info Box: Attendance-Based System -->
+                <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                  <div class="flex items-start gap-3">
+                    <div class="bg-blue-500 p-2 rounded-lg flex-shrink-0">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <p class="font-semibold text-gray-900 mb-1">📋 Attendance-Based Payment System</p>
+                      <p class="text-sm text-gray-700 leading-relaxed">
+                        Revenue is automatically calculated when you mark attendance. 
+                        When a student is marked as <span class="font-semibold text-green-600">Present</span>, 
+                        they are charged the session price ({{ summary.attendanceRevenue?.pricePerSession || 'varies' }} EGP/session).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Revenue Breakdown -->
+                <div class="grid grid-cols-2 gap-3">
+                  <!-- Sessions Completed -->
+                  <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                    <div class="flex items-center gap-2 mb-2">
+                      <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <p class="text-xs font-medium text-gray-600">Sessions Completed</p>
+                    </div>
+                    <p class="text-2xl font-bold text-purple-600">{{ summary.studentPayments.totalSessions || 0 }}</p>
+                  </div>
+
+                  <!-- Students Enrolled -->
+                  <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                    <div class="flex items-center gap-2 mb-2">
+                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                      </svg>
+                      <p class="text-xs font-medium text-gray-600">Total Students</p>
+                    </div>
+                    <p class="text-2xl font-bold text-blue-600">{{ summary.studentPayments.totalStudents || 0 }}</p>
+                  </div>
+                </div>
+
+                <!-- Attendance Revenue Details -->
+                <div *ngIf="summary.attendanceRevenue && summary.attendanceRevenue.total > 0"
+                     class="p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border border-teal-200">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                      </svg>
+                      <p class="text-xs font-medium text-gray-700">Last Period Revenue</p>
+                    </div>
+                    <p class="text-sm font-bold text-teal-600">{{ formatCurrency(summary.attendanceRevenue.total) }}</p>
+                  </div>
+                  <p class="text-xs text-gray-600 mt-1 ml-6">
+                    {{ summary.attendanceRevenue.totalSessions }} session(s) this {{ getPeriodLabel() }}
+                  </p>
                 </div>
               </div>
 
               <div class="mt-6 pt-6 border-t">
-                <a routerLink="/dashboard/accounting/payments" 
-                   class="inline-flex items-center justify-center w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
-                  View All Payments
-                  <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                <a routerLink="/dashboard/attendance" 
+                   class="inline-flex items-center justify-center w-full px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white rounded-lg font-medium transition-all shadow-sm">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                   </svg>
+                  Mark Attendance to Generate Revenue
                 </a>
               </div>
             </div>
@@ -334,6 +471,11 @@ export class AccountingDashboardComponent implements OnInit {
 
   formatCurrency(amount: number): string {
     return this.accountingService.formatCurrency(amount);
+  }
+
+  getPercentage(part: number, total: number): number {
+    if (!total || total === 0) return 0;
+    return Math.round((part / total) * 100);
   }
 
   getCategoryBreakdown(): any[] {

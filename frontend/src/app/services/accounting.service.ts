@@ -56,15 +56,49 @@ export interface FinancialSummary {
   categoryBreakdown: any[];
   studentPayments: {
     totalRevenue: number;
+    totalExpected: number;
+    totalPaid: number;
     totalPending: number;
     totalOverdue: number;
+    paidStudents: number;
+    partiallyPaidStudents: number;
+    pendingStudents: number;
+    overdueStudents: number;
     totalStudents: number;
+    totalSessions: number;
     paymentCount: number;
   };
   trend: any[];
   period: {
     startDate: Date;
     endDate: Date;
+  };
+  // New revenue tracking data
+  groupRevenue?: {
+    _id: string;
+    name: string;
+    code: string;
+    courseName?: string;
+    courseCode?: string;
+    totalRevenue: number;
+    totalSessions: number;
+    pricePerSession: number;
+    studentCount: number;
+    avgRevenuePerSession: number;
+  }[];
+  courseRevenue?: {
+    _id: string;
+    name: string;
+    code: string;
+    subjectName?: string;
+    totalRevenue: number;
+    totalSessions: number;
+    avgRevenuePerSession: number;
+  }[];
+  attendanceRevenue?: {
+    total: number;
+    totalSessions: number;
+    pricePerSession?: number;
   };
 }
 
