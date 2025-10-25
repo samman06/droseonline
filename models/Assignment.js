@@ -27,8 +27,7 @@ const assignmentSchema = new mongoose.Schema({
   // Relationships
   groups: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Group',
-    required: true
+    ref: 'Group'
   }],
   // Course is derived from groups (for backward compatibility and easy querying)
   course: {
@@ -75,7 +74,10 @@ const assignmentSchema = new mongoose.Schema({
   },
   dueDate: {
     type: Date,
-    required: true
+    required: function() {
+      // dueDate is only required if this is NOT a template
+      return !this.isTemplate;
+    }
   },
   lateSubmissionDeadline: {
     type: Date
@@ -403,19 +405,24 @@ assignmentSchema.pre('save', async function(next) {
     }
   }
   
-  // Validate due date
-  if (this.dueDate <= this.assignedDate) {
+  // Validate due date (skip for templates)
+  if (!this.isTemplate && this.dueDate && this.assignedDate && this.dueDate <= this.assignedDate) {
     return next(new Error('Due date must be after assigned date'));
   }
   
-  // Validate late submission deadline
-  if (this.lateSubmissionDeadline && this.lateSubmissionDeadline <= this.dueDate) {
+  // Validate late submission deadline (skip for templates)
+  if (!this.isTemplate && this.lateSubmissionDeadline && this.dueDate && this.lateSubmissionDeadline <= this.dueDate) {
     return next(new Error('Late submission deadline must be after due date'));
   }
   
   // Validate quiz settings
   if (this.type === 'quiz' && this.questions.length === 0) {
     return next(new Error('Quiz assignments must have at least one question'));
+  }
+  
+  // Validate groups requirement for non-templates
+  if (!this.isTemplate && (!this.groups || this.groups.length === 0)) {
+    return next(new Error('Non-template assignments must have at least one group'));
   }
   
   // Validate rubric total points
