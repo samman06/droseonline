@@ -4,7 +4,7 @@ const Attendance = require('../models/Attendance');
 const Group = require('../models/Group');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const StudentPayment = require('../models/StudentPayment');
-const { authenticate, checkTeacherOrAssistantAccess } = require('../middleware/auth');
+const { authenticate, checkTeacherOrAssistantAccess, checkAssistantPermission } = require('../middleware/auth');
 const validation = require('../middleware/validation');
 const Joi = require('joi');
 
@@ -1259,7 +1259,7 @@ router.post('/', authenticate, checkTeacherOrAssistantAccess, validation.validat
 });
 
 // PUT /api/attendance/:id - Update attendance record
-router.put('/:id', authenticate, validation.validate(updateAttendanceSchema), async (req, res) => {
+router.put('/:id', authenticate, checkTeacherOrAssistantAccess, validation.validate(updateAttendanceSchema), async (req, res) => {
   try {
     const { records, sessionNotes, isCompleted } = req.body;
 
@@ -1332,7 +1332,7 @@ router.put('/:id', authenticate, validation.validate(updateAttendanceSchema), as
 });
 
 // POST /api/attendance/:id/bulk-update - Bulk update multiple records
-router.post('/:id/bulk-update', authenticate, async (req, res) => {
+router.post('/:id/bulk-update', authenticate, checkTeacherOrAssistantAccess, async (req, res) => {
   try {
     const { records } = req.body;
     

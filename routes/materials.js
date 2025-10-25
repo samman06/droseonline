@@ -6,7 +6,7 @@ const fs = require('fs');
 const Material = require('../models/Material');
 const Course = require('../models/Course');
 const User = require('../models/User');
-const { authenticate, authorize, checkTeacherOrAssistantAccess } = require('../middleware/auth');
+const { authenticate, authorize, checkTeacherOrAssistantAccess, checkAssistantPermission } = require('../middleware/auth');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 
 // Configure multer for file uploads
