@@ -20,4 +20,10 @@ export class DashboardService {
       headers: this.authService.getAuthHeaders()
     });
   }
+
+  getQuickActions(): Observable<any> {
+    return this.http.get<any>(`${this.API_URL}/dashboard/quick-actions`, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
 }

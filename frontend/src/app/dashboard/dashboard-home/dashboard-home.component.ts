@@ -15,7 +15,9 @@ import { ToastService } from '../../services/toast.service';
 export class DashboardHomeComponent implements OnInit {
   currentUser: User | null = null;
   stats: any = {};
+  quickActions: any = {};
   isLoading = true;
+  isLoadingQuickActions = false;
   currentTime = new Date();
   Math = Math;
 
@@ -28,6 +30,11 @@ export class DashboardHomeComponent implements OnInit {
   ngOnInit() {
     this.currentUser = this.authService.currentUser;
     this.loadDashboardData();
+    
+    // Load quick actions for teachers
+    if (this.currentUser?.role === 'teacher') {
+      this.loadQuickActions();
+    }
     
     // Update time every minute
     setInterval(() => {
@@ -49,6 +56,23 @@ export class DashboardHomeComponent implements OnInit {
         console.error('Failed to load dashboard data:', error);
         this.toastService.error('Failed to load dashboard data');
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadQuickActions() {
+    this.isLoadingQuickActions = true;
+    
+    this.dashboardService.getQuickActions().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.quickActions = response.data || {};
+        }
+        this.isLoadingQuickActions = false;
+      },
+      error: (error) => {
+        console.error('Failed to load quick actions:', error);
+        this.isLoadingQuickActions = false;
       }
     });
   }

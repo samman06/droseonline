@@ -55,6 +55,15 @@ import { AuthService } from '../../services/auth.service';
                   </svg>
                   Edit Assignment
                 </button>
+                <!-- Save as Template Button -->
+                <button *ngIf="canEdit" 
+                        (click)="saveAsTemplate()"
+                        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg font-medium shadow-lg transition-all transform hover:-translate-y-0.5">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                  </svg>
+                  Save as Template
+                </button>
                 <!-- Quiz-specific button for students -->
                 <button *ngIf="isStudent && assignment.type === 'quiz' && canSubmit"
                         [routerLink]="['/dashboard/assignments', assignment._id, 'take-quiz']"
@@ -1011,6 +1020,38 @@ export class AssignmentDetailComponent implements OnInit {
           if (this.assignment.quizSettings) {
             this.assignment.quizSettings.resultsReleased = true;
           }
+        }
+      },
+      error: (error) => {
+        this.toastService.showApiError(error);
+      }
+    });
+  }
+
+  saveAsTemplate(): void {
+    if (!this.assignment?._id) return;
+
+    // Prompt for template name and description
+    const templateName = prompt(
+      'Enter a name for this template:',
+      this.assignment.title + ' Template'
+    );
+
+    if (!templateName) return; // User cancelled
+
+    const templateDescription = prompt(
+      'Enter a description for this template (optional):',
+      'Reusable template for ' + this.assignment.type + ' assignments'
+    );
+
+    // Call API to save as template
+    this.assignmentService.saveAsTemplate(this.assignment._id, {
+      templateName,
+      templateDescription: templateDescription || undefined
+    }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.toastService.success('Assignment saved as template successfully! ✓');
         }
       },
       error: (error) => {

@@ -298,6 +298,159 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
   }
 });
 
+// @route   GET /api/assignments/templates
+// @desc    Get all assignment templates for the current teacher
+// @access  Private (Teacher/Admin)
+router.get('/templates', authenticate, authorize(['teacher', 'admin']), async (req, res) => {
+  try {
+    const { type, category, search } = req.query;
+
+    const query = {
+      isTemplate: true,
+      teacher: req.user._id
+    };
+
+    if (type) query.type = type;
+    if (category) query.category = category;
+    if (search) {
+      query.$or = [
+        { templateName: { $regex: search, $options: 'i' } },
+        { templateDescription: { $regex: search, $options: 'i' } },
+        { title: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const templates = await Assignment.find(query)
+      .select('templateName templateDescription title type category maxPoints questions usageCount createdAt')
+      .sort({ usageCount: -1, createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: { templates },
+      total: templates.length
+    });
+  } catch (error) {
+    console.error('Get templates error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching templates'
+    });
+  }
+});
+
+// @route   POST /api/assignments/templates/:id/use
+// @desc    Create an assignment from a template
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/templates/:id/use', authenticate, async (req, res) => {
+  try {
+    const { course, groups, dueDate, assignedDate } = req.body;
+    
+    const template = await Assignment.findById(req.params.id);
+    if (!template || !template.isTemplate) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Verify teacher owns the template
+    if (template.teacher.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - not your template'
+      });
+    }
+
+    // Create assignment from template
+    const assignmentData = {
+      title: template.title,
+      description: template.description,
+      type: template.type,
+      category: template.category,
+      course,
+      teacher: req.user._id,
+      groups,
+      dueDate: dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
+      assignedDate: assignedDate || new Date(),
+      instructions: template.instructions,
+      rubric: template.rubric,
+      maxPoints: template.maxPoints,
+      allowLateSubmission: template.allowLateSubmission,
+      latePenalty: template.latePenalty,
+      submissionType: template.submissionType,
+      allowedFileTypes: template.allowedFileTypes,
+      maxFileSize: template.maxFileSize,
+      maxFiles: template.maxFiles,
+      quizSettings: template.quizSettings,
+      questions: template.questions,
+      attachments: template.attachments,
+      status: 'draft'
+    };
+
+    const assignment = new Assignment(assignmentData);
+    await assignment.save();
+
+    // Increment template usage count
+    template.usageCount += 1;
+    await template.save();
+
+    // Populate the response
+    await assignment.populate([
+      { path: 'course', select: 'name code' },
+      { path: 'teacher', select: 'firstName lastName fullName' },
+      { path: 'groups', select: 'name code gradeLevel' }
+    ]);
+
+    res.status(201).json({
+      success: true,
+      message: 'Assignment created from template',
+      data: { assignment }
+    });
+  } catch (error) {
+    console.error('Use template error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while creating assignment from template'
+    });
+  }
+});
+
+// @route   DELETE /api/assignments/templates/:id
+// @desc    Delete a template
+// @access  Private (Teacher/Admin - Owner only)
+router.delete('/templates/:id', authenticate, async (req, res) => {
+  try {
+    const template = await Assignment.findById(req.params.id);
+    if (!template || !template.isTemplate) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Verify teacher owns the template
+    if (template.teacher.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - not your template'
+      });
+    }
+
+    await Assignment.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Template deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete template error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting template'
+    });
+  }
+});
+
 // @route   GET /api/assignments/:id
 // @desc    Get single assignment
 // @access  Private
@@ -1010,6 +1163,64 @@ router.post('/:id/clone', authenticate, checkTeacherAccess, async (req, res) => 
     res.status(500).json({
       success: false,
       message: 'Server error while cloning assignment'
+    });
+  }
+});
+
+// @route   POST /api/assignments/:id/save-as-template
+// @desc    Save an assignment as a reusable template
+// @access  Private (Teacher/Admin - Owner only)
+router.post('/:id/save-as-template', authenticate, checkTeacherAccess, async (req, res) => {
+  try {
+    const { templateName, templateDescription } = req.body;
+    
+    const originalAssignment = await Assignment.findById(req.params.id);
+    if (!originalAssignment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Assignment not found'
+      });
+    }
+
+    // Create template from assignment (exclude specific instances like course, groups, dates)
+    const templateData = {
+      title: templateName || originalAssignment.title,
+      templateName: templateName || originalAssignment.title,
+      templateDescription: templateDescription || originalAssignment.description,
+      description: originalAssignment.description,
+      type: originalAssignment.type,
+      category: originalAssignment.category,
+      teacher: req.user._id, // Template belongs to the teacher
+      instructions: originalAssignment.instructions,
+      rubric: originalAssignment.rubric,
+      maxPoints: originalAssignment.maxPoints,
+      allowLateSubmission: originalAssignment.allowLateSubmission,
+      latePenalty: originalAssignment.latePenalty,
+      submissionType: originalAssignment.submissionType,
+      allowedFileTypes: originalAssignment.allowedFileTypes,
+      maxFileSize: originalAssignment.maxFileSize,
+      maxFiles: originalAssignment.maxFiles,
+      quizSettings: originalAssignment.quizSettings,
+      questions: originalAssignment.questions,
+      attachments: originalAssignment.attachments,
+      isTemplate: true,
+      status: 'draft',
+      usageCount: 0
+    };
+
+    const template = new Assignment(templateData);
+    await template.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Template created successfully',
+      data: { template }
+    });
+  } catch (error) {
+    console.error('Save template error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while saving template'
     });
   }
 });

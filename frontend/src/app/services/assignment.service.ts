@@ -236,5 +236,22 @@ export class AssignmentService {
   releaseQuizResults(assignmentId: string): Observable<any> {
     return this.api.post(`${this.ASSIGNMENTS_ENDPOINT}/${assignmentId}/release-results`, {});
   }
+
+  // Template Management
+  getTemplates(params?: QueryParams): Observable<ApiResponse<any>> {
+    return this.api.get(`${this.ASSIGNMENTS_ENDPOINT}/templates`, params);
+  }
+
+  saveAsTemplate(assignmentId: string, templateData: { templateName: string, templateDescription?: string }): Observable<ApiResponse<any>> {
+    return this.api.post(`${this.ASSIGNMENTS_ENDPOINT}/${assignmentId}/save-as-template`, templateData);
+  }
+
+  useTemplate(templateId: string, data: { course: string, groups: string[], dueDate?: Date, assignedDate?: Date }): Observable<ApiResponse<any>> {
+    return this.api.post(`${this.ASSIGNMENTS_ENDPOINT}/templates/${templateId}/use`, data);
+  }
+
+  deleteTemplate(templateId: string): Observable<ApiResponse<any>> {
+    return this.api.delete(`${this.ASSIGNMENTS_ENDPOINT}/templates`, templateId);
+  }
 }
 

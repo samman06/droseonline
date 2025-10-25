@@ -221,6 +221,26 @@ const assignmentSchema = new mongoose.Schema({
     default: 'draft'
   },
   
+  // Template Settings
+  isTemplate: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  templateName: {
+    type: String,
+    trim: true,
+    maxlength: 200
+  },
+  templateDescription: {
+    type: String,
+    maxlength: 500
+  },
+  usageCount: {
+    type: Number,
+    default: 0
+  },
+  
   // Plagiarism Settings
   plagiarismCheck: {
     enabled: {

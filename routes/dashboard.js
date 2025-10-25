@@ -42,6 +42,145 @@ router.get('/stats', authenticate, async (req, res) => {
   }
 });
 
+// @route   GET /api/dashboard/quick-actions
+// @desc    Get quick actions data for teachers
+// @access  Private (Teacher only)
+router.get('/quick-actions', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - teachers only'
+      });
+    }
+
+    const today = new Date();
+    const teacherId = req.user._id;
+
+    // Get teacher's courses
+    const teacherCourses = await Course.find({ teacher: teacherId, isActive: true }).select('_id');
+    const courseIds = teacherCourses.map(c => c._id);
+
+    // Get teacher's groups
+    const teacherGroups = await Group.find({ 
+      course: { $in: courseIds },
+      isActive: true 
+    }).select('_id');
+    const groupIds = teacherGroups.map(g => g._id);
+
+    // Parallel queries for efficiency
+    const [
+      pendingGradingSubmissions,
+      recentSubmissions,
+      upcomingAssignments,
+      lowAttendanceStudents,
+      assignmentTemplateCount
+    ] = await Promise.all([
+      // Pending grading (submissions that need grading)
+      Submission.find({
+        assignment: {
+          $in: await Assignment.find({ teacher: teacherId, status: 'published' }).select('_id')
+        },
+        status: 'submitted'
+      })
+        .populate('student', 'firstName lastName fullName academicInfo.studentId')
+        .populate('assignment', 'title dueDate')
+        .sort({ submittedAt: 1 })
+        .limit(5)
+        .select('student assignment submittedAt'),
+
+      // Recent submissions (last 5)
+      Submission.find({
+        assignment: {
+          $in: await Assignment.find({ teacher: teacherId, status: 'published' }).select('_id')
+        },
+        status: { $in: ['submitted', 'graded'] }
+      })
+        .populate('student', 'firstName lastName fullName')
+        .populate('assignment', 'title')
+        .sort({ submittedAt: -1 })
+        .limit(5)
+        .select('student assignment status submittedAt grade'),
+
+      // Upcoming assignments (due in next 7 days)
+      Assignment.find({
+        teacher: teacherId,
+        status: 'published',
+        dueDate: { 
+          $gte: today,
+          $lte: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+        }
+      })
+        .populate('course', 'name')
+        .sort({ dueDate: 1 })
+        .limit(5)
+        .select('title dueDate course maxPoints'),
+
+      // Low attendance students (< 75%)
+      Attendance.aggregate([
+        { $match: { group: { $in: groupIds } } },
+        { $unwind: '$records' },
+        {
+          $group: {
+            _id: '$records.student',
+            total: { $sum: 1 },
+            present: { $sum: { $cond: [{ $eq: ['$records.status', 'present'] }, 1, 0] } }
+          }
+        },
+        {
+          $project: {
+            student: '$_id',
+            attendanceRate: { 
+              $multiply: [{ $divide: ['$present', '$total'] }, 100]
+            }
+          }
+        },
+        { $match: { attendanceRate: { $lt: 75 } } },
+        { $sort: { attendanceRate: 1 } },
+        { $limit: 5 }
+      ]),
+
+      // Count of assignment templates
+      Assignment.countDocuments({ teacher: teacherId, isTemplate: true })
+    ]);
+
+    // Populate student details for low attendance
+    const lowAttendanceStudentIds = lowAttendanceStudents.map(s => s.student);
+    const students = await User.find({ _id: { $in: lowAttendanceStudentIds } })
+      .select('firstName lastName fullName academicInfo.studentId');
+    
+    const lowAttendanceWithDetails = lowAttendanceStudents.map(record => {
+      const student = students.find(s => s._id.toString() === record.student.toString());
+      return {
+        student,
+        attendanceRate: Math.round(record.attendanceRate)
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        pendingGrading: pendingGradingSubmissions,
+        recentSubmissions,
+        upcomingAssignments,
+        lowAttendanceStudents: lowAttendanceWithDetails,
+        templateCount: assignmentTemplateCount,
+        summary: {
+          pendingCount: pendingGradingSubmissions.length,
+          upcomingCount: upcomingAssignments.length,
+          atRiskCount: lowAttendanceWithDetails.length
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get quick actions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching quick actions'
+    });
+  }
+});
+
 // Admin statistics
 async function getAdminStats() {
   const now = new Date();

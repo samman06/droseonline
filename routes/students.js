@@ -936,4 +936,298 @@ router.post('/bulk-action', authenticate, authorize('admin'), async (req, res) =
   }
 });
 
+// @route   GET /api/students/:id/progress-report
+// @desc    Get comprehensive progress report for a student
+// @access  Private (Admin/Teacher/Student - own report)
+router.get('/:id/progress-report', authenticate, async (req, res) => {
+  try {
+    const studentId = req.params.id;
+
+    // Check access permissions
+    if (req.user.role === 'student' && req.user._id.toString() !== studentId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - can only view your own progress report'
+      });
+    }
+
+    // Get student info
+    const student = await User.findById(studentId)
+      .select('firstName lastName fullName email academicInfo')
+      .populate('academicInfo.groups', 'name code course');
+
+    if (!student || student.role !== 'student') {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // For teachers, verify they teach this student
+    if (req.user.role === 'teacher') {
+      const teacherCourses = await Course.find({ teacher: req.user._id }).select('_id');
+      const courseIds = teacherCourses.map(c => c._id);
+      const teacherGroups = await Group.find({ course: { $in: courseIds } }).select('_id');
+      const groupIds = teacherGroups.map(g => g._id.toString());
+      
+      const studentGroupIds = student.academicInfo?.groups?.map(g => g._id.toString()) || [];
+      const hasAccess = studentGroupIds.some(gid => groupIds.includes(gid));
+      
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied - student not in your classes'
+        });
+      }
+    }
+
+    // Get all groups this student is enrolled in
+    const groupIds = student.academicInfo?.groups?.map(g => g._id) || [];
+    
+    // Get all courses through groups
+    const groups = await Group.find({ _id: { $in: groupIds } })
+      .populate('course', 'name code subject')
+      .populate({
+        path: 'course',
+        populate: { path: 'subject', select: 'name code' }
+      });
+
+    const courseIds = [...new Set(groups.map(g => g.course?._id).filter(Boolean))];
+
+    // Parallel queries for efficiency
+    const [
+      assignments,
+      submissions,
+      attendanceRecords
+    ] = await Promise.all([
+      // Get all assignments for student's courses
+      Assignment.find({
+        course: { $in: courseIds },
+        status: { $in: ['published', 'closed', 'graded'] }
+      })
+        .select('title type maxPoints dueDate course')
+        .populate('course', 'name'),
+
+      // Get all student's submissions
+      Submission.find({
+        student: studentId,
+        assignment: {
+          $in: await Assignment.find({ course: { $in: courseIds } }).select('_id')
+        }
+      })
+        .select('assignment status grade submittedAt')
+        .populate('assignment', 'title maxPoints type course'),
+
+      // Get attendance records
+      Attendance.find({
+        group: { $in: groupIds },
+        'records.student': studentId
+      }).select('date group records')
+    ]);
+
+    // Calculate assignment statistics
+    const assignmentStats = {
+      total: assignments.length,
+      submitted: submissions.filter(s => s.status !== 'not_submitted').length,
+      graded: submissions.filter(s => s.status === 'graded').length,
+      pending: submissions.filter(s => s.status === 'submitted').length,
+      averageGrade: 0,
+      totalPoints: 0,
+      earnedPoints: 0
+    };
+
+    // Calculate average grade
+    const gradedSubmissions = submissions.filter(s => s.grade?.points !== undefined);
+    if (gradedSubmissions.length > 0) {
+      const totalEarned = gradedSubmissions.reduce((sum, s) => sum + (s.grade.points || 0), 0);
+      const totalMax = gradedSubmissions.reduce((sum, s) => {
+        const assignment = assignments.find(a => a._id.toString() === s.assignment._id.toString());
+        return sum + (assignment?.maxPoints || 0);
+      }, 0);
+      
+      assignmentStats.earnedPoints = totalEarned;
+      assignmentStats.totalPoints = totalMax;
+      assignmentStats.averageGrade = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
+    }
+
+    // Calculate attendance statistics
+    let totalAttendanceDays = 0;
+    let presentDays = 0;
+    let absentDays = 0;
+    let lateDays = 0;
+    let excusedDays = 0;
+
+    attendanceRecords.forEach(record => {
+      const studentRecord = record.records.find(r => r.student.toString() === studentId);
+      if (studentRecord) {
+        totalAttendanceDays++;
+        switch (studentRecord.status) {
+          case 'present':
+            presentDays++;
+            break;
+          case 'absent':
+            absentDays++;
+            break;
+          case 'late':
+            lateDays++;
+            break;
+          case 'excused':
+            excusedDays++;
+            break;
+        }
+      }
+    });
+
+    const attendanceRate = totalAttendanceDays > 0 
+      ? Math.round((presentDays / totalAttendanceDays) * 100) 
+      : 0;
+
+    // Grade breakdown by type
+    const gradesByType = {};
+    assignments.forEach(assignment => {
+      if (!gradesByType[assignment.type]) {
+        gradesByType[assignment.type] = {
+          total: 0,
+          submitted: 0,
+          averageGrade: 0,
+          grades: []
+        };
+      }
+      gradesByType[assignment.type].total++;
+
+      const submission = submissions.find(s => 
+        s.assignment._id.toString() === assignment._id.toString()
+      );
+      
+      if (submission && submission.status !== 'not_submitted') {
+        gradesByType[assignment.type].submitted++;
+        
+        if (submission.grade?.points !== undefined) {
+          const percentage = (submission.grade.points / assignment.maxPoints) * 100;
+          gradesByType[assignment.type].grades.push(percentage);
+        }
+      }
+    });
+
+    // Calculate averages for each type
+    Object.keys(gradesByType).forEach(type => {
+      const grades = gradesByType[type].grades;
+      if (grades.length > 0) {
+        const avg = grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
+        gradesByType[type].averageGrade = Math.round(avg);
+      }
+    });
+
+    // Performance trend (last 10 graded submissions)
+    const recentSubmissions = submissions
+      .filter(s => s.grade?.points !== undefined)
+      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+      .slice(0, 10)
+      .reverse()
+      .map(s => {
+        const assignment = assignments.find(a => a._id.toString() === s.assignment._id.toString());
+        return {
+          title: s.assignment.title,
+          percentage: assignment ? Math.round((s.grade.points / assignment.maxPoints) * 100) : 0,
+          date: s.submittedAt
+        };
+      });
+
+    // Course-wise performance
+    const coursePerformance = {};
+    groups.forEach(group => {
+      if (!group.course) return;
+      
+      const courseId = group.course._id.toString();
+      if (!coursePerformance[courseId]) {
+        coursePerformance[courseId] = {
+          courseName: group.course.name,
+          courseCode: group.course.code,
+          subjectName: group.course.subject?.name,
+          assignments: 0,
+          submitted: 0,
+          averageGrade: 0,
+          grades: []
+        };
+      }
+
+      const courseAssignments = assignments.filter(a => 
+        a.course._id.toString() === courseId
+      );
+      
+      coursePerformance[courseId].assignments += courseAssignments.length;
+
+      courseAssignments.forEach(assignment => {
+        const submission = submissions.find(s => 
+          s.assignment._id.toString() === assignment._id.toString()
+        );
+        
+        if (submission && submission.status !== 'not_submitted') {
+          coursePerformance[courseId].submitted++;
+          
+          if (submission.grade?.points !== undefined) {
+            const percentage = (submission.grade.points / assignment.maxPoints) * 100;
+            coursePerformance[courseId].grades.push(percentage);
+          }
+        }
+      });
+
+      // Calculate average
+      if (coursePerformance[courseId].grades.length > 0) {
+        const avg = coursePerformance[courseId].grades.reduce((sum, g) => sum + g, 0) 
+                    / coursePerformance[courseId].grades.length;
+        coursePerformance[courseId].averageGrade = Math.round(avg);
+      }
+      
+      delete coursePerformance[courseId].grades; // Remove raw grades array from response
+    });
+
+    // Build comprehensive report
+    const progressReport = {
+      student: {
+        id: student._id,
+        name: student.fullName,
+        email: student.email,
+        studentId: student.academicInfo?.studentId,
+        year: student.academicInfo?.year,
+        enrolledGroups: groups.length
+      },
+      summary: {
+        overallGrade: assignmentStats.averageGrade,
+        attendanceRate,
+        assignmentsCompleted: assignmentStats.submitted,
+        totalAssignments: assignmentStats.total,
+        completionRate: assignmentStats.total > 0 
+          ? Math.round((assignmentStats.submitted / assignmentStats.total) * 100) 
+          : 0
+      },
+      assignments: assignmentStats,
+      attendance: {
+        totalDays: totalAttendanceDays,
+        present: presentDays,
+        absent: absentDays,
+        late: lateDays,
+        excused: excusedDays,
+        attendanceRate
+      },
+      gradesByType,
+      coursePerformance: Object.values(coursePerformance),
+      recentPerformance: recentSubmissions,
+      generatedAt: new Date()
+    };
+
+    res.json({
+      success: true,
+      data: progressReport
+    });
+
+  } catch (error) {
+    console.error('Progress report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while generating progress report'
+    });
+  }
+});
+
 module.exports = router;

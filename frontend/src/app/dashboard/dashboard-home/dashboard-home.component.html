@@ -271,6 +271,127 @@
         </div>
       </div>
 
+      <!-- Quick Actions Widget -->
+      <div class="mb-8 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-xl p-8 text-white">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold flex items-center gap-3">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              Quick Actions
+            </h2>
+            <p class="text-purple-100 mt-1">Your priority tasks at a glance</p>
+          </div>
+          <div *ngIf="!isLoadingQuickActions" class="flex gap-2">
+            <span *ngIf="quickActions.summary?.pendingCount > 0" class="px-3 py-2 bg-white/20 backdrop-blur-lg rounded-lg">
+              <span class="font-bold text-xl">{{ quickActions.summary.pendingCount }}</span>
+              <span class="text-sm ml-1">to grade</span>
+            </span>
+            <span *ngIf="quickActions.summary?.upcomingCount > 0" class="px-3 py-2 bg-white/20 backdrop-blur-lg rounded-lg">
+              <span class="font-bold text-xl">{{ quickActions.summary.upcomingCount }}</span>
+              <span class="text-sm ml-1">upcoming</span>
+            </span>
+            <span *ngIf="quickActions.summary?.atRiskCount > 0" class="px-3 py-2 bg-yellow-500/90 backdrop-blur-lg rounded-lg">
+              <span class="font-bold text-xl">{{ quickActions.summary.atRiskCount }}</span>
+              <span class="text-sm ml-1">at risk</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingQuickActions" class="flex items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white"></div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <div *ngIf="!isLoadingQuickActions" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Pending Grading -->
+          <a routerLink="/dashboard/assignments" [queryParams]="{status: 'needs_grading'}" 
+             class="group bg-white/10 backdrop-blur-lg hover:bg-white/20 rounded-xl p-5 transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-white/20 hover:border-white/40">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path>
+              </svg>
+              <span class="text-3xl font-black">{{ quickActions.summary?.pendingCount || 0 }}</span>
+            </div>
+            <div class="font-semibold mb-1">Pending Grading</div>
+            <div class="text-sm text-purple-100">Review submissions →</div>
+          </a>
+
+          <!-- Assignment Templates -->
+          <a routerLink="/dashboard/assignments" [queryParams]="{tab: 'templates'}" 
+             class="group bg-white/10 backdrop-blur-lg hover:bg-white/20 rounded-xl p-5 transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-white/20 hover:border-white/40">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span class="text-3xl font-black">{{ quickActions.templateCount || 0 }}</span>
+            </div>
+            <div class="font-semibold mb-1">Templates</div>
+            <div class="text-sm text-purple-100">Reuse assignments →</div>
+          </a>
+
+          <!-- Upcoming Assignments -->
+          <a routerLink="/dashboard/assignments" 
+             class="group bg-white/10 backdrop-blur-lg hover:bg-white/20 rounded-xl p-5 transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-white/20 hover:border-white/40">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-3xl font-black">{{ quickActions.summary?.upcomingCount || 0 }}</span>
+            </div>
+            <div class="font-semibold mb-1">Upcoming Due</div>
+            <div class="text-sm text-purple-100">Next 7 days →</div>
+          </a>
+
+          <!-- At-Risk Students -->
+          <a routerLink="/dashboard/attendance" [queryParams]="{filter: 'low_attendance'}" 
+             class="group bg-yellow-500/20 backdrop-blur-lg hover:bg-yellow-500/30 rounded-xl p-5 transition-all duration-300 hover:scale-105 cursor-pointer border-2 border-yellow-400/40 hover:border-yellow-400/60">
+            <div class="flex items-center justify-between mb-3">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <span class="text-3xl font-black">{{ quickActions.summary?.atRiskCount || 0 }}</span>
+            </div>
+            <div class="font-semibold mb-1">At Risk</div>
+            <div class="text-sm text-purple-100">Low attendance →</div>
+          </a>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="mt-6 pt-6 border-t border-white/20 flex flex-wrap gap-3">
+          <a routerLink="/dashboard/assignments/create" 
+             class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg transition-all text-sm font-semibold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Assignment
+          </a>
+          <a routerLink="/dashboard/attendance/mark" 
+             class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg transition-all text-sm font-semibold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            Mark Attendance
+          </a>
+          <a routerLink="/dashboard/materials/upload" 
+             class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg transition-all text-sm font-semibold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            Upload Material
+          </a>
+          <a routerLink="/dashboard/analytics" 
+             class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-lg rounded-lg transition-all text-sm font-semibold">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            View Analytics
+          </a>
+        </div>
+      </div>
+
       <!-- Today's Sessions & Students at Risk -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Today's Sessions -->
