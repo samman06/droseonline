@@ -361,6 +361,67 @@ const checkTeacherOrAssistantAccess = async (req, res, next) => {
   }
 };
 
+// NEW: Check if assistant has specific permission
+const checkAssistantPermission = (requiredPermission) => {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Access denied. Please authenticate first.'
+        });
+      }
+
+      // Admin has all permissions
+      if (req.user.role === 'admin') {
+        return next();
+      }
+
+      // Teachers have all permissions
+      if (req.user.role === 'teacher') {
+        return next();
+      }
+
+      // For assistants, check specific permission
+      if (req.user.role === 'assistant') {
+        if (!req.user.assistantInfo || !req.user.assistantInfo.assignedTeacher) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access denied. Assistant must be assigned to a teacher.'
+          });
+        }
+
+        const permissions = req.user.assistantInfo.permissions || [];
+        
+        // Check if assistant has the required permission
+        if (!permissions.includes(requiredPermission)) {
+          return res.status(403).json({
+            success: false,
+            message: `Access denied. Required permission: ${requiredPermission}`,
+            requiredPermission,
+            userPermissions: permissions
+          });
+        }
+
+        // Store the assistant's teacher ID for resource ownership checks
+        req.assistantTeacherId = req.user.assistantInfo.assignedTeacher;
+        return next();
+      }
+
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Insufficient permissions.'
+      });
+    } catch (error) {
+      console.error('Permission check error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Server error during permission check.'
+      });
+    }
+  };
+};
+
 module.exports = {
   generateToken,
   verifyToken,
@@ -370,6 +431,7 @@ module.exports = {
   checkResourceOwnership,
   checkTeacherAccess,
   checkTeacherOrAssistantAccess,
+  checkAssistantPermission,
   checkStudentAccess,
   sensitiveOperationLimit,
   validateApiKey

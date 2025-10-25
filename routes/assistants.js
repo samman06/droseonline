@@ -190,11 +190,29 @@ router.put('/:id', authenticate, authorize('teacher', 'admin'), async (req, res)
     }
     
     // Update allowed fields
-    const { firstName, lastName, phoneNumber, permissions, isActive } = req.body;
+    const { firstName, lastName, email, phoneNumber, avatar, permissions, isActive } = req.body;
+    
+    // Check if email is being changed and if it's already in use
+    if (email && email.toLowerCase() !== assistant.email.toLowerCase()) {
+      const existingUser = await User.findOne({ 
+        email: email.toLowerCase(),
+        _id: { $ne: assistant._id }
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already in use by another user'
+        });
+      }
+      
+      assistant.email = email.toLowerCase();
+    }
     
     if (firstName) assistant.firstName = firstName;
     if (lastName) assistant.lastName = lastName;
-    if (phoneNumber) assistant.phoneNumber = phoneNumber;
+    if (phoneNumber !== undefined) assistant.phoneNumber = phoneNumber;
+    if (avatar !== undefined) assistant.avatar = avatar;
     if (permissions) assistant.assistantInfo.permissions = permissions;
     if (typeof isActive !== 'undefined') assistant.isActive = isActive;
     

@@ -74,6 +74,25 @@ export const routes: Routes = [
         loadComponent: () => import('./students/teacher-students-list/teacher-students-list.component').then(m => m.TeacherStudentsListComponent)
       },
       {
+        path: 'my-assistants',
+        canActivate: [RoleGuard],
+        data: { roles: ['teacher'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./teachers/manage-assistants/manage-assistants.component').then(m => m.ManageAssistantsComponent)
+          },
+          {
+            path: ':id',
+            loadComponent: () => import('./teachers/assistant-detail/assistant-detail.component').then(m => m.AssistantDetailComponent)
+          },
+          {
+            path: 'edit/:id',
+            loadComponent: () => import('./teachers/assistant-edit/assistant-edit.component').then(m => m.AssistantEditComponent)
+          }
+        ]
+      },
+      {
         path: 'students',
         canActivate: [RoleGuard],
         data: { roles: ['admin', 'teacher', 'assistant'] },
