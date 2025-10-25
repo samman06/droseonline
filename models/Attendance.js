@@ -73,6 +73,24 @@ const attendanceSchema = new mongoose.Schema({
     trim: true,
     maxlength: 1000
   },
+  
+  // Financial tracking
+  sessionRevenue: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  presentCount: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  pricePerSession: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  
   isCompleted: {
     type: Boolean,
     default: false

@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/Attendance');
 const Group = require('../models/Group');
+const FinancialTransaction = require('../models/FinancialTransaction');
+const StudentPayment = require('../models/StudentPayment');
 const { authenticate } = require('../middleware/auth');
 const validation = require('../middleware/validation');
 const Joi = require('joi');
@@ -51,6 +53,132 @@ const attendanceQuerySchema = Joi.object({
   minRate: Joi.number().min(0).max(100).optional(),
   maxRate: Joi.number().min(0).max(100).optional()
 });
+
+// ==========================================
+// HELPER FUNCTION: Calculate and Record Income
+// ==========================================
+async function calculateAndRecordIncome(attendance, group) {
+  try {
+    // Only calculate if group has pricing set
+    if (!group.pricePerSession || group.pricePerSession === 0) {
+      console.log('Group has no pricing set, skipping income calculation');
+      return;
+    }
+
+    // Count present students
+    const presentCount = attendance.records.filter(r => r.status === 'present').length;
+    
+    if (presentCount === 0) {
+      console.log('No students present, skipping income calculation');
+      return;
+    }
+
+    // Calculate total income for this session
+    const sessionIncome = presentCount * group.pricePerSession;
+
+    // 1. UPDATE ATTENDANCE RECORD with revenue data
+    await Attendance.findByIdAndUpdate(attendance._id, {
+      sessionRevenue: sessionIncome,
+      presentCount: presentCount,
+      pricePerSession: group.pricePerSession
+    });
+    console.log(`✅ Step 1: Attendance record updated - Revenue: ${sessionIncome} EGP`);
+
+    // 2. UPDATE GROUP totals
+    const Course = require('../models/Course');
+    await Group.findByIdAndUpdate(group._id, {
+      $inc: {
+        totalRevenue: sessionIncome,
+        totalSessionsHeld: 1
+      }
+    });
+    console.log(`✅ Step 2: Group total revenue updated - Added ${sessionIncome} EGP`);
+
+    // 3. UPDATE COURSE totals
+    if (group.course) {
+      await Course.findByIdAndUpdate(group.course, {
+        $inc: {
+          totalRevenue: sessionIncome,
+          totalSessionsHeld: 1
+        }
+      });
+      console.log(`✅ Step 3: Course total revenue updated - Added ${sessionIncome} EGP`);
+    }
+
+    // 4. Create financial transaction for session income
+    const transaction = new FinancialTransaction({
+      type: 'income',
+      category: 'student_payment',
+      teacher: group.teacher || attendance.teacher,
+      amount: sessionIncome,
+      title: `Session Income - ${group.name}`,
+      description: `${presentCount} students attended @ ${group.pricePerSession} EGP each`,
+      transactionDate: attendance.session.date || new Date(),
+      paymentMethod: 'cash',
+      status: 'completed',
+      relatedTo: {
+        modelType: 'Attendance',
+        modelId: attendance._id
+      },
+      notes: `Auto-generated from attendance. Session date: ${attendance.session.date}`,
+      createdBy: attendance.createdBy
+    });
+    await transaction.save();
+    console.log(`✅ Step 4: Financial transaction created - ${sessionIncome} EGP`);
+
+    // 5. Update/create student payment records
+    for (const record of attendance.records) {
+      if (record.status === 'present') {
+        // Find or create payment record for this student in this group
+        let payment = await StudentPayment.findOne({
+          student: record.student,
+          group: group._id,
+          paymentType: 'session_based'
+        });
+
+        if (!payment) {
+          // Create new payment record
+          payment = new StudentPayment({
+            student: record.student,
+            course: group.course,
+            group: group._id,
+            teacher: group.teacher || attendance.teacher,
+            paymentType: 'session_based',
+            sessionsAttended: 1,
+            pricePerSession: group.pricePerSession,
+            totalAmount: group.pricePerSession,
+            paidAmount: 0,
+            status: 'pending',
+            attendanceRecords: [attendance._id],
+            notes: 'Auto-generated from attendance',
+            createdBy: attendance.createdBy
+          });
+        } else {
+          // Update existing payment record
+          payment.sessionsAttended = (payment.sessionsAttended || 0) + 1;
+          payment.totalAmount = payment.sessionsAttended * group.pricePerSession;
+          payment.remainingAmount = payment.totalAmount - payment.paidAmount - (payment.discount || 0);
+          if (!payment.attendanceRecords) {
+            payment.attendanceRecords = [];
+          }
+          payment.attendanceRecords.push(attendance._id);
+          payment.updatedBy = attendance.createdBy;
+        }
+
+        await payment.save();
+      }
+    }
+    console.log(`✅ Step 5: Student payment records updated for ${presentCount} students`);
+
+    console.log(`\n🎉 INCOME CALCULATION COMPLETE:`);
+    console.log(`   Session Revenue: ${sessionIncome} EGP`);
+    console.log(`   Present Students: ${presentCount}`);
+    console.log(`   Price per Session: ${group.pricePerSession} EGP`);
+  } catch (error) {
+    console.error('❌ Error calculating income:', error);
+    // Don't fail the attendance creation, just log the error
+  }
+}
 
 // ==========================================
 // ROLE-SPECIFIC ENDPOINTS (Must come before generic routes)
@@ -1075,6 +1203,9 @@ router.post('/', authenticate, validation.validate(createAttendanceSchema), asyn
     });
 
     await attendance.save();
+
+    // Calculate and record income from this attendance session
+    await calculateAndRecordIncome(attendance, group);
 
     // Populate before sending response
     await attendance.populate([

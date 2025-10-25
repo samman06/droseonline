@@ -33,6 +33,12 @@ export interface Attendance {
   subject: any;
   records: AttendanceRecord[];
   sessionNotes?: string;
+  
+  // Financial tracking
+  sessionRevenue?: number;
+  presentCount?: number;
+  pricePerSession?: number;
+  
   isCompleted: boolean;
   isLocked?: boolean;
   lockedAt?: Date;

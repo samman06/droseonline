@@ -23,6 +23,11 @@ export interface Course {
   capacity?: number;
   currentEnrollment?: number;
   studentCount?: number;
+  
+  // Financial tracking
+  totalRevenue?: number;
+  totalSessionsHeld?: number;
+  
   syllabus?: {
     overview?: string;
     objectives?: string[];

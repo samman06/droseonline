@@ -95,6 +95,18 @@ const groupSchema = new mongoose.Schema({
     default: 1200  // Mock: 12 sessions × 100 EGP = 1200 EGP
   },
   
+  // Financial tracking
+  totalRevenue: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  totalSessionsHeld: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  
   // Status and Management
   isActive: {
     type: Boolean,

@@ -88,6 +88,18 @@ const courseSchema = new mongoose.Schema({
     description: String
   }],
   
+  // Financial tracking
+  totalRevenue: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  totalSessionsHeld: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  
   // Course Materials
   materials: [{
     title: String,

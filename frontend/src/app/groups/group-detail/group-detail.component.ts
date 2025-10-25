@@ -262,6 +262,30 @@ import { PermissionService } from '../../services/permission.service';
                     <div class="text-sm text-purple-600 font-medium mt-1">Total Assignments</div>
                   </div>
 
+                  <div *ngIf="group?.totalRevenue && group?.totalRevenue > 0" class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border-2 border-emerald-200">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="p-3 bg-emerald-200 rounded-lg">
+                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-emerald-900">{{ group?.totalRevenue || 0 }} <span class="text-lg">EGP</span></div>
+                    <div class="text-sm text-emerald-600 font-medium mt-1">Total Revenue</div>
+                  </div>
+
+                  <div *ngIf="group?.totalSessionsHeld && group?.totalSessionsHeld > 0" class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200">
+                    <div class="flex items-center justify-between mb-4">
+                      <div class="p-3 bg-amber-200 rounded-lg">
+                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-3xl font-bold text-amber-900">{{ group?.totalSessionsHeld || 0 }}</div>
+                    <div class="text-sm text-amber-600 font-medium mt-1">Sessions Completed</div>
+                  </div>
+
                   <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
                     <div class="flex items-center justify-between mb-4">
                       <div class="p-3 bg-green-200 rounded-lg">

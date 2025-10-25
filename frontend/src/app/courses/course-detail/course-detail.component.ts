@@ -104,6 +104,34 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
 
+          <div *ngIf="course.totalRevenue && course.totalRevenue > 0" class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-emerald-100 rounded-lg p-3">
+                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-600">Revenue</p>
+                <p class="text-2xl font-bold text-emerald-900">{{ course.totalRevenue }} <span class="text-sm">EGP</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="course.totalSessionsHeld && course.totalSessionsHeld > 0" class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-amber-100 rounded-lg p-3">
+                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm text-gray-600">Sessions</p>
+                <p class="text-2xl font-bold text-amber-900">{{ course.totalSessionsHeld }}</p>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white rounded-lg shadow-sm p-6">
             <div class="flex items-center">
               <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
