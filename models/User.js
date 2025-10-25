@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
   // System Information
   role: {
     type: String,
-    enum: ['admin', 'teacher', 'student'],
+    enum: ['admin', 'teacher', 'student', 'assistant'],
     required: true
   },
   isActive: {
@@ -95,6 +95,23 @@ const userSchema = new mongoose.Schema({
     
     // For Admins
     permissions: [String]
+  },
+  
+  // Assistant Information (for assistant role)
+  assistantInfo: {
+    assignedTeacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: function() { return this.role === 'assistant'; }
+    },
+    assignedDate: {
+      type: Date,
+      default: Date.now
+    },
+    permissions: {
+      type: [String],
+      default: ['view_all', 'edit_all'] // Everything except accounting
+    }
   }
 }, {
   timestamps: true,

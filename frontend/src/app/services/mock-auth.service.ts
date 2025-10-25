@@ -9,12 +9,17 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: 'admin' | 'teacher' | 'student' | 'assistant';
   fullName: string;
   avatar?: string;
   isActive: boolean;
   lastLogin?: Date;
   academicInfo?: any;
+  assistantInfo?: {
+    assignedTeacher?: string;
+    assignedDate?: Date;
+    permissions?: string[];
+  };
   hashedPassword?: string; // Add hashed password field
 }
 
@@ -28,7 +33,7 @@ export interface RegisterRequest {
   lastName: string;
   email: string;
   password: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: 'admin' | 'teacher' | 'student' | 'assistant';
   phoneNumber?: string;
   dateOfBirth?: Date;
   academicInfo?: any;

@@ -3,7 +3,7 @@ const Group = require('../models/Group');
 const User = require('../models/User');
 const AcademicYear = require('../models/AcademicYear');
 const Assignment = require('../models/Assignment');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, authorize, checkTeacherOrAssistantAccess } = require('../middleware/auth');
 const { validate, validateQuery, groupSchema, paginationSchema } = require('../middleware/validation');
 
 const router = express.Router();
@@ -775,8 +775,8 @@ router.get('/:id/schedule', authenticate, async (req, res) => {
 
 // @route   GET /api/groups/:id/statistics
 // @desc    Get group statistics
-// @access  Private (Admin/Teacher)
-router.get('/:id/statistics', authenticate, authorize('admin', 'teacher'), async (req, res) => {
+// @access  Private (Admin/Teacher/Assistant)
+router.get('/:id/statistics', authenticate, checkTeacherOrAssistantAccess, async (req, res) => {
   try {
     const group = await Group.findById(req.params.id);
     if (!group) {

@@ -4,7 +4,7 @@ const Attendance = require('../models/Attendance');
 const Group = require('../models/Group');
 const FinancialTransaction = require('../models/FinancialTransaction');
 const StudentPayment = require('../models/StudentPayment');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, checkTeacherOrAssistantAccess } = require('../middleware/auth');
 const validation = require('../middleware/validation');
 const Joi = require('joi');
 
@@ -53,6 +53,32 @@ const attendanceQuerySchema = Joi.object({
   minRate: Joi.number().min(0).max(100).optional(),
   maxRate: Joi.number().min(0).max(100).optional()
 });
+
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
+
+// Helper function to get effective teacher ID (for teacher or assistant)
+const getEffectiveTeacherId = (req) => {
+  if (req.user.role === 'teacher') {
+    return req.user._id;
+  }
+  if (req.user.role === 'assistant') {
+    return req.user.assistantInfo?.assignedTeacher || req.assistantTeacherId;
+  }
+  return null; // Admin or other roles
+};
+
+// Helper function to check if user can access a resource
+const canAccessResource = (req, resourceTeacherId) => {
+  if (req.user.role === 'admin') return true;
+  if (req.user.role === 'teacher') return resourceTeacherId.toString() === req.user._id.toString();
+  if (req.user.role === 'assistant') {
+    const assignedTeacherId = req.user.assistantInfo?.assignedTeacher || req.assistantTeacherId;
+    return resourceTeacherId.toString() === assignedTeacherId.toString();
+  }
+  return false;
+};
 
 // ==========================================
 // HELPER FUNCTION: Calculate and Record Income
@@ -274,14 +300,15 @@ router.get('/my-attendance', authenticate, validation.validateQuery(attendanceQu
 
 // @route   GET /api/attendance/teacher/attendance
 // @desc    Get attendance records for current teacher's groups
-// @access  Private (Teacher only)
-router.get('/teacher/attendance', authenticate, validation.validateQuery(attendanceQuerySchema), async (req, res) => {
+// @access  Private (Teacher/Assistant)
+router.get('/teacher/attendance', authenticate, checkTeacherOrAssistantAccess, validation.validateQuery(attendanceQuerySchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, sort = '-session.date', search, groupId, dateFrom, dateTo, isCompleted } = req.query;
     
-    // Find groups taught by this teacher
+    // Find groups taught by this teacher (or assistant's teacher)
     const Course = require('../models/Course');
-    const teacherCourses = await Course.find({ teacher: req.user._id, isActive: true }).select('_id');
+    const effectiveTeacherId = getEffectiveTeacherId(req);
+    const teacherCourses = await Course.find({ teacher: effectiveTeacherId, isActive: true }).select('_id');
     const courseIds = teacherCourses.map(c => c._id);
     
     const teacherGroups = await Group.find({ course: { $in: courseIds }, isActive: true }).select('_id');
@@ -911,7 +938,7 @@ router.get('/today-sessions', authenticate, async (req, res) => {
 // GET /api/attendance/my-teaching-schedule - Teacher's weekly teaching schedule
 router.get('/my-teaching-schedule', authenticate, async (req, res) => {
   try {
-    if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+    if (req.user.role !== 'teacher' && req.user.role !== 'assistant' && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -920,8 +947,8 @@ router.get('/my-teaching-schedule', authenticate, async (req, res) => {
     
     // Get courses based on role
     let courseQuery = { isActive: true };
-    if (req.user.role === 'teacher') {
-      courseQuery.teacher = req.user._id;
+    if (req.user.role === 'teacher' || req.user.role === 'assistant') {
+      courseQuery.teacher = getEffectiveTeacherId(req);
     }
     // Admin sees all courses
     
@@ -989,7 +1016,7 @@ router.get('/my-teaching-schedule', authenticate, async (req, res) => {
 // GET /api/attendance/today-teaching-sessions - Teacher's sessions for today
 router.get('/today-teaching-sessions', authenticate, async (req, res) => {
   try {
-    if (req.user.role !== 'teacher' && req.user.role !== 'admin') {
+    if (req.user.role !== 'teacher' && req.user.role !== 'assistant' && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
@@ -1005,8 +1032,8 @@ router.get('/today-teaching-sessions', authenticate, async (req, res) => {
 
     // Get courses based on role
     let courseQuery = { isActive: true };
-    if (req.user.role === 'teacher') {
-      courseQuery.teacher = req.user._id;
+    if (req.user.role === 'teacher' || req.user.role === 'assistant') {
+      courseQuery.teacher = getEffectiveTeacherId(req);
     }
     // Admin sees all courses
     
@@ -1134,7 +1161,7 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 // POST /api/attendance - Create/mark attendance for a session
-router.post('/', authenticate, validation.validate(createAttendanceSchema), async (req, res) => {
+router.post('/', authenticate, checkTeacherOrAssistantAccess, validation.validate(createAttendanceSchema), async (req, res) => {
   try {
     const { groupId, sessionDate, scheduleIndex, records, sessionNotes, isCompleted } = req.body;
 

@@ -315,6 +315,52 @@ const validateApiKey = (req, res, next) => {
   next();
 };
 
+// Check if user is teacher or assistant (for non-accounting routes)
+const checkTeacherOrAssistantAccess = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Access denied. Please authenticate first.'
+      });
+    }
+
+    // Admin has access to everything
+    if (req.user.role === 'admin') {
+      return next();
+    }
+
+    // Teacher has full access
+    if (req.user.role === 'teacher') {
+      return next();
+    }
+
+    // Assistant has access on behalf of their assigned teacher
+    if (req.user.role === 'assistant') {
+      if (!req.user.assistantInfo || !req.user.assistantInfo.assignedTeacher) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. Assistant must be assigned to a teacher.'
+        });
+      }
+      // Store the assistant's teacher ID for resource ownership checks
+      req.assistantTeacherId = req.user.assistantInfo.assignedTeacher;
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied. Teacher or assistant role required.'
+    });
+  } catch (error) {
+    console.error('Teacher/Assistant access check error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during authorization check.'
+    });
+  }
+};
+
 module.exports = {
   generateToken,
   verifyToken,
@@ -323,6 +369,7 @@ module.exports = {
   checkPermission,
   checkResourceOwnership,
   checkTeacherAccess,
+  checkTeacherOrAssistantAccess,
   checkStudentAccess,
   sensitiveOperationLimit,
   validateApiKey

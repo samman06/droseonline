@@ -70,13 +70,13 @@ export const routes: Routes = [
       {
         path: 'my-students',
         canActivate: [RoleGuard],
-        data: { roles: ['teacher'] },
+        data: { roles: ['teacher', 'assistant'] },
         loadComponent: () => import('./students/teacher-students-list/teacher-students-list.component').then(m => m.TeacherStudentsListComponent)
       },
       {
         path: 'students',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher'] },
+        data: { roles: ['admin', 'teacher', 'assistant'] },
         children: [
           {
             path: '',
@@ -135,7 +135,7 @@ export const routes: Routes = [
       {
         path: 'announcements',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         children: [
           {
             path: '',
@@ -144,13 +144,13 @@ export const routes: Routes = [
           {
             path: 'new',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
           },
           {
             path: ':id/edit',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./announcements/announcement-form/announcement-form.component').then(m => m.AnnouncementFormComponent)
           },
           {
@@ -163,14 +163,14 @@ export const routes: Routes = [
       {
         path: 'notifications',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         loadComponent: () => import('./notifications/notifications-page.component').then(m => m.NotificationsPageComponent)
       },
       // Courses
       {
         path: 'courses',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         children: [
           {
             path: '',
@@ -189,7 +189,7 @@ export const routes: Routes = [
           {
             path: ':id/edit',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./courses/course-form/course-form.component').then(m => m.CourseFormComponent)
           }
         ]
@@ -198,7 +198,7 @@ export const routes: Routes = [
       {
         path: 'assignments',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         children: [
           {
             path: '',
@@ -207,7 +207,7 @@ export const routes: Routes = [
           {
             path: 'new',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./assignments/assignment-form/assignment-form.component').then(m => m.AssignmentFormComponent)
           },
           {
@@ -219,7 +219,7 @@ export const routes: Routes = [
           {
             path: 'grade/:submissionId',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./assignments/teacher-grading/teacher-grading.component').then(m => m.TeacherGradingComponent)
           },
           {
@@ -229,7 +229,7 @@ export const routes: Routes = [
           {
             path: ':id/edit',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./assignments/assignment-form/assignment-form.component').then(m => m.AssignmentFormComponent)
           },
           {
@@ -253,7 +253,7 @@ export const routes: Routes = [
       {
         path: 'subjects',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher'] },
+        data: { roles: ['admin', 'teacher', 'assistant'] },
         children: [
           {
             path: '',
@@ -276,7 +276,7 @@ export const routes: Routes = [
       {
         path: 'attendance',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         children: [
           {
             path: '',
@@ -290,13 +290,13 @@ export const routes: Routes = [
             path: 'mark',
             loadComponent: () => import('./attendance/attendance-mark/attendance-mark.component').then(m => m.AttendanceMarkComponent),
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
           },
           {
             path: 'mark/:groupId',
             loadComponent: () => import('./attendance/attendance-mark/attendance-mark.component').then(m => m.AttendanceMarkComponent),
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
           },
           {
             path: ':id',
@@ -306,14 +306,14 @@ export const routes: Routes = [
             path: ':id/edit',
             loadComponent: () => import('./attendance/attendance-edit/attendance-edit.component').then(m => m.AttendanceEditComponent),
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
           }
         ]
       },
       {
         path: 'groups',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] }, // All roles can access groups
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] }, // All roles can access groups
         children: [
           {
             path: '',
@@ -322,7 +322,7 @@ export const routes: Routes = [
           {
             path: 'new',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] }, // Only admin/teacher can create
+            data: { roles: ['admin', 'teacher', 'assistant'] }, // Only admin/teacher can create
             loadComponent: () => import('./groups/group-create/group-create.component').then(m => m.GroupCreateComponent)
           },
           {
@@ -332,7 +332,7 @@ export const routes: Routes = [
           {
             path: ':id/edit',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] }, // Only admin/teacher can edit
+            data: { roles: ['admin', 'teacher', 'assistant'] }, // Only admin/teacher can edit
             loadComponent: () => import('./groups/group-edit/group-edit.component').then(m => m.GroupEditComponent)
           }
         ]
@@ -340,13 +340,13 @@ export const routes: Routes = [
       {
         path: 'calendar',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         loadComponent: () => import('./calendar/calendar-view/calendar-view.component').then(m => m.CalendarViewComponent)
       },
       {
         path: 'analytics',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher'] }, // Teachers and admins can view analytics
+        data: { roles: ['admin', 'teacher', 'assistant'] }, // Teachers and admins can view analytics
         loadComponent: () => import('./analytics/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
       },
       {
@@ -358,7 +358,7 @@ export const routes: Routes = [
       {
         path: 'materials',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'student'] },
+        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
         children: [
           {
             path: '',
@@ -367,13 +367,13 @@ export const routes: Routes = [
           {
             path: 'upload',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] }, // Only teachers and admins can upload
+            data: { roles: ['admin', 'teacher', 'assistant'] }, // Only teachers and admins can upload
             loadComponent: () => import('./materials/material-upload/material-upload.component').then(m => m.MaterialUploadComponent)
           },
           {
             path: ':id/edit',
             canActivate: [RoleGuard],
-            data: { roles: ['admin', 'teacher'] }, // Only teachers and admins can edit
+            data: { roles: ['admin', 'teacher', 'assistant'] }, // Only teachers and admins can edit
             loadComponent: () => import('./materials/material-edit/material-edit.component').then(m => m.MaterialEditComponent)
           },
           {

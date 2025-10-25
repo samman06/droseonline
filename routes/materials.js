@@ -6,7 +6,7 @@ const fs = require('fs');
 const Material = require('../models/Material');
 const Course = require('../models/Course');
 const User = require('../models/User');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, authorize, checkTeacherOrAssistantAccess } = require('../middleware/auth');
 const { AppError, asyncHandler } = require('../middleware/errorHandler');
 
 // Configure multer for file uploads
@@ -182,7 +182,7 @@ router.get('/:id', authenticate, asyncHandler(async (req, res) => {
  * POST /api/materials
  * Create new material with file upload (supports multiple files)
  */
-router.post('/', authenticate, authorize('admin', 'teacher'), upload.array('files', 10), asyncHandler(async (req, res) => {
+router.post('/', authenticate, checkTeacherOrAssistantAccess, upload.array('files', 10), asyncHandler(async (req, res) => {
   console.log('\n========================================');
   console.log('POST /api/materials');
   console.log('User:', req.user.email, '(', req.user.role, ')');
@@ -282,7 +282,7 @@ router.post('/', authenticate, authorize('admin', 'teacher'), upload.array('file
  * PUT /api/materials/:id
  * Update material (with optional file replacement)
  */
-router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.array('files', 10), asyncHandler(async (req, res) => {
+router.put('/:id', authenticate, checkTeacherOrAssistantAccess, upload.array('files', 10), asyncHandler(async (req, res) => {
   console.log('\n========================================');
   console.log('PUT /api/materials/:id - UPDATE REQUEST');
   console.log('Material ID:', req.params.id);
@@ -422,7 +422,7 @@ router.put('/:id', authenticate, authorize('admin', 'teacher'), upload.array('fi
  * DELETE /api/materials/:id
  * Delete material
  */
-router.delete('/:id', authenticate, authorize('admin', 'teacher'), asyncHandler(async (req, res) => {
+router.delete('/:id', authenticate, checkTeacherOrAssistantAccess, asyncHandler(async (req, res) => {
   const material = await Material.findById(req.params.id);
   
   if (!material) {

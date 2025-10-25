@@ -1,6 +1,6 @@
 const express = require('express');
 const Announcement = require('../models/Announcement');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, authorize, checkTeacherOrAssistantAccess } = require('../middleware/auth');
 const { validate, validateQuery, announcementSchema, paginationSchema } = require('../middleware/validation');
 const { notifyNewAnnouncement, notifyNewComment } = require('../utils/notificationHelper');
 const User = require('../models/User');
@@ -144,8 +144,8 @@ router.get('/:id', authenticate, async (req, res) => {
 
 // @route   POST /api/announcements
 // @desc    Create new announcement
-// @access  Private (Admin/Teacher)
-router.post('/', authenticate, authorize('admin', 'teacher'), validate(announcementSchema), async (req, res) => {
+// @access  Private (Admin/Teacher/Assistant)
+router.post('/', authenticate, checkTeacherOrAssistantAccess, validate(announcementSchema), async (req, res) => {
   try {
     const announcementData = {
       ...req.body,

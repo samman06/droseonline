@@ -2,7 +2,7 @@ const express = require('express');
 const Assignment = require('../models/Assignment');
 const Course = require('../models/Course');
 const Submission = require('../models/Submission');
-const { authenticate, authorize, checkTeacherAccess, checkStudentAccess } = require('../middleware/auth');
+const { authenticate, authorize, checkTeacherAccess, checkTeacherOrAssistantAccess, checkStudentAccess } = require('../middleware/auth');
 const { validate, validateQuery, assignmentSchema, paginationSchema } = require('../middleware/validation');
 
 const router = express.Router();
@@ -102,8 +102,8 @@ router.get('/my-assignments', authenticate, authorize('student'), validateQuery(
 
 // @route   GET /api/assignments/teacher/assignments
 // @desc    Get assignments created by current teacher
-// @access  Private (Teacher only)
-router.get('/teacher/assignments', authenticate, authorize('teacher'), validateQuery(paginationSchema), async (req, res) => {
+// @access  Private (Teacher/Assistant)
+router.get('/teacher/assignments', authenticate, checkTeacherOrAssistantAccess, validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, status, type, search, courseId } = req.query;
     
@@ -300,8 +300,8 @@ router.get('/', authenticate, validateQuery(paginationSchema), async (req, res) 
 
 // @route   GET /api/assignments/templates
 // @desc    Get all assignment templates for the current teacher
-// @access  Private (Teacher/Admin)
-router.get('/templates', authenticate, authorize(['teacher', 'admin']), async (req, res) => {
+// @access  Private (Teacher/Assistant/Admin)
+router.get('/templates', authenticate, authorize(['teacher', 'assistant', 'admin']), async (req, res) => {
   try {
     const { type, category, search } = req.query;
 

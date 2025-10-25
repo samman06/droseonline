@@ -3,15 +3,15 @@ const Course = require('../models/Course');
 const Subject = require('../models/Subject');
 const Group = require('../models/Group');
 const AcademicYear = require('../models/AcademicYear');
-const { authenticate, authorize, checkTeacherAccess } = require('../middleware/auth');
+const { authenticate, authorize, checkTeacherAccess, checkTeacherOrAssistantAccess } = require('../middleware/auth');
 const { validate, validateQuery, courseSchema, paginationSchema } = require('../middleware/validation');
 
 const router = express.Router();
 
 // @route   GET /api/courses
 // @desc    Get all courses
-// @access  Private (Admin, Teacher only - Students use Browse Teachers)
-router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(paginationSchema), async (req, res) => {
+// @access  Private (Admin, Teacher, Assistant - Students use Browse Teachers)
+router.get('/', authenticate, authorize('admin', 'teacher', 'assistant'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, teacherId, subjectId, academicYear, isActive } = req.query;
     
@@ -93,8 +93,8 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
 
 // @route   POST /api/courses
 // @desc    Create new course
-// @access  Private (Admin/Teacher)
-router.post('/', authenticate, authorize('admin', 'teacher'), validate(courseSchema), async (req, res) => {
+// @access  Private (Admin/Teacher/Assistant)
+router.post('/', authenticate, checkTeacherOrAssistantAccess, validate(courseSchema), async (req, res) => {
   try {
     // Verify subject exists
     const subject = await Subject.findById(req.body.subject);
@@ -328,8 +328,8 @@ router.get('/:id', authenticate, async (req, res) => {
 
 // @route   PUT /api/courses/:id
 // @desc    Update course
-// @access  Private (Admin/Teacher who owns the course)
-router.put('/:id', authenticate, authorize('admin', 'teacher'), validate(courseSchema), async (req, res) => {
+// @access  Private (Admin/Teacher/Assistant who owns the course)
+router.put('/:id', authenticate, checkTeacherOrAssistantAccess, validate(courseSchema), async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
     
