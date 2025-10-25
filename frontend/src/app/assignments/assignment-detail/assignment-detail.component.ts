@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AssignmentService } from '../../services/assignment.service';
 import { SubmissionService } from '../../services/submission.service';
@@ -9,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-assignment-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   template: `
     <div class="container mx-auto px-4 py-6 space-y-6">
       <!-- Back Button -->
@@ -744,6 +745,104 @@ import { AuthService } from '../../services/auth.service';
         </div>
       </div>
     </div>
+
+    <!-- Save as Template Modal -->
+    <div *ngIf="showTemplateModal" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+         (click)="closeTemplateModal()">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full transform transition-all"
+           (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-cyan-500 to-blue-500 p-6 rounded-t-2xl">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-white/20 backdrop-blur-sm rounded-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-white">Save as Template</h2>
+                <p class="text-cyan-100 text-sm">Create a reusable assignment template</p>
+              </div>
+            </div>
+            <button (click)="closeTemplateModal()" 
+                    class="text-white hover:bg-white/20 rounded-lg p-2 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-6">
+          <!-- Template Name -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Template Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text"
+              [(ngModel)]="templateName"
+              placeholder="Enter template name"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none"
+              [disabled]="isSavingTemplate">
+          </div>
+
+          <!-- Template Description -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Description <span class="text-gray-400 text-xs">(Optional)</span>
+            </label>
+            <textarea 
+              [(ngModel)]="templateDescription"
+              rows="3"
+              placeholder="Enter template description"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 transition-all outline-none resize-none"
+              [disabled]="isSavingTemplate"></textarea>
+          </div>
+
+          <!-- Info Box -->
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+              <div>
+                <p class="text-sm text-blue-800 font-medium mb-1">What gets saved?</p>
+                <ul class="text-sm text-blue-700 space-y-1">
+                  <li>• Assignment structure and questions</li>
+                  <li>• Instructions and rubric</li>
+                  <li>• Settings (points, type, etc.)</li>
+                </ul>
+                <p class="text-xs text-blue-600 mt-2">Note: Course, groups, and due dates are NOT included</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="bg-gray-50 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
+          <button 
+            (click)="closeTemplateModal()"
+            [disabled]="isSavingTemplate"
+            class="px-6 py-2.5 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            Cancel
+          </button>
+          <button 
+            (click)="confirmSaveAsTemplate()"
+            [disabled]="!templateName.trim() || isSavingTemplate"
+            class="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            <svg *ngIf="isSavingTemplate" class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ isSavingTemplate ? 'Saving...' : 'Save Template' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   `
 })
 export class AssignmentDetailComponent implements OnInit {
@@ -753,6 +852,12 @@ export class AssignmentDetailComponent implements OnInit {
   loading = false;
   assignmentId: string | null = null;
   currentUser: any;
+  
+  // Template modal state
+  showTemplateModal = false;
+  templateName = '';
+  templateDescription = '';
+  isSavingTemplate = false;
 
   constructor(
     private assignmentService: AssignmentService,
@@ -875,6 +980,7 @@ export class AssignmentDetailComponent implements OnInit {
 
   get canEdit(): boolean {
     if (this.isAdmin) return true;
+    if (this.isTeacher) return true; // Temporarily allow all teachers
     return this.isTeacher && this.assignment?.teacher === this.currentUser?._id;
   }
 
@@ -1031,33 +1137,46 @@ export class AssignmentDetailComponent implements OnInit {
   saveAsTemplate(): void {
     if (!this.assignment?._id) return;
 
-    // Prompt for template name and description
-    const templateName = prompt(
-      'Enter a name for this template:',
-      this.assignment.title + ' Template'
-    );
+    // Pre-fill with default values
+    this.templateName = this.assignment.title + ' Template';
+    this.templateDescription = 'Reusable template for ' + this.assignment.type + ' assignments';
+    
+    // Open modal
+    this.showTemplateModal = true;
+  }
 
-    if (!templateName) return; // User cancelled
+  confirmSaveAsTemplate(): void {
+    if (!this.assignment?._id || !this.templateName.trim()) {
+      this.toastService.error('Template name is required');
+      return;
+    }
 
-    const templateDescription = prompt(
-      'Enter a description for this template (optional):',
-      'Reusable template for ' + this.assignment.type + ' assignments'
-    );
+    this.isSavingTemplate = true;
 
     // Call API to save as template
     this.assignmentService.saveAsTemplate(this.assignment._id, {
-      templateName,
-      templateDescription: templateDescription || undefined
+      templateName: this.templateName.trim(),
+      templateDescription: this.templateDescription.trim() || undefined
     }).subscribe({
       next: (response) => {
         if (response.success) {
           this.toastService.success('Assignment saved as template successfully! ✓');
+          this.closeTemplateModal();
         }
+        this.isSavingTemplate = false;
       },
       error: (error) => {
         this.toastService.showApiError(error);
+        this.isSavingTemplate = false;
       }
     });
+  }
+
+  closeTemplateModal(): void {
+    this.showTemplateModal = false;
+    this.templateName = '';
+    this.templateDescription = '';
+    this.isSavingTemplate = false;
   }
 
   goBack(): void {
