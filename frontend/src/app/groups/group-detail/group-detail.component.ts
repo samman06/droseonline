@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { GroupService } from '../../services/group.service';
 import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
@@ -224,7 +225,7 @@ import { PermissionService } from '../../services/permission.service';
                       [class.text-indigo-600]="activeTab === 'materials'"
                       [class.bg-gray-100]="activeTab !== 'materials'"
                       [class.text-gray-600]="activeTab !== 'materials'">
-                  {{ materials.length || 0 }}
+                  {{ materialCount }}
                 </span>
               </button>
             </nav>
@@ -714,7 +715,7 @@ import { PermissionService } from '../../services/permission.service';
                   <!-- Material Icon & Type -->
                   <div class="flex items-center justify-between mb-3">
                     <div class="p-3 rounded-lg" [ngClass]="getMaterialTypeClass(material.type)">
-                      <svg class="w-6 h-6" [innerHTML]="getMaterialIcon(material.type)"></svg>
+                      <div class="w-6 h-6" [innerHTML]="getMaterialIcon(material.type)"></div>
                     </div>
                     <span class="px-2 py-1 text-xs font-medium rounded-full" [ngClass]="getMaterialTypeBadge(material.type)">
                       {{ material.type | titlecase }}
@@ -865,6 +866,8 @@ export class GroupDetailComponent implements OnInit {
   
   // Materials properties
   materials: Material[] = [];
+  materialCount: number = 0; // Count loaded immediately, full data loaded on tab click
+  materialsLoaded: boolean = false; // Track if materials have been loaded
   
   // Role-based properties
   currentUser: User | null = null;
@@ -879,7 +882,8 @@ export class GroupDetailComponent implements OnInit {
     private confirmation: ConfirmationService,
     private toastService: ToastService,
     private authService: AuthService,
-    public permissionService: PermissionService
+    public permissionService: PermissionService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -889,7 +893,13 @@ export class GroupDetailComponent implements OnInit {
     });
     
     const id = this.route.snapshot.paramMap.get('id')!;
-    this.groupService.getGroup(id).subscribe({ next: res => this.group = res.data?.group });
+    this.groupService.getGroup(id).subscribe({ 
+      next: res => {
+        this.group = res.data?.group;
+        // Load material count immediately (without full data)
+        this.loadMaterialCount();
+      }
+    });
   }
   
   // PERMISSION GETTERS (for template use)
@@ -1247,12 +1257,35 @@ export class GroupDetailComponent implements OnInit {
   }
 
   // Materials methods
+  loadMaterialCount(): void {
+    // Load only the count (efficient - no full material data)
+    const groupId = this.group._id || this.group.id;
+    this.materialService.getMaterials({ group: groupId, limit: 0 }).subscribe({
+      next: (response) => {
+        if (response.success && response.data?.pagination) {
+          this.materialCount = response.data.pagination.total || 0;
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load material count', error);
+        this.materialCount = 0;
+      }
+    });
+  }
+
   loadMaterials(): void {
+    // Only load full materials if not already loaded
+    if (this.materialsLoaded) {
+      return;
+    }
+
     const groupId = this.group._id || this.group.id;
     this.materialService.getMaterials({ group: groupId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.materials = response.data.materials || [];
+          this.materialCount = response.data.pagination?.total || this.materials.length;
+          this.materialsLoaded = true;
         }
       },
       error: (error) => {
@@ -1300,7 +1333,7 @@ export class GroupDetailComponent implements OnInit {
     return classes[type] || 'bg-gray-100 text-gray-700';
   }
 
-  getMaterialIcon(type: string): string {
+  getMaterialIcon(type: string): SafeHtml {
     const icons: { [key: string]: string } = {
       'document': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>',
       'video': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>',
@@ -1309,7 +1342,8 @@ export class GroupDetailComponent implements OnInit {
       'presentation': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>',
       'file': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>'
     };
-    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">${icons[type] || icons['file']}</svg>`;
+    const svgContent = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-full h-full">${icons[type] || icons['file']}</svg>`;
+    return this.sanitizer.bypassSecurityTrustHtml(svgContent);
   }
 }
 
