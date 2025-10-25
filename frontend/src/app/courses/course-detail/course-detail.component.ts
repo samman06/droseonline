@@ -65,11 +65,11 @@ import { AuthService } from '../../services/auth.service';
             </div>
             <div>
               <span class="text-sm text-gray-500">Enrollment:</span>
-              <p class="font-medium">{{ course.currentEnrollment || 0 }} / {{ course.maxStudents || '∞' }}</p>
+              <p class="font-medium">{{ studentCount }} / {{ maxStudents || '∞' }}</p>
             </div>
             <div>
               <span class="text-sm text-gray-500">Academic Year:</span>
-              <p class="font-medium">{{ course.academicYear || 'N/A' }}</p>
+              <p class="font-medium">{{ course.academicYear?.name || course.academicYear?.code || 'N/A' }}</p>
             </div>
           </div>
         </div>
@@ -85,7 +85,7 @@ import { AuthService } from '../../services/auth.service';
               </div>
               <div class="ml-4">
                 <p class="text-sm text-gray-600">Students</p>
-                <p class="text-2xl font-bold text-gray-900">{{ students.length }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ studentCount }}</p>
               </div>
             </div>
           </div>
@@ -130,35 +130,6 @@ import { AuthService } from '../../services/auth.service';
                 <p class="text-2xl font-bold text-gray-900">{{ getAverageGrade() }}%</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Enrolled Students -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-gray-900">Enrolled Students</h2>
-            <button *ngIf="canEdit" class="text-sm text-blue-600 hover:text-blue-800">
-              Manage Enrollment
-            </button>
-          </div>
-
-          <div *ngIf="students.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div *ngFor="let student of students" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-              <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-semibold">
-                {{ student.firstName?.charAt(0) }}{{ student.lastName?.charAt(0) }}
-              </div>
-              <div class="ml-3">
-                <p class="text-sm font-medium text-gray-900">{{ student.firstName }} {{ student.lastName }}</p>
-                <p class="text-xs text-gray-600">{{ student.email }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="students.length === 0" class="text-center py-8 text-gray-500">
-            <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
-            <p>No students enrolled yet</p>
           </div>
         </div>
 
@@ -353,6 +324,8 @@ import { AuthService } from '../../services/auth.service';
 export class CourseDetailComponent implements OnInit {
   course: any = null;
   students: any[] = [];
+  studentCount: number = 0; // Just the count, not full student objects
+  maxStudents: number | null = null; // Total capacity from all groups
   assignments: any[] = [];
   materials: Material[] = [];
   loading = false;
@@ -373,8 +346,7 @@ export class CourseDetailComponent implements OnInit {
     this.courseId = this.route.snapshot.paramMap.get('id');
     
     if (this.courseId) {
-      this.loadCourse();
-      this.loadStudents();
+      this.loadCourse(); // Also loads studentCount
       this.loadAssignments();
       this.loadMaterials();
     } else {
@@ -390,7 +362,18 @@ export class CourseDetailComponent implements OnInit {
     this.courseService.getCourse(this.courseId).subscribe({
       next: (response: any) => {
         if (response.success && response.data) {
-          this.course = response.data;
+          // Backend returns { success: true, data: { course, studentCount, maxStudents, groups } }
+          this.course = response.data.course || response.data;
+          
+          // Extract student count (efficient - no full user objects)
+          if (response.data.studentCount !== undefined) {
+            this.studentCount = response.data.studentCount;
+          }
+          
+          // Extract max capacity from all groups
+          if (response.data.maxStudents !== undefined) {
+            this.maxStudents = response.data.maxStudents;
+          }
         }
         this.loading = false;
       },

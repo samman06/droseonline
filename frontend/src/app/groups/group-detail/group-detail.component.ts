@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { GroupService } from '../../services/group.service';
 import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
+import { MaterialService, Material } from '../../services/material.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService, User } from '../../services/auth.service';
@@ -205,6 +206,25 @@ import { PermissionService } from '../../services/permission.service';
                       [class.bg-gray-100]="activeTab !== 'attendance'"
                       [class.text-gray-600]="activeTab !== 'attendance'">
                   {{ attendanceStats?.totalSessions || 0 }}
+                </span>
+              </button>
+              <button 
+                (click)="activeTab = 'materials'; loadMaterials()"
+                [class.border-indigo-600]="activeTab === 'materials'"
+                [class.text-indigo-600]="activeTab === 'materials'"
+                [class.border-transparent]="activeTab !== 'materials'"
+                [class.text-gray-500]="activeTab !== 'materials'"
+                class="group inline-flex items-center px-6 py-4 border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'materials'" [class.text-gray-400]="activeTab !== 'materials'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Materials
+                <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
+                      [class.bg-indigo-100]="activeTab === 'materials'"
+                      [class.text-indigo-600]="activeTab === 'materials'"
+                      [class.bg-gray-100]="activeTab !== 'materials'"
+                      [class.text-gray-600]="activeTab !== 'materials'">
+                  {{ materials.length || 0 }}
                 </span>
               </button>
             </nav>
@@ -671,6 +691,80 @@ import { PermissionService } from '../../services/permission.service';
                 </div>
               </div>
             </div>
+
+            <!-- Materials Tab -->
+            <div *ngIf="activeTab === 'materials'">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">📚 Materials</h2>
+                <button *ngIf="canEdit"
+                        (click)="uploadMaterial()"
+                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Upload Material
+                </button>
+              </div>
+
+              <!-- Materials Grid -->
+              <div *ngIf="materials.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div *ngFor="let material of materials"
+                     (click)="viewMaterial(material)"
+                     class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer">
+                  <!-- Material Icon & Type -->
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="p-3 rounded-lg" [ngClass]="getMaterialTypeClass(material.type)">
+                      <svg class="w-6 h-6" [innerHTML]="getMaterialIcon(material.type)"></svg>
+                    </div>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full" [ngClass]="getMaterialTypeBadge(material.type)">
+                      {{ material.type | titlecase }}
+                    </span>
+                  </div>
+
+                  <!-- Material Title -->
+                  <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{{ material.title }}</h3>
+                  
+                  <!-- Material Description -->
+                  <p *ngIf="material.description" class="text-sm text-gray-600 mb-3 line-clamp-2">
+                    {{ material.description }}
+                  </p>
+
+                  <!-- Material Meta -->
+                  <div class="flex items-center justify-between text-xs text-gray-500 mt-auto">
+                    <span class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                      </svg>
+                      {{ material.stats.viewCount || 0 }} views
+                    </span>
+                    <span class="flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                      </svg>
+                      {{ material.stats.downloadCount || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div *ngIf="materials.length === 0" class="text-center py-12">
+                <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Materials Available</h3>
+                <p class="text-sm text-gray-500 mb-4">Materials for this group will appear here</p>
+                <button *ngIf="canEdit"
+                        (click)="uploadMaterial()"
+                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md text-sm">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Upload First Material
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -769,6 +863,9 @@ export class GroupDetailComponent implements OnInit {
   recentAttendance: any[] = [];
   loadingAttendance = false;
   
+  // Materials properties
+  materials: Material[] = [];
+  
   // Role-based properties
   currentUser: User | null = null;
 
@@ -776,6 +873,7 @@ export class GroupDetailComponent implements OnInit {
     private groupService: GroupService,
     private studentService: StudentService,
     private attendanceService: AttendanceService,
+    private materialService: MaterialService,
     private route: ActivatedRoute, 
     private router: Router, 
     private confirmation: ConfirmationService,
@@ -1146,6 +1244,72 @@ export class GroupDetailComponent implements OnInit {
     this.router.navigate(['/dashboard/attendance'], { 
       queryParams: { group: groupId } 
     });
+  }
+
+  // Materials methods
+  loadMaterials(): void {
+    const groupId = this.group._id || this.group.id;
+    this.materialService.getMaterials({ group: groupId }).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.materials = response.data.materials || [];
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load materials', error);
+        this.toastService.error('Failed to load materials');
+      }
+    });
+  }
+
+  uploadMaterial(): void {
+    const groupId = this.group._id || this.group.id;
+    this.router.navigate(['/dashboard/materials/upload'], {
+      queryParams: { 
+        course: this.group?.course?._id,
+        groups: groupId
+      }
+    });
+  }
+
+  viewMaterial(material: Material): void {
+    this.router.navigate(['/dashboard/materials', material._id]);
+  }
+
+  getMaterialTypeClass(type: string): string {
+    const classes: { [key: string]: string } = {
+      'document': 'bg-blue-100 text-blue-600',
+      'video': 'bg-purple-100 text-purple-600',
+      'image': 'bg-pink-100 text-pink-600',
+      'link': 'bg-green-100 text-green-600',
+      'presentation': 'bg-orange-100 text-orange-600',
+      'file': 'bg-gray-100 text-gray-600'
+    };
+    return classes[type] || 'bg-gray-100 text-gray-600';
+  }
+
+  getMaterialTypeBadge(type: string): string {
+    const classes: { [key: string]: string } = {
+      'document': 'bg-blue-100 text-blue-700',
+      'video': 'bg-purple-100 text-purple-700',
+      'image': 'bg-pink-100 text-pink-700',
+      'link': 'bg-green-100 text-green-700',
+      'presentation': 'bg-orange-100 text-orange-700',
+      'file': 'bg-gray-100 text-gray-700'
+    };
+    return classes[type] || 'bg-gray-100 text-gray-700';
+  }
+
+  getMaterialIcon(type: string): string {
+    const icons: { [key: string]: string } = {
+      'document': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>',
+      'video': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>',
+      'image': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>',
+      'link': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>',
+      'presentation': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>',
+      'file': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>'
+    };
+    return `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">${icons[type] || icons['file']}</svg>`;
   }
 }
 
