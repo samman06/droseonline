@@ -63,9 +63,9 @@ import { AuthService } from '../../services/auth.service';
               <span class="text-sm text-gray-500">Subject:</span>
               <p class="font-medium">{{ course.subject?.name || 'N/A' }}</p>
             </div>
-            <div>
+            <div *ngIf="maxStudents">
               <span class="text-sm text-gray-500">Enrollment:</span>
-              <p class="font-medium">{{ studentCount }} / {{ maxStudents || '∞' }}</p>
+              <p class="font-medium">{{ studentCount }} / {{ maxStudents }}</p>
             </div>
             <div>
               <span class="text-sm text-gray-500">Academic Year:</span>
