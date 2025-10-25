@@ -81,6 +81,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/materials', require('./routes/materials'));
 app.use('/api/calendar', require('./routes/calendar'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/accounting', require('./routes/accounting'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

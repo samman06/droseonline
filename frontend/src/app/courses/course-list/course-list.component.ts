@@ -190,7 +190,7 @@ import { SubjectService } from '../../services/subject.service';
                 </div>
                 <div class="flex-1">
                   <p class="text-xs text-gray-500 font-medium">Enrolled</p>
-                  <p class="text-sm font-semibold text-gray-900">{{ course.currentEnrollment || 0 }} Students</p>
+                  <p class="text-sm font-semibold text-gray-900">{{ course.studentCount || 0 }} Students</p>
                 </div>
               </div>
             </div>

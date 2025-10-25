@@ -428,8 +428,8 @@ router.post('/', authenticate, authorize('admin'), validate(groupSchema), async 
 
 // @route   PUT /api/groups/:id
 // @desc    Update group
-// @access  Private (Admin)
-router.put('/:id', authenticate, authorize('admin'), validate(groupSchema), async (req, res) => {
+// @access  Private (Admin or Teacher owner)
+router.put('/:id', authenticate, validate(groupSchema), async (req, res) => {
   try {
     const group = await Group.findById(req.params.id);
     
@@ -438,6 +438,16 @@ router.put('/:id', authenticate, authorize('admin'), validate(groupSchema), asyn
         success: false,
         message: 'Group not found'
       });
+    }
+
+    // Check permissions: admin, teacher who owns the group, or if group has no teacher yet
+    if (req.user.role !== 'admin') {
+      if (group.teacher && group.teacher.toString() !== req.user._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied - you can only edit your own groups'
+        });
+      }
     }
 
     // Verify course exists if changed

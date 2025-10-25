@@ -22,6 +22,7 @@ export interface Course {
   }[];
   capacity?: number;
   currentEnrollment?: number;
+  studentCount?: number;
   syllabus?: {
     overview?: string;
     objectives?: string[];

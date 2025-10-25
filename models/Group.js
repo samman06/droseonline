@@ -82,7 +82,17 @@ const groupSchema = new mongoose.Schema({
   pricePerSession: {
     type: Number,
     min: 0,
-    default: 0
+    default: 100  // Mock price: 100 EGP per session
+  },
+  totalSessions: {
+    type: Number,
+    min: 0,
+    default: 12  // Mock: 12 sessions per group
+  },
+  pricePerAllSessions: {
+    type: Number,
+    min: 0,
+    default: 1200  // Mock: 12 sessions × 100 EGP = 1200 EGP
   },
   
   // Status and Management

@@ -350,6 +350,12 @@ export const routes: Routes = [
         loadComponent: () => import('./analytics/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
       },
       {
+        path: 'accounting',
+        canActivate: [RoleGuard],
+        data: { roles: ['teacher', 'admin'] }, // Teachers and admins can view accounting
+        loadComponent: () => import('./accounting/accounting-dashboard.component').then(m => m.AccountingDashboardComponent)
+      },
+      {
         path: 'materials',
         canActivate: [RoleGuard],
         data: { roles: ['admin', 'teacher', 'student'] },

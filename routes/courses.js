@@ -37,18 +37,43 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
     const courses = await Course.find(query)
       .populate('subject', 'name code credits type')
       .populate('teacher', 'firstName lastName fullName email')
-      .populate('groups', 'name code gradeLevel currentEnrollment capacity isActive')
+      .populate({
+        path: 'groups',
+        select: 'name code gradeLevel currentEnrollment capacity isActive students'
+      })
       .populate('academicYear', 'name code isCurrent')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ startDate: -1 });
+
+    // Calculate student count for each course (match detail endpoint format)
+    const coursesWithCount = courses.map(course => {
+      const courseObj = course.toObject();
+      
+      // Count unique students across all groups
+      const studentIds = new Set();
+      if (courseObj.groups && courseObj.groups.length > 0) {
+        courseObj.groups.forEach(group => {
+          if (group.students && Array.isArray(group.students)) {
+            group.students.forEach(studentEntry => {
+              if (studentEntry.student) {
+                studentIds.add(studentEntry.student.toString());
+              }
+            });
+          }
+        });
+      }
+      
+      courseObj.studentCount = studentIds.size;
+      return courseObj;
+    });
 
     const total = await Course.countDocuments(query);
 
     res.json({
       success: true,
       data: {
-        courses,
+        courses: coursesWithCount,
         pagination: {
           total,
           pages: Math.ceil(total / limit),
