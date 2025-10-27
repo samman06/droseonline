@@ -17,7 +17,15 @@
  */
 
 const Sentry = require('@sentry/node');
-const { ProfilingIntegration } = require('@sentry/profiling-node');
+
+// Profiling is optional - only load if package is installed
+let ProfilingIntegration;
+try {
+  ProfilingIntegration = require('@sentry/profiling-node').ProfilingIntegration;
+} catch (e) {
+  // Profiling package not installed, that's okay
+  ProfilingIntegration = null;
+}
 
 /**
  * Initialize Sentry for backend error tracking
@@ -33,6 +41,20 @@ function initSentry(app) {
     return;
   }
 
+  // Build integrations array
+  const integrations = [
+    // Enable HTTP calls tracing
+    new Sentry.Integrations.Http({ tracing: true }),
+    
+    // Enable Express.js middleware tracing
+    new Sentry.Integrations.Express({ app }),
+  ];
+  
+  // Add profiling if available
+  if (ProfilingIntegration) {
+    integrations.push(new ProfilingIntegration());
+  }
+  
   Sentry.init({
     dsn: dsn,
     environment: process.env.NODE_ENV || 'development',
@@ -41,25 +63,10 @@ function initSentry(app) {
     // In production, you may want to lower this to reduce costs
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     
-    // Set profilesSampleRate to profile 10% of transactions
-    profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    // Set profilesSampleRate to profile 10% of transactions (only if profiling is available)
+    profilesSampleRate: ProfilingIntegration ? (process.env.NODE_ENV === 'production' ? 0.1 : 1.0) : undefined,
     
-    integrations: [
-      // Enable HTTP calls tracing
-      new Sentry.Integrations.Http({ tracing: true }),
-      
-      // Enable Express.js middleware tracing
-      new Sentry.Integrations.Express({ app }),
-      
-      // Enable profiling
-      new ProfilingIntegration(),
-    ],
-    
-    // Capture unhandled promise rejections
-    integrations: [
-      new Sentry.Integrations.OnUncaughtException(),
-      new Sentry.Integrations.OnUnhandledRejection(),
-    ],
+    integrations: integrations,
     
     // Don't send PII (Personally Identifiable Information) by default
     beforeSend(event, hint) {
