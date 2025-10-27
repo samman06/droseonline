@@ -18,6 +18,8 @@
     "@angular/platform-browser": "^19.2.15",
     "@angular/platform-browser-dynamic": "^19.2.15",
     "@angular/router": "^19.2.15",
+    "@sentry/angular": "^10.22.0",
+    "@sentry/tracing": "^7.120.4",
     "@types/crypto-js": "^4.2.2",
     "chart.js": "^4.5.1",
     "crypto-js": "^4.2.0",

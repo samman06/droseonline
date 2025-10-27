@@ -7,6 +7,22 @@ require('dotenv').config();
 
 const app = express();
 
+// Initialize Sentry for error tracking (must be first)
+const { 
+  initSentry, 
+  getRequestHandler, 
+  getTracingHandler, 
+  getErrorHandler 
+} = require('./config/sentry');
+
+initSentry(app);
+
+// Sentry request handler - captures request data for errors
+if (process.env.SENTRY_DSN) {
+  app.use(getRequestHandler());
+  app.use(getTracingHandler());
+}
+
 // CORS configuration - must be BEFORE other middleware
 // Simplified to allow all origins in development
 app.use(cors({
@@ -95,6 +111,11 @@ app.get('/api/health', (req, res) => {
 
 // 404 handler - must come before error handler
 app.use(notFoundHandler);
+
+// Sentry error handler - must be before other error handlers
+if (process.env.SENTRY_DSN) {
+  app.use(getErrorHandler());
+}
 
 // Global error handler - must be last
 app.use(errorHandler);
