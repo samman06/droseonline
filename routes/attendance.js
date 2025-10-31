@@ -120,14 +120,19 @@ async function calculateAndRecordIncome(attendance, group) {
     });
     console.log(`✅ Step 2: Group total revenue updated - Added ${sessionIncome} EGP`);
 
-    // 3. UPDATE COURSE totals
+    // 3. UPDATE COURSE totals and get teacher ID
+    let teacherId = attendance.teacher; // Default to attendance teacher
     if (group.course) {
-      await Course.findByIdAndUpdate(group.course, {
+      const course = await Course.findByIdAndUpdate(group.course, {
         $inc: {
           totalRevenue: sessionIncome,
           totalSessionsHeld: 1
         }
-      });
+      }, { new: true });
+      
+      if (course && course.teacher) {
+        teacherId = course.teacher; // Use course teacher (more reliable)
+      }
       console.log(`✅ Step 3: Course total revenue updated - Added ${sessionIncome} EGP`);
     }
 
@@ -135,7 +140,7 @@ async function calculateAndRecordIncome(attendance, group) {
     const transaction = new FinancialTransaction({
       type: 'income',
       category: 'student_payment',
-      teacher: group.teacher || attendance.teacher,
+      teacher: teacherId,
       amount: sessionIncome,
       title: `Session Income - ${group.name}`,
       description: `${presentCount} students attended @ ${group.pricePerSession} EGP each`,

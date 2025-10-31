@@ -20,6 +20,8 @@ export interface FinancialTransaction {
   recurringFrequency?: string;
   notes?: string;
   tags?: string[];
+  createdBy?: any;
+  updatedBy?: any;
   createdAt?: Date;
   updatedAt?: Date;
 }

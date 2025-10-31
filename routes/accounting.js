@@ -362,24 +362,41 @@ router.get('/transactions/:id', authenticate, checkTeacherAccess, async (req, re
     const transaction = await FinancialTransaction.findById(req.params.id)
       .populate('teacher', 'firstName lastName fullName email')
       .populate('relatedTo.modelId')
-      .populate('createdBy', 'firstName lastName')
-      .populate('updatedBy', 'firstName lastName');
+      .populate('createdBy', 'firstName lastName fullName')
+      .populate('updatedBy', 'firstName lastName fullName');
     
     if (!transaction) {
+      console.log('❌ Transaction not found:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Transaction not found'
       });
     }
     
+    // Debug logging
+    console.log('🔍 GET Transaction Debug:');
+    console.log('   Transaction ID:', req.params.id);
+    console.log('   Transaction Teacher ID:', transaction.teacher?._id || transaction.teacher);
+    console.log('   Transaction Teacher:', transaction.teacher?.email || transaction.teacher);
+    console.log('   Current User ID:', req.user._id.toString());
+    console.log('   Current User Email:', req.user.email);
+    console.log('   Current User Role:', req.user.role);
+    console.log('   Is Admin?', req.user.role === 'admin');
+    
+    // Get teacher ID correctly (handle both populated and unpopulated)
+    const transactionTeacherId = transaction.teacher?._id || transaction.teacher;
+    console.log('   Teacher Match?', transactionTeacherId.toString() === req.user._id.toString());
+    
     // Check ownership
-    if (req.user.role !== 'admin' && transaction.teacher.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && transactionTeacherId.toString() !== req.user._id.toString()) {
+      console.log('❌ Access denied - User cannot view this transaction');
       return res.status(403).json({
         success: false,
         message: 'Access denied'
       });
     }
     
+    console.log('✅ Access granted');
     res.json({
       success: true,
       data: { transaction }
@@ -407,8 +424,9 @@ router.put('/transactions/:id', authenticate, checkTeacherAccess, async (req, re
       });
     }
     
-    // Check ownership
-    if (req.user.role !== 'admin' && transaction.teacher.toString() !== req.user._id.toString()) {
+    // Check ownership (handle populated teacher field)
+    const transactionTeacherId = transaction.teacher?._id || transaction.teacher;
+    if (req.user.role !== 'admin' && transactionTeacherId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
@@ -449,8 +467,9 @@ router.delete('/transactions/:id', authenticate, checkTeacherAccess, async (req,
       });
     }
     
-    // Check ownership
-    if (req.user.role !== 'admin' && transaction.teacher.toString() !== req.user._id.toString()) {
+    // Check ownership (handle populated teacher field)
+    const transactionTeacherId = transaction.teacher?._id || transaction.teacher;
+    if (req.user.role !== 'admin' && transactionTeacherId.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'

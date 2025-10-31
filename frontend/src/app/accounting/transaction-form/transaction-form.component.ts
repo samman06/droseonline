@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -48,6 +48,46 @@ import { ToastService } from '../../services/toast.service';
 
       <!-- Form Content -->
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Transaction Metadata (Edit Mode Only) -->
+        <div *ngIf="isEditMode && transactionMetadata" class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Transaction Information
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="bg-white rounded-lg p-3">
+              <span class="text-gray-600 font-medium">Receipt Number:</span>
+              <p class="text-gray-900 font-semibold mt-1">{{ transactionMetadata.receiptNumber || 'Not generated' }}</p>
+            </div>
+            <div class="bg-white rounded-lg p-3">
+              <span class="text-gray-600 font-medium">Status:</span>
+              <p class="mt-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      [class.bg-green-100]="transactionMetadata.status === 'completed'"
+                      [class.text-green-800]="transactionMetadata.status === 'completed'"
+                      [class.bg-yellow-100]="transactionMetadata.status === 'pending'"
+                      [class.text-yellow-800]="transactionMetadata.status === 'pending'"
+                      [class.bg-red-100]="transactionMetadata.status === 'cancelled'"
+                      [class.text-red-800]="transactionMetadata.status === 'cancelled'">
+                  {{ transactionMetadata.status | titlecase }}
+                </span>
+              </p>
+            </div>
+            <div class="bg-white rounded-lg p-3">
+              <span class="text-gray-600 font-medium">Created By:</span>
+              <p class="text-gray-900 mt-1">{{ transactionMetadata.createdBy?.fullName || 'System' }}</p>
+              <p class="text-gray-500 text-xs">{{ transactionMetadata.createdAt | date:'medium' }}</p>
+            </div>
+            <div *ngIf="transactionMetadata.updatedBy" class="bg-white rounded-lg p-3">
+              <span class="text-gray-600 font-medium">Last Updated By:</span>
+              <p class="text-gray-900 mt-1">{{ transactionMetadata.updatedBy?.fullName }}</p>
+              <p class="text-gray-500 text-xs">{{ transactionMetadata.updatedAt | date:'medium' }}</p>
+            </div>
+          </div>
+        </div>
+
         <form [formGroup]="transactionForm" class="space-y-6">
           <!-- Transaction Type Card -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -226,7 +266,9 @@ export class TransactionFormComponent implements OnInit {
   transactionForm: FormGroup;
   isSubmitting = false;
   isEditMode = false;
+  isLoadingTransaction = false;
   transactionId: string | null = null;
+  transactionMetadata: any = null;
   today: string;
 
   constructor(
@@ -234,7 +276,8 @@ export class TransactionFormComponent implements OnInit {
     private accountingService: AccountingService,
     private toastService: ToastService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
@@ -262,7 +305,7 @@ export class TransactionFormComponent implements OnInit {
       }
     });
 
-    // Watch for type changes to reset category
+    // Watch for type changes to reset category (only in create mode, not edit mode)
     this.transactionForm.get('type')?.valueChanges.subscribe(() => {
       if (!this.isEditMode) {
         this.transactionForm.patchValue({ category: '' });
@@ -272,15 +315,31 @@ export class TransactionFormComponent implements OnInit {
 
   loadTransaction(id: string): void {
     this.isSubmitting = true;
+    this.isLoadingTransaction = true;
+    
     this.accountingService.getTransaction(id).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           const transaction = response.data.transaction;
+          
+          // Store metadata for display
+          this.transactionMetadata = {
+            _id: transaction._id,
+            receiptNumber: transaction.receiptNumber,
+            status: transaction.status || 'completed',
+            currency: transaction.currency || 'EGP',
+            createdBy: transaction.createdBy,
+            createdAt: transaction.createdAt,
+            updatedBy: transaction.updatedBy,
+            updatedAt: transaction.updatedAt
+          };
+          
           const dateValue: any = transaction.transactionDate;
           const transactionDate = typeof dateValue === 'string' 
             ? dateValue.split('T')[0]
             : new Date(dateValue).toISOString().split('T')[0];
 
+          // Set all fields at once (including type) - no need to split
           this.transactionForm.patchValue({
             type: transaction.type,
             category: transaction.category,
@@ -290,15 +349,28 @@ export class TransactionFormComponent implements OnInit {
             transactionDate: transactionDate,
             paymentMethod: transaction.paymentMethod,
             receiptNumber: transaction.receiptNumber || ''
-          });
+          }, { emitEvent: false }); // Don't emit events to avoid triggering valueChanges
+          
+          // Manually trigger change detection after patching
+          this.cdr.detectChanges();
+          
+          console.log('✅ Transaction loaded successfully:');
+          console.log('Raw transaction data:', transaction);
+          console.log('Metadata:', this.transactionMetadata);
+          console.log('Form value:', this.transactionForm.value);
+          console.log('Available categories:', this.getAvailableCategories());
+          console.log('Form valid?', this.transactionForm.valid);
+          console.log('Form errors:', this.transactionForm.errors);
         }
         this.isSubmitting = false;
+        this.isLoadingTransaction = false;
       },
       error: (error) => {
         console.error('Error loading transaction:', error);
         this.toastService.error('Failed to load transaction');
         this.router.navigate(['/dashboard/accounting/transactions']);
         this.isSubmitting = false;
+        this.isLoadingTransaction = false;
       }
     });
   }
