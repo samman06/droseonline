@@ -33,7 +33,7 @@ const financialTransactionSchema = new mongoose.Schema({
   relatedTo: {
     modelType: {
       type: String,
-      enum: ['StudentPayment', 'Course', 'Group', 'User', 'Material', null]
+      enum: ['StudentPayment', 'Course', 'Group', 'User', 'Material', 'Attendance', null]
     },
     modelId: {
       type: mongoose.Schema.Types.ObjectId,
