@@ -4,6 +4,7 @@ import { RouterOutlet } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { AuthService } from './services/auth.service';
 import { ConfigService } from './services/config.service';
+import { LanguageService } from './services/language.service';
 import { ConfirmationModalComponent } from './shared/confirmation-modal/confirmation-modal.component';
 import { ToastContainerComponent } from './shared/toast-container/toast-container.component';
 
@@ -26,12 +27,18 @@ export class AppComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
     // Set title from config after initialization
     this.title.set(this.configService.appName);
+    
+    // Initialize language service (will load saved language from localStorage)
+    // The LanguageService constructor already handles initialization
+    console.log('Current language:', this.languageService.getCurrentLanguage());
+    console.log('Direction:', this.languageService.getDirection());
     
     // Initialize app, check authentication status
     this.checkAuthStatus();
