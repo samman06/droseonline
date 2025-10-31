@@ -60,6 +60,13 @@ app.use((req, res, next) => {
 });
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Increase timeout for large file uploads (recorded session videos)
+app.use('/api/materials', (req, res, next) => {
+  req.setTimeout(10 * 60 * 1000); // 10 minutes for video uploads
+  res.setTimeout(10 * 60 * 1000);
+  next();
+});
+
 // Serve uploaded files
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
