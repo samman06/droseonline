@@ -371,8 +371,21 @@ export const routes: Routes = [
       {
         path: 'accounting',
         canActivate: [RoleGuard],
-        data: { roles: ['teacher', 'admin'] }, // Teachers and admins can view accounting
-        loadComponent: () => import('./accounting/accounting-dashboard.component').then(m => m.AccountingDashboardComponent)
+        data: { roles: ['teacher', 'admin'] },
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./accounting/accounting-dashboard.component').then(m => m.AccountingDashboardComponent)
+          },
+          {
+            path: 'transactions/new',
+            loadComponent: () => import('./accounting/transaction-form/transaction-form.component').then(m => m.TransactionFormComponent)
+          },
+          {
+            path: 'transactions/:id/edit',
+            loadComponent: () => import('./accounting/transaction-form/transaction-form.component').then(m => m.TransactionFormComponent)
+          }
+        ]
       },
       {
         path: 'materials',
