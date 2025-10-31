@@ -388,6 +388,14 @@ export const routes: Routes = [
           {
             path: 'transactions/:id/edit',
             loadComponent: () => import('./accounting/transaction-form/transaction-form.component').then(m => m.TransactionFormComponent)
+          },
+          {
+            path: 'payments',
+            loadComponent: () => import('./accounting/student-payment-list/student-payment-list.component').then(m => m.StudentPaymentListComponent)
+          },
+          {
+            path: 'reports',
+            loadComponent: () => import('./accounting/reports/reports.component').then(m => m.ReportsComponent)
           }
         ]
       },

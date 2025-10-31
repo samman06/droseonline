@@ -157,6 +157,51 @@ import { AuthService } from '../services/auth.service';
             </div>
           </div>
 
+          <!-- Quick Actions -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a routerLink="/dashboard/accounting/transactions" 
+                 class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all group">
+                <div class="bg-blue-500 p-3 rounded-xl group-hover:scale-110 transition-transform">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900">Transactions</p>
+                  <p class="text-sm text-gray-600">View all transactions</p>
+                </div>
+              </a>
+
+              <a routerLink="/dashboard/accounting/payments" 
+                 class="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all group">
+                <div class="bg-green-500 p-3 rounded-xl group-hover:scale-110 transition-transform">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900">Student Payments</p>
+                  <p class="text-sm text-gray-600">Manage payments</p>
+                </div>
+              </a>
+
+              <a routerLink="/dashboard/accounting/reports" 
+                 class="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl hover:shadow-md transition-all group">
+                <div class="bg-purple-500 p-3 rounded-xl group-hover:scale-110 transition-transform">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900">Reports</p>
+                  <p class="text-sm text-gray-600">Financial reports</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
           <!-- Two Column Layout -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Revenue by Groups -->
@@ -368,51 +413,6 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </a>
               </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <a routerLink="/dashboard/accounting/transactions" 
-                 class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all group">
-                <div class="bg-blue-500 p-3 rounded-xl group-hover:scale-110 transition-transform">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                  </svg>
-                </div>
-                <div>
-                  <p class="font-semibold text-gray-900">Transactions</p>
-                  <p class="text-sm text-gray-600">View all transactions</p>
-                </div>
-              </a>
-
-              <a routerLink="/dashboard/accounting/payments" 
-                 class="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl hover:shadow-md transition-all group">
-                <div class="bg-green-500 p-3 rounded-xl group-hover:scale-110 transition-transform">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p class="font-semibold text-gray-900">Student Payments</p>
-                  <p class="text-sm text-gray-600">Manage payments</p>
-                </div>
-              </a>
-
-              <a routerLink="/dashboard/accounting/reports" 
-                 class="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl hover:shadow-md transition-all group">
-                <div class="bg-purple-500 p-3 rounded-xl group-hover:scale-110 transition-transform">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p class="font-semibold text-gray-900">Reports</p>
-                  <p class="text-sm text-gray-600">Financial analytics</p>
-                </div>
-              </a>
             </div>
           </div>
         </div>
