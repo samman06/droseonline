@@ -378,6 +378,10 @@ export const routes: Routes = [
             loadComponent: () => import('./accounting/accounting-dashboard.component').then(m => m.AccountingDashboardComponent)
           },
           {
+            path: 'transactions',
+            loadComponent: () => import('./accounting/transaction-list/transaction-list.component').then(m => m.TransactionListComponent)
+          },
+          {
             path: 'transactions/new',
             loadComponent: () => import('./accounting/transaction-form/transaction-form.component').then(m => m.TransactionFormComponent)
           },

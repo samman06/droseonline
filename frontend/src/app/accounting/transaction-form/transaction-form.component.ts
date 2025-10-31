@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AccountingService } from '../../services/accounting.service';
 import { ToastService } from '../../services/toast.service';
 
@@ -22,8 +22,8 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </button>
               <div>
-                <h1 class="text-3xl font-bold text-gray-900">Add Transaction</h1>
-                <p class="mt-1 text-sm text-gray-500">Record income or expense transaction</p>
+              <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? 'Edit Transaction' : 'Add Transaction' }}</h1>
+              <p class="mt-1 text-sm text-gray-500">{{ isEditMode ? 'Update transaction details' : 'Record income or expense transaction' }}</p>
               </div>
             </div>
             <div class="flex space-x-3">
@@ -39,7 +39,7 @@ import { ToastService } from '../../services/toast.service';
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {{ isSubmitting ? 'Saving...' : 'Save Transaction' }}
+                {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Transaction' : 'Save Transaction') }}
               </button>
             </div>
           </div>
@@ -225,13 +225,16 @@ import { ToastService } from '../../services/toast.service';
 export class TransactionFormComponent implements OnInit {
   transactionForm: FormGroup;
   isSubmitting = false;
+  isEditMode = false;
+  transactionId: string | null = null;
   today: string;
 
   constructor(
     private fb: FormBuilder,
     private accountingService: AccountingService,
     private toastService: ToastService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
@@ -249,9 +252,54 @@ export class TransactionFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Check if we're in edit mode
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        this.transactionId = id;
+        this.loadTransaction(id);
+      }
+    });
+
     // Watch for type changes to reset category
     this.transactionForm.get('type')?.valueChanges.subscribe(() => {
-      this.transactionForm.patchValue({ category: '' });
+      if (!this.isEditMode) {
+        this.transactionForm.patchValue({ category: '' });
+      }
+    });
+  }
+
+  loadTransaction(id: string): void {
+    this.isSubmitting = true;
+    this.accountingService.getTransaction(id).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const transaction = response.data.transaction;
+          const dateValue: any = transaction.transactionDate;
+          const transactionDate = typeof dateValue === 'string' 
+            ? dateValue.split('T')[0]
+            : new Date(dateValue).toISOString().split('T')[0];
+
+          this.transactionForm.patchValue({
+            type: transaction.type,
+            category: transaction.category,
+            amount: transaction.amount,
+            title: transaction.title,
+            description: transaction.description || '',
+            transactionDate: transactionDate,
+            paymentMethod: transaction.paymentMethod,
+            receiptNumber: transaction.receiptNumber || ''
+          });
+        }
+        this.isSubmitting = false;
+      },
+      error: (error) => {
+        console.error('Error loading transaction:', error);
+        this.toastService.error('Failed to load transaction');
+        this.router.navigate(['/dashboard/accounting/transactions']);
+        this.isSubmitting = false;
+      }
     });
   }
 
@@ -308,17 +356,33 @@ export class TransactionFormComponent implements OnInit {
       transactionData.receiptNumber = formValue.receiptNumber.trim();
     }
 
-    this.accountingService.createTransaction(transactionData).subscribe({
-      next: (response) => {
-        this.toastService.success('Transaction created successfully');
-        this.router.navigate(['/dashboard/accounting']);
-      },
-      error: (error) => {
-        console.error('Error creating transaction:', error);
-        this.toastService.error(error.error?.message || 'Failed to create transaction');
-        this.isSubmitting = false;
-      }
-    });
+    if (this.isEditMode && this.transactionId) {
+      // Update existing transaction
+      this.accountingService.updateTransaction(this.transactionId, transactionData).subscribe({
+        next: (response) => {
+          this.toastService.success('Transaction updated successfully');
+          this.router.navigate(['/dashboard/accounting/transactions']);
+        },
+        error: (error) => {
+          console.error('Error updating transaction:', error);
+          this.toastService.error(error.error?.message || 'Failed to update transaction');
+          this.isSubmitting = false;
+        }
+      });
+    } else {
+      // Create new transaction
+      this.accountingService.createTransaction(transactionData).subscribe({
+        next: (response) => {
+          this.toastService.success('Transaction created successfully');
+          this.router.navigate(['/dashboard/accounting']);
+        },
+        error: (error) => {
+          console.error('Error creating transaction:', error);
+          this.toastService.error(error.error?.message || 'Failed to create transaction');
+          this.isSubmitting = false;
+        }
+      });
+    }
   }
 
   onCancel(): void {
