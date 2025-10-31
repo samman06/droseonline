@@ -194,10 +194,15 @@ import { PermissionService } from '../../services/permission.service';
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div class="relative inline-block text-left">
-                    <button (click)="toggleDropdown(g.id || g._id)" class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                    <button (click)="toggleDropdown(g.id || g._id, $event)" class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
                       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
                     </button>
-                    <div *ngIf="openDropdownId === (g.id || g._id)" class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div 
+                      *ngIf="openDropdownId === (g.id || g._id)" 
+                      [class]="dropdownPosition === 'top' 
+                        ? 'absolute right-0 z-50 bottom-full mb-2 w-48 origin-bottom-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'
+                        : 'absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none'"
+                    >
                       <div class="py-1">
                         <!-- View Details - Available to all roles -->
                         <button (click)="viewGroup(g); closeDropdown()" class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150">
@@ -251,6 +256,7 @@ export class GroupListComponent implements OnInit {
   groups: any[] = [];
   isLoading = false;
   openDropdownId: string | null = null;
+  dropdownPosition: 'top' | 'bottom' = 'bottom';
   private searchDebounce: any;
 
   // Role-based properties
@@ -421,7 +427,26 @@ export class GroupListComponent implements OnInit {
     this.groupService.deleteGroup(g.id || g._id).subscribe({ next: _ => this.loadGroups() });
   }
 
-  toggleDropdown(id: string): void { this.openDropdownId = this.openDropdownId === id ? null : id; }
+  toggleDropdown(id: string, event?: MouseEvent): void {
+    if (this.openDropdownId === id) {
+      this.openDropdownId = null;
+      return;
+    }
+
+    this.openDropdownId = id;
+
+    // Calculate position dynamically
+    if (event) {
+      const button = event.currentTarget as HTMLElement;
+      const rect = button.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom;
+      
+      // If less than 250px below, position dropdown above
+      this.dropdownPosition = spaceBelow < 250 ? 'top' : 'bottom';
+    }
+  }
+  
   closeDropdown(): void { this.openDropdownId = null; }
   
   getDayColorClass(day: string): string {

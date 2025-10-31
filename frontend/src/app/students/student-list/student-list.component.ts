@@ -319,7 +319,7 @@ interface Student {
                   <td class="px-6 py-5 whitespace-nowrap">
                     <div class="relative inline-block text-left">
                       <button 
-                        (click)="toggleDropdown(student.id)"
+                        (click)="toggleDropdown(student.id, $event)"
                         class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
                       >
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -329,7 +329,12 @@ interface Student {
 
                       <div 
                         *ngIf="openDropdownId === student.id"
-                        class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        class="absolute right-0 z-50 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        [class.bottom-full]="dropdownPosition === 'top'"
+                        [class.mb-2]="dropdownPosition === 'top'"
+                        [class.mt-2]="dropdownPosition === 'bottom'"
+                        [class.origin-top-right]="dropdownPosition === 'bottom'"
+                        [class.origin-bottom-right]="dropdownPosition === 'top'"
                       >
                         <div class="py-1">
                           <button
@@ -505,6 +510,7 @@ export class StudentListComponent implements OnInit {
 
   Math = Math; // Make Math available in template
   openDropdownId: string | null = null;
+  dropdownPosition: 'bottom' | 'top' = 'bottom';
   private searchDebounce: any;
 
   constructor(
@@ -749,12 +755,31 @@ export class StudentListComponent implements OnInit {
   }
 
   // Dropdown methods
-  toggleDropdown(studentId: string): void {
-    this.openDropdownId = this.openDropdownId === studentId ? null : studentId;
+  toggleDropdown(studentId: string, event?: MouseEvent): void {
+    if (this.openDropdownId === studentId) {
+      this.closeDropdown();
+      return;
+    }
+    
+    this.openDropdownId = studentId;
+    
+    // Calculate position if event is provided
+    if (event) {
+      const button = event.currentTarget as HTMLElement;
+      const rect = button.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      // If less than 250px below and more space above, position above
+      this.dropdownPosition = (spaceBelow < 250 && spaceAbove > spaceBelow) ? 'top' : 'bottom';
+    } else {
+      this.dropdownPosition = 'bottom';
+    }
   }
 
   closeDropdown(): void {
     this.openDropdownId = null;
+    this.dropdownPosition = 'bottom';
   }
 
   // Utility methods
