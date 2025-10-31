@@ -173,7 +173,7 @@ router.get('/summary', authenticate, checkTeacherAccess, async (req, res) => {
     
     // Get revenue by groups (from new revenue tracking system)
     const groupRevenue = await Group.find({
-      teacher: req.user._id,
+      course: { $in: courseIds },
       totalRevenue: { $gt: 0 }
     })
     .select('name code totalRevenue totalSessionsHeld pricePerSession students')
@@ -195,7 +195,7 @@ router.get('/summary', authenticate, checkTeacherAccess, async (req, res) => {
     
     // Calculate total from attendance-based revenue
     const totalAttendanceRevenue = await Group.aggregate([
-      { $match: { teacher: req.user._id } },
+      { $match: { course: { $in: courseIds } } },
       { $group: {
         _id: null,
         totalRevenue: { $sum: '$totalRevenue' },

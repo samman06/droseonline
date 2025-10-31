@@ -131,7 +131,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
         </div>
 
         <!-- Transactions Table -->
-        <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-sm border border-gray-200 mt-6 overflow-hidden">
+        <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-sm border border-gray-200 mt-6 overflow-hidden"
+             (click)="closeDropdown()">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
@@ -172,8 +173,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
                       [class.text-red-600]="transaction.type === 'expense'">
                     {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-center">
-                    <div class="relative inline-block text-left">
+                  <td class="px-6 py-4 whitespace-nowrap text-center relative">
+                    <div class="inline-block text-left" (click)="$event.stopPropagation()">
                       <button (click)="toggleDropdown(transaction._id || transaction.id, $event)"
                               class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -181,9 +182,9 @@ import { ConfirmationService } from '../../services/confirmation.service';
                         </svg>
                       </button>
                       <div *ngIf="openDropdownId === (transaction._id || transaction.id)"
-                           [class]="dropdownPosition === 'top' 
-                             ? 'absolute right-0 z-50 bottom-full mb-2 w-48 origin-bottom-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5'
-                             : 'absolute right-0 z-50 mt-2 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5'">
+                           class="fixed z-[9999] w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5"
+                           [style.top.px]="dropdownTop"
+                           [style.left.px]="dropdownLeft">
                         <div class="py-1">
                           <button (click)="editTransaction(transaction); closeDropdown()"
                                   class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
@@ -278,6 +279,8 @@ export class TransactionListComponent implements OnInit {
   isLoading = false;
   openDropdownId: string | null = null;
   dropdownPosition: 'top' | 'bottom' = 'bottom';
+  dropdownTop: number = 0;
+  dropdownLeft: number = 0;
   Math = Math;
 
   filters = {
@@ -425,9 +428,52 @@ export class TransactionListComponent implements OnInit {
       const button = event.currentTarget as HTMLElement;
       const rect = button.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
-      const spaceBelow = viewportHeight - rect.bottom;
+      const viewportWidth = window.innerWidth;
       
-      this.dropdownPosition = spaceBelow < 250 ? 'top' : 'bottom';
+      const dropdownWidth = 192; // 48 * 4 = 192px (w-48)
+      const dropdownHeight = 120; // Approximate height of 2 menu items
+      
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      
+      // Calculate horizontal position (align to right of button)
+      this.dropdownLeft = rect.right - dropdownWidth;
+      
+      // Make sure dropdown doesn't go off left edge
+      if (this.dropdownLeft < 10) {
+        this.dropdownLeft = 10;
+      }
+      
+      // Make sure dropdown doesn't go off right edge
+      if (this.dropdownLeft + dropdownWidth > viewportWidth - 10) {
+        this.dropdownLeft = viewportWidth - dropdownWidth - 10;
+      }
+      
+      // Calculate vertical position
+      if (spaceBelow >= dropdownHeight + 10) {
+        // Enough space below, position below button
+        this.dropdownTop = rect.bottom + 8;
+        this.dropdownPosition = 'bottom';
+      } else if (spaceAbove >= dropdownHeight + 10) {
+        // Not enough space below but enough above, position above button
+        this.dropdownTop = rect.top - dropdownHeight - 8;
+        this.dropdownPosition = 'top';
+      } else {
+        // Not enough space either way, position below and let it scroll
+        this.dropdownTop = rect.bottom + 8;
+        this.dropdownPosition = 'bottom';
+      }
+      
+      console.log('Dropdown positioning:', {
+        spaceBelow,
+        spaceAbove,
+        position: this.dropdownPosition,
+        top: this.dropdownTop,
+        left: this.dropdownLeft,
+        buttonRect: rect,
+        viewportHeight,
+        viewportWidth
+      });
     }
   }
 
