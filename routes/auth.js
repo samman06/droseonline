@@ -5,6 +5,7 @@ const { generateToken } = require('../middleware/auth');
 const { validate, registerSchema, loginSchema, updateProfileSchema } = require('../middleware/validation');
 const { authenticate, authorize, sensitiveOperationLimit } = require('../middleware/auth');
 const { notifyWelcome } = require('../utils/notificationHelper');
+const { sendPasswordResetEmail } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -430,17 +431,17 @@ router.post('/forgot-password', sensitiveOperationLimit, async (req, res) => {
       });
     }
 
-    // Generate reset token (in production, implement proper token generation and email sending)
-    const resetToken = generateToken({ id: user._id, type: 'password_reset' });
+    // Generate reset token with 1-hour expiration
+    const resetToken = generateToken({ id: user._id, type: 'password_reset', exp: Math.floor(Date.now() / 1000) + (60 * 60) }); // 1 hour
     
-    // TODO: Send email with reset link
-    // await sendPasswordResetEmail(user.email, resetToken);
+    // Send password reset email
+    const emailSent = await sendPasswordResetEmail(user.email, resetToken);
 
     res.json({
       success: true,
       message: 'If an account with that email exists, a password reset link has been sent.',
-      // Remove in production
-      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+      // Only include token in development if email service is not configured
+      resetToken: (process.env.NODE_ENV === 'development' && !emailSent) ? resetToken : undefined
     });
   } catch (error) {
     console.error('Forgot password error:', error);

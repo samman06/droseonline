@@ -508,15 +508,6 @@ router.get('/:id', authenticate, async (req, res) => {
       const assignmentGroupIds = assignment.groups.map(g => g._id.toString());
       
       hasAccess = studentGroupIds.some(sgId => assignmentGroupIds.includes(sgId));
-      
-      // Debug logging
-      console.log('Student access check:', {
-        studentId: req.user._id,
-        studentGroups: studentGroupIds,
-        assignmentGroups: assignmentGroupIds,
-        assignmentStatus: assignment.status,
-        hasAccess
-      });
     }
 
     if (!hasAccess) {

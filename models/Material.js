@@ -273,9 +273,20 @@ materialSchema.pre('save', async function(next) {
 
 // Pre-remove hook to clean up file from storage
 materialSchema.pre('remove', async function(next) {
-  // TODO: Implement file deletion from Cloudinary or storage
-  // This would be implemented when Cloudinary is fully configured
-  next();
+  try {
+    // Only attempt to delete if file is stored on Cloudinary (not base64)
+    if (this.fileUrl && this.cloudinaryPublicId) {
+      // Cloudinary deletion would be implemented here
+      // const cloudinary = require('cloudinary').v2;
+      // await cloudinary.uploader.destroy(this.cloudinaryPublicId);
+      console.log(`Material file cleanup: Would delete ${this.cloudinaryPublicId} from Cloudinary`);
+    }
+    next();
+  } catch (error) {
+    // Log error but don't block deletion of database record
+    console.error('Error cleaning up material file:', error);
+    next();
+  }
 });
 
 // Indexes for better query performance

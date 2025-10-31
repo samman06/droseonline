@@ -253,15 +253,7 @@ router.get('/summary', authenticate, checkTeacherAccess, async (req, res) => {
 // @access  Private (Teacher/Admin)
 router.get('/transactions', authenticate, checkTeacherAccess, async (req, res) => {
   try {
-    // Debug logging
-    console.log('📊 GET /transactions request:', {
-      userId: req.user?._id,
-      userRole: req.user?.role,
-      query: req.query
-    });
-
     if (!req.user) {
-      console.error('❌ req.user is undefined');
       return res.status(401).json({
         success: false,
         message: 'User not authenticated'
@@ -325,8 +317,6 @@ router.get('/transactions', authenticate, checkTeacherAccess, async (req, res) =
         .lean(),
       FinancialTransaction.countDocuments(query)
     ]);
-    
-    console.log(`📊 Transactions Query: Role=${req.user.role}, Total=${total}, Found=${transactions.length}`);
     
     res.json({
       success: true,
@@ -394,37 +384,22 @@ router.get('/transactions/:id', authenticate, checkTeacherAccess, async (req, re
       .populate('updatedBy', 'firstName lastName fullName');
     
     if (!transaction) {
-      console.log('❌ Transaction not found:', req.params.id);
       return res.status(404).json({
         success: false,
         message: 'Transaction not found'
       });
     }
     
-    // Debug logging
-    console.log('🔍 GET Transaction Debug:');
-    console.log('   Transaction ID:', req.params.id);
-    console.log('   Transaction Teacher ID:', transaction.teacher?._id || transaction.teacher);
-    console.log('   Transaction Teacher:', transaction.teacher?.email || transaction.teacher);
-    console.log('   Current User ID:', req.user._id.toString());
-    console.log('   Current User Email:', req.user.email);
-    console.log('   Current User Role:', req.user.role);
-    console.log('   Is Admin?', req.user.role === 'admin');
-    
     // Get teacher ID correctly (handle both populated and unpopulated)
     const transactionTeacherId = transaction.teacher?._id || transaction.teacher;
-    console.log('   Teacher Match?', transactionTeacherId.toString() === req.user._id.toString());
     
     // Check ownership
     if (req.user.role !== 'admin' && transactionTeacherId.toString() !== req.user._id.toString()) {
-      console.log('❌ Access denied - User cannot view this transaction');
       return res.status(403).json({
         success: false,
         message: 'Access denied'
       });
     }
-    
-    console.log('✅ Access granted');
     res.json({
       success: true,
       data: { transaction }
