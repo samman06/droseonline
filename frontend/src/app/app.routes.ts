@@ -359,13 +359,13 @@ export const routes: Routes = [
       {
         path: 'calendar',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'assistant', 'student'] },
+        data: { roles: [] }, // Disabled - no one can access
         loadComponent: () => import('./calendar/calendar-view/calendar-view.component').then(m => m.CalendarViewComponent)
       },
       {
         path: 'analytics',
         canActivate: [RoleGuard],
-        data: { roles: ['admin', 'teacher', 'assistant'] }, // Teachers and admins can view analytics
+        data: { roles: [] }, // Disabled - no one can access
         loadComponent: () => import('./analytics/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
       },
       {
