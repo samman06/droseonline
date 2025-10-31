@@ -9,7 +9,8 @@
     "test": "jest",
     "backup": "node scripts/backup-database.js",
     "restore": "node scripts/restore-database.js",
-    "restore:latest": "node scripts/restore-database.js latest"
+    "restore:latest": "node scripts/restore-database.js latest",
+    "audit-transactions": "node audit-fix-attendance-transactions.js"
   },
   "keywords": [
     "education",

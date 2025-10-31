@@ -141,6 +141,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
                   <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
                   <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Title</th>
+                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Teacher</th>
                   <th class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Amount</th>
                   <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -163,9 +164,32 @@ import { ConfirmationService } from '../../services/confirmation.service';
                     {{ accountingService.getCategoryLabel(transaction.category) }}
                   </td>
                   <td class="px-6 py-4 text-sm text-gray-900">
-                    <div class="font-medium">{{ transaction.title }}</div>
-                    <div *ngIf="transaction.description" class="text-xs text-gray-500 mt-1 truncate max-w-xs">
-                      {{ transaction.description }}
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1">
+                        <div class="font-medium">{{ transaction.title }}</div>
+                        <div *ngIf="transaction.description" class="text-xs text-gray-500 mt-1 truncate max-w-xs">
+                          {{ transaction.description }}
+                        </div>
+                      </div>
+                      <!-- Read-only badge for attendance transactions -->
+                      <div *ngIf="isAttendanceTransaction(transaction)" 
+                           class="flex items-center gap-1 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-700"
+                           title="Auto-generated from attendance">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <span class="font-medium">Auto</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span class="text-xs font-semibold text-blue-600">
+                          {{ getTeacherInitials(transaction.teacher) }}
+                        </span>
+                      </div>
+                      <span>{{ getTeacherName(transaction.teacher) }}</span>
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold"
@@ -186,21 +210,36 @@ import { ConfirmationService } from '../../services/confirmation.service';
                            [style.top.px]="dropdownTop"
                            [style.left.px]="dropdownLeft">
                         <div class="py-1">
-                          <button (click)="editTransaction(transaction); closeDropdown()"
-                                  class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                            <svg class="mr-3 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            Edit
-                          </button>
-                          <div class="border-t border-gray-100"></div>
-                          <button (click)="deleteTransaction(transaction); closeDropdown()"
-                                  class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors">
-                            <svg class="mr-3 h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            Delete
-                          </button>
+                          <!-- Show View button for attendance transactions -->
+                          <ng-container *ngIf="isAttendanceTransaction(transaction)">
+                            <button (click)="viewTransaction(transaction); closeDropdown()"
+                                    class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                              <svg class="mr-3 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                              </svg>
+                              View
+                            </button>
+                          </ng-container>
+                          
+                          <!-- Show edit/delete buttons for manual transactions -->
+                          <ng-container *ngIf="!isAttendanceTransaction(transaction)">
+                            <button (click)="editTransaction(transaction); closeDropdown()"
+                                    class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                              <svg class="mr-3 h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                              </svg>
+                              Edit
+                            </button>
+                            <div class="border-t border-gray-100"></div>
+                            <button (click)="deleteTransaction(transaction); closeDropdown()"
+                                    class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors">
+                              <svg class="mr-3 h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                              Delete
+                            </button>
+                          </ng-container>
                         </div>
                       </div>
                     </div>
@@ -481,8 +520,21 @@ export class TransactionListComponent implements OnInit {
     this.openDropdownId = null;
   }
 
+  isAttendanceTransaction(transaction: any): boolean {
+    return transaction.relatedTo?.modelType === 'Attendance';
+  }
+
   addNewTransaction(): void {
     this.router.navigate(['/dashboard/accounting/transactions/new']);
+  }
+
+  viewTransaction(transaction: any): void {
+    // For now, just show transaction details in a toast
+    // You can later create a detailed view modal or page
+    this.toastService.info(
+      `${transaction.title} - ${transaction.amount} EGP`,
+      'Transaction Details'
+    );
   }
 
   editTransaction(transaction: any): void {
@@ -512,6 +564,26 @@ export class TransactionListComponent implements OnInit {
         }
       });
     }
+  }
+
+  getTeacherName(teacher: any): string {
+    if (!teacher) return 'Unknown';
+    if (typeof teacher === 'string') return 'Teacher';
+    return teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.email || 'Unknown';
+  }
+
+  getTeacherInitials(teacher: any): string {
+    if (!teacher) return '?';
+    if (typeof teacher === 'string') return 'T';
+    
+    const name = teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim();
+    if (!name) return teacher.email ? teacher.email.charAt(0).toUpperCase() : '?';
+    
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 
   formatCurrency(amount: number): string {

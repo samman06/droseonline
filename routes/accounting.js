@@ -249,10 +249,25 @@ router.get('/summary', authenticate, checkTeacherAccess, async (req, res) => {
 // ==================== FINANCIAL TRANSACTIONS ====================
 
 // @route   GET /api/accounting/transactions
-// @desc    Get all financial transactions for the teacher
+// @desc    Get all financial transactions (for teacher: their own, for admin: all)
 // @access  Private (Teacher/Admin)
 router.get('/transactions', authenticate, checkTeacherAccess, async (req, res) => {
   try {
+    // Debug logging
+    console.log('📊 GET /transactions request:', {
+      userId: req.user?._id,
+      userRole: req.user?.role,
+      query: req.query
+    });
+
+    if (!req.user) {
+      console.error('❌ req.user is undefined');
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated'
+      });
+    }
+
     const { 
       type, 
       category, 
@@ -266,8 +281,13 @@ router.get('/transactions', authenticate, checkTeacherAccess, async (req, res) =
       sortOrder = 'desc'
     } = req.query;
     
-    // Build query
-    const query = { teacher: req.user._id };
+    // Build query - Admins see all transactions, teachers see only their own
+    const query = {};
+    
+    // Only filter by teacher if user is NOT an admin
+    if (req.user.role !== 'admin') {
+      query.teacher = req.user._id;
+    }
     
     if (type) query.type = type;
     if (category) query.category = category;
@@ -293,12 +313,20 @@ router.get('/transactions', authenticate, checkTeacherAccess, async (req, res) =
     
     const [transactions, total] = await Promise.all([
       FinancialTransaction.find(query)
-        .populate('relatedTo.modelId', 'firstName lastName fullName name')
+        .populate('teacher', 'firstName lastName fullName email')
+        .populate({
+          path: 'relatedTo.modelId',
+          select: 'firstName lastName fullName name code group session',
+          options: { strictPopulate: false }
+        })
         .sort(sort)
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(parseInt(limit))
+        .lean(),
       FinancialTransaction.countDocuments(query)
     ]);
+    
+    console.log(`📊 Transactions Query: Role=${req.user.role}, Total=${total}, Found=${transactions.length}`);
     
     res.json({
       success: true,
@@ -424,6 +452,14 @@ router.put('/transactions/:id', authenticate, checkTeacherAccess, async (req, re
       });
     }
     
+    // Check if transaction is auto-generated from attendance (read-only)
+    if (transaction.relatedTo?.modelType === 'Attendance') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot edit attendance-generated transactions. These are automatically created from attendance records.'
+      });
+    }
+    
     // Check ownership (handle populated teacher field)
     const transactionTeacherId = transaction.teacher?._id || transaction.teacher;
     if (req.user.role !== 'admin' && transactionTeacherId.toString() !== req.user._id.toString()) {
@@ -464,6 +500,14 @@ router.delete('/transactions/:id', authenticate, checkTeacherAccess, async (req,
       return res.status(404).json({
         success: false,
         message: 'Transaction not found'
+      });
+    }
+    
+    // Check if transaction is auto-generated from attendance (read-only)
+    if (transaction.relatedTo?.modelType === 'Attendance') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot delete attendance-generated transactions. These are automatically managed by the system.'
       });
     }
     
