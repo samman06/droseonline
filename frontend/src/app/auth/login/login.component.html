@@ -11,10 +11,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
           </svg>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome to Drose Online</h2>
-        <p class="text-gray-600 text-lg">Educational Management System</p>
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ 'auth.welcomeToDrose' | translate }}</h2>
+        <p class="text-gray-600 text-lg">{{ 'auth.educationalSystem' | translate }}</p>
         <div class="mt-4 text-sm text-gray-500">
-          Sign in to access your dashboard
+          {{ 'auth.signInToAccess' | translate }}
         </div>
       </div>
 
@@ -30,7 +30,7 @@
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <!-- Email Field -->
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-2">{{ 'auth.email' | translate }}</label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,20 +41,20 @@
               id="email"
               type="email"
               formControlName="email"
-              placeholder="Enter your email"
+              [placeholder]="'auth.enterEmail' | translate"
               class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
               [class.border-red-500]="email?.invalid && email?.touched"
             />
           </div>
           <div *ngIf="email?.invalid && email?.touched" class="mt-1 text-sm text-red-600">
-            <div *ngIf="email?.errors?.['required']">Email is required</div>
-            <div *ngIf="email?.errors?.['email']">Please enter a valid email</div>
+            <div *ngIf="email?.errors?.['required']">{{ 'auth.emailRequired' | translate }}</div>
+            <div *ngIf="email?.errors?.['email']">{{ 'forms.emailInvalid' | translate }}</div>
           </div>
         </div>
 
         <!-- Password Field -->
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-2">{{ 'auth.password' | translate }}</label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,7 +65,7 @@
               id="password"
               [type]="showPassword ? 'text' : 'password'"
               formControlName="password"
-              placeholder="Enter your password"
+              [placeholder]="'auth.enterPassword' | translate"
               class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
               [class.border-red-500]="password?.invalid && password?.touched"
             />
@@ -84,8 +84,8 @@
             </button>
           </div>
           <div *ngIf="password?.invalid && password?.touched" class="mt-1 text-sm text-red-600">
-            <div *ngIf="password?.errors?.['required']">Password is required</div>
-            <div *ngIf="password?.errors?.['minlength']">Password must be at least 6 characters</div>
+            <div *ngIf="password?.errors?.['required']">{{ 'auth.passwordRequired' | translate }}</div>
+            <div *ngIf="password?.errors?.['minlength']">{{ 'auth.passwordMinLength' | translate }}</div>
           </div>
         </div>
 
@@ -99,12 +99,12 @@
               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label for="remember-me" class="ml-2 block text-sm text-gray-700">
-              Remember me
+              {{ 'auth.rememberMe' | translate }}
             </label>
           </div>
           <div class="text-sm">
             <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition duration-200">
-              Forgot your password?
+              {{ 'auth.forgotPassword' | translate }}
             </a>
           </div>
         </div>
@@ -125,17 +125,17 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Signing in...
+            {{ 'auth.signingIn' | translate }}
           </div>
-          <span *ngIf="!isLoading">Sign in</span>
+          <span *ngIf="!isLoading">{{ 'auth.loginButton' | translate }}</span>
         </button>
 
         <!-- Registration Link -->
         <div class="text-center pt-6 border-t border-gray-200">
           <p class="text-sm text-gray-600">
-            New student?
+            {{ 'auth.newStudent' | translate }}
             <a [routerLink]="['/auth/register']" class="font-medium text-green-600 hover:text-green-700 transition-colors">
-              Create an account
+              {{ 'auth.createAccount' | translate }}
             </a>
           </p>
         </div>
@@ -150,8 +150,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         </div>
-        <h3 class="text-2xl font-bold text-gray-900 mb-2">Demo Credentials</h3>
-        <p class="text-gray-600">Click any credential to auto-fill the login form</p>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ 'auth.demoCredentials' | translate }}</h3>
+        <p class="text-gray-600">{{ 'auth.clickToAutoFill' | translate }}</p>
       </div>
 
       <div class="space-y-6">
@@ -171,14 +171,14 @@
                 <div class="flex-1">
                   <div class="font-medium text-gray-900 group-hover:text-blue-600">{{ user.name }}</div>
                   <div class="text-sm text-gray-500">{{ user.email }}</div>
-                  <div class="text-xs text-gray-400 mt-1">Role: {{ user.role | titlecase }}</div>
+                  <div class="text-xs text-gray-400 mt-1">{{ 'auth.role' | translate }}: {{ user.role | titlecase }}</div>
                 </div>
                 <div class="flex items-center space-x-2 text-gray-400 group-hover:text-blue-500">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
-                  <span class="text-xs">Click to use</span>
+                  <span class="text-xs">{{ 'auth.clickToUse' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -188,31 +188,31 @@
 
       <!-- Features Info -->
       <div class="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
-        <h4 class="font-semibold text-gray-800 mb-3">🚀 System Features</h4>
+        <h4 class="font-semibold text-gray-800 mb-3">🚀 {{ 'auth.systemFeatures' | translate }}</h4>
         <ul class="space-y-2 text-sm text-gray-600">
           <li class="flex items-center">
             <svg class="h-4 w-4 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Student & Teacher Management
+            {{ 'auth.feature1' | translate }}
           </li>
           <li class="flex items-center">
             <svg class="h-4 w-4 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Course & Assignment Tracking
+            {{ 'auth.feature2' | translate }}
           </li>
           <li class="flex items-center">
             <svg class="h-4 w-4 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Attendance & Grade Management
+            {{ 'auth.feature3' | translate }}
           </li>
           <li class="flex items-center">
             <svg class="h-4 w-4 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Real-time Analytics Dashboard
+            {{ 'auth.feature4' | translate }}
           </li>
         </ul>
       </div>
