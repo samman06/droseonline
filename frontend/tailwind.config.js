@@ -32,7 +32,8 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+        sans: ['Inter', 'Tajawal', 'ui-sans-serif', 'system-ui'],
+        arabic: ['Tajawal', 'Cairo', 'ui-sans-serif', 'system-ui'],
       },
       boxShadow: {
         'custom': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -43,5 +44,6 @@ module.exports = {
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
+    require('tailwindcss-rtl'),
   ],
 }

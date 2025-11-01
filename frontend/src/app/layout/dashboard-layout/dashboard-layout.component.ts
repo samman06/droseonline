@@ -4,12 +4,13 @@ import { RouterModule, Router } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationsComponent } from '../../shared/notifications/notifications.component';
+import { LanguageSwitcherComponent } from '../../shared/language-switcher/language-switcher.component';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NotificationsComponent],
+  imports: [CommonModule, RouterModule, NotificationsComponent, LanguageSwitcherComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.scss']
 })
