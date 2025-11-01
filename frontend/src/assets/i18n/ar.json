@@ -47,7 +47,10 @@
     "accounting": "المحاسبة",
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "administration": "الإدارة",
+    "userManagement": "إدارة المستخدمين",
+    "reports": "التقارير"
   },
   "auth": {
     "login": "تسجيل الدخول",

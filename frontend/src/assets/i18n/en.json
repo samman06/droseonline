@@ -47,7 +47,10 @@
     "accounting": "Accounting",
     "profile": "Profile",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "administration": "Administration",
+    "userManagement": "User Management",
+    "reports": "Reports"
   },
   "auth": {
     "login": "Login",
