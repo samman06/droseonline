@@ -2,7 +2,7 @@
   <!-- Loading State -->
   <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-16">
     <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
-    <p class="mt-4 text-gray-600 font-medium">Loading dashboard...</p>
+    <p class="mt-4 text-gray-600 font-medium">{{ 'dashboard.loadingDashboard' | translate }}</p>
   </div>
 
   <!-- Dashboard Content -->
@@ -16,16 +16,18 @@
             <div class="flex items-center gap-3 mb-2">
               <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span class="text-sm font-semibold text-gray-600 uppercase tracking-wider">
-                {{ currentUser?.role === 'admin' ? 'Admin Dashboard' : currentUser?.role === 'teacher' ? 'Teacher Dashboard' : 'Student Dashboard' }}
+                {{ currentUser?.role === 'admin' ? ('dashboard.adminDashboard' | translate) : 
+                   currentUser?.role === 'teacher' ? ('dashboard.teacherDashboard' | translate) : 
+                   ('dashboard.studentDashboard' | translate) }}
               </span>
             </div>
             <h1 class="text-4xl md:text-5xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
               {{ getGreeting() }}, {{ currentUser?.firstName }}! 👋
             </h1>
             <p class="text-gray-600 text-lg">
-              {{ currentUser?.role === 'admin' ? 'System overview and management' : 
-                 currentUser?.role === 'teacher' ? 'Manage your classes and students' : 
-                 'Your academic journey' }}
+              {{ currentUser?.role === 'admin' ? ('dashboard.systemOverview' | translate) : 
+                 currentUser?.role === 'teacher' ? ('dashboard.manageClasses' | translate) : 
+                 ('dashboard.academicJourney' | translate) }}
             </p>
           </div>
           <div class="mt-6 md:mt-0 text-right">
@@ -34,7 +36,7 @@
             <div class="mt-2">
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border-2 border-green-300">
                 <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-ping"></span>
-                Online
+                {{ 'dashboard.online' | translate }}
               </span>
             </div>
           </div>

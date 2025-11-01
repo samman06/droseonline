@@ -104,7 +104,42 @@
     "upcomingAssignments": "Upcoming Assignments",
     "pendingAssignments": "Pending Assignments",
     "attendance": "Attendance",
-    "announcements": "Announcements"
+    "announcements": "Announcements",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "adminDashboard": "Admin Dashboard",
+    "teacherDashboard": "Teacher Dashboard",
+    "studentDashboard": "Student Dashboard",
+    "systemOverview": "System overview and management",
+    "manageClasses": "Manage your classes and students",
+    "academicJourney": "Your academic journey",
+    "online": "Online",
+    "loadingDashboard": "Loading dashboard...",
+    "totalUsers": "Total Users",
+    "students": "Students",
+    "teachers": "Teachers",
+    "courses": "Courses",
+    "groups": "Groups",
+    "activeStudents": "Active Students",
+    "activeTeachers": "Active Teachers",
+    "activeCourses": "Active Courses",
+    "recentAnnouncements": "Recent Announcements",
+    "noAnnouncements": "No recent announcements",
+    "viewAll": "View All",
+    "systemActivity": "System Activity",
+    "noActivity": "No recent activity",
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "dueInDays": "Due in {{days}} days",
+    "overdue": "Overdue",
+    "noUpcoming": "No upcoming assignments",
+    "sessionToday": "Session Today",
+    "sessionTime": "Session Time",
+    "attendanceRate": "Attendance Rate",
+    "averageGrade": "Average Grade",
+    "assignmentsDue": "Assignments Due",
+    "unreadMessages": "Unread Messages"
   },
   "students": {
     "title": "Students",
@@ -319,7 +354,8 @@
     "lastMonth": "Last Month",
     "daysAgo": "{{days}} days ago",
     "hoursAgo": "{{hours}} hours ago",
-    "minutesAgo": "{{minutes}} minutes ago"
+    "minutesAgo": "{{minutes}} minutes ago",
+    "justNow": "Just now"
   }
 }
 

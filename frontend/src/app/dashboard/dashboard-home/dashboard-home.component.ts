@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, User } from '../../services/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
 import { ToastService } from '../../services/toast.service';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './dashboard-home.component.html',
   styleUrls: ['./dashboard-home.component.scss']
 })
@@ -24,7 +26,9 @@ export class DashboardHomeComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private dashboardService: DashboardService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
@@ -79,17 +83,18 @@ export class DashboardHomeComponent implements OnInit {
 
   getGreeting(): string {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    const key = hour < 12 ? 'dashboard.goodMorning' : hour < 17 ? 'dashboard.goodAfternoon' : 'dashboard.goodEvening';
+    return this.translate.instant(key);
   }
 
   getCurrentTime(): string {
-    return this.currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const locale = this.languageService.getCurrentLanguage() === 'ar' ? 'ar-EG' : 'en-US';
+    return this.currentTime.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   }
 
   getCurrentDate(): string {
-    return this.currentTime.toLocaleDateString('en-US', { 
+    const locale = this.languageService.getCurrentLanguage() === 'ar' ? 'ar-EG' : 'en-US';
+    return this.currentTime.toLocaleDateString(locale, { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
@@ -98,7 +103,8 @@ export class DashboardHomeComponent implements OnInit {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', { 
+    const locale = this.languageService.getCurrentLanguage() === 'ar' ? 'ar-EG' : 'en-US';
+    return new Date(date).toLocaleDateString(locale, { 
       month: 'short', 
       day: 'numeric',
       hour: '2-digit',
@@ -112,10 +118,10 @@ export class DashboardHomeComponent implements OnInit {
     const diffTime = dueDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays < 0) return 'Overdue';
-    if (diffDays === 0) return 'Due today';
-    if (diffDays === 1) return 'Due tomorrow';
-    return `Due in ${diffDays} days`;
+    if (diffDays < 0) return this.translate.instant('dashboard.overdue');
+    if (diffDays === 0) return this.translate.instant('dashboard.dueToday');
+    if (diffDays === 1) return this.translate.instant('dashboard.dueTomorrow');
+    return this.translate.instant('dashboard.dueInDays', { days: diffDays });
   }
 
   getActivityTimeAgo(time: string): string {
@@ -126,10 +132,10 @@ export class DashboardHomeComponent implements OnInit {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    if (diffMins < 1) return this.translate.instant('time.justNow');
+    if (diffMins < 60) return this.translate.instant('time.minutesAgo', { minutes: diffMins });
+    if (diffHours < 24) return this.translate.instant('time.hoursAgo', { hours: diffHours });
+    return this.translate.instant('time.daysAgo', { days: diffDays });
   }
 
   getAttendanceColor(rate: number): string {
