@@ -124,19 +124,19 @@
       <!-- Admin Secondary Stats -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="text-gray-600 text-sm font-semibold mb-2">Groups</div>
+          <div class="text-gray-600 text-sm font-semibold mb-2">{{ 'dashboard.groups' | translate }}</div>
           <div class="text-3xl font-black text-indigo-600">{{ stats.overview?.totalGroups || 0 }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="text-gray-600 text-sm font-semibold mb-2">Courses</div>
+          <div class="text-gray-600 text-sm font-semibold mb-2">{{ 'dashboard.courses' | translate }}</div>
           <div class="text-3xl font-black text-purple-600">{{ stats.overview?.totalCourses || 0 }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="text-gray-600 text-sm font-semibold mb-2">Assignments</div>
+          <div class="text-gray-600 text-sm font-semibold mb-2">{{ 'dashboard.assignments' | translate }}</div>
           <div class="text-3xl font-black text-blue-600">{{ stats.overview?.totalAssignments || 0 }}</div>
         </div>
         <div class="bg-white rounded-xl shadow-lg p-6">
-          <div class="text-gray-600 text-sm font-semibold mb-2">Pending Grading</div>
+          <div class="text-gray-600 text-sm font-semibold mb-2">{{ 'dashboard.pendingGrading' | translate }}</div>
           <div class="text-3xl font-black text-yellow-600">{{ stats.overview?.pendingGrading || 0 }}</div>
         </div>
       </div>

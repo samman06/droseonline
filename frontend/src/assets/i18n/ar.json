@@ -139,7 +139,16 @@
     "attendanceRate": "معدل الحضور",
     "averageGrade": "المعدل العام",
     "assignmentsDue": "واجبات مستحقة",
-    "unreadMessages": "رسائل غير مقروءة"
+    "unreadMessages": "رسائل غير مقروءة",
+    "assignments": "الواجبات",
+    "pendingGrading": "في انتظار التصحيح",
+    "lowAttendanceGroups": "مجموعات ذات حضور منخفض",
+    "allGroupsGood": "جميع المجموعات لديها حضور جيد!",
+    "myCourses": "دوراتي",
+    "myStudents": "طلابي",
+    "avgAttendance": "متوسط الحضور",
+    "myClasses": "فصولي",
+    "pending": "معلق"
   },
   "students": {
     "title": "الطلاب",

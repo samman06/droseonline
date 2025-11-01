@@ -139,7 +139,16 @@
     "attendanceRate": "Attendance Rate",
     "averageGrade": "Average Grade",
     "assignmentsDue": "Assignments Due",
-    "unreadMessages": "Unread Messages"
+    "unreadMessages": "Unread Messages",
+    "assignments": "Assignments",
+    "pendingGrading": "Pending Grading",
+    "lowAttendanceGroups": "Low Attendance Groups",
+    "allGroupsGood": "All groups have good attendance!",
+    "myCourses": "My Courses",
+    "myStudents": "My Students",
+    "avgAttendance": "Avg Attendance",
+    "myClasses": "My Classes",
+    "pending": "Pending"
   },
   "students": {
     "title": "Students",
