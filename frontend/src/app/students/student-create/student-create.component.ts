@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { StudentFormComponent } from '../student-form/student-form.component';
 import { StudentService } from '../../services/student.service';
 import { ToastService } from '../../services/toast.service';
@@ -45,14 +46,15 @@ export class StudentCreateComponent {
   constructor(
     private router: Router,
     private studentService: StudentService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   onStudentCreate(studentData: Student): void {
     this.studentService.createStudent(studentData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.showCreateSuccess('Student');
+          this.toastService.showCreateSuccess(this.translate.instant('students.student'));
           // Navigate to the student detail page
           const studentId = response.data.student?.id || response.data.student?._id;
           if (studentId) {
@@ -61,7 +63,7 @@ export class StudentCreateComponent {
             this.router.navigate(['/dashboard/students']);
           }
         } else {
-          this.toastService.error(response.message || 'Failed to create student');
+          this.toastService.error(response.message || this.translate.instant('students.failedToCreate'));
         }
       },
       error: (error) => {

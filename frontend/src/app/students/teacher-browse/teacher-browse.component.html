@@ -12,20 +12,20 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 class="text-5xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 animate-gradient">
-            Browse Teachers
+            {{ 'teacherBrowse.title' | translate }}
           </h1>
-          <p class="text-gray-600 text-lg">Discover amazing teachers and join their courses 🎓</p>
+          <p class="text-gray-600 text-lg">{{ 'teacherBrowse.subtitle' | translate }}</p>
         </div>
         
         <!-- Quick Stats -->
         <div *ngIf="!isLoading && teachers.length > 0" class="flex gap-3">
           <div class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-indigo-100">
             <div class="text-2xl font-black text-indigo-600">{{ teachers.length }}</div>
-            <div class="text-xs text-gray-600">Teachers</div>
+            <div class="text-xs text-gray-600">{{ 'teacherBrowse.teachers' | translate }}</div>
           </div>
           <div class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-purple-100">
             <div class="text-2xl font-black text-purple-600">{{ getTotalCourses() }}</div>
-            <div class="text-xs text-gray-600">Courses</div>
+            <div class="text-xs text-gray-600">{{ 'teacherBrowse.courses' | translate }}</div>
           </div>
         </div>
       </div>
@@ -39,7 +39,7 @@
             [(ngModel)]="searchTerm"
             (keyup.enter)="searchTeachers()"
             (input)="searchTeachers()"
-            placeholder="Search teachers by name..."
+            [placeholder]="'teacherBrowse.searchPlaceholder' | translate"
             class="w-full px-4 py-4 pl-12 pr-12 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 transition-all duration-300 bg-white/80 backdrop-blur-sm shadow-lg group-hover:shadow-xl">
           <div class="absolute left-4 top-4 w-5 h-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +71,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
-          Refresh
+          {{ 'teacherBrowse.refresh' | translate }}
         </button>
       </div>
     </div>
@@ -111,12 +111,12 @@
 
       <!-- Main Message -->
       <h2 class="text-4xl font-black text-gray-900 mb-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-        Oops! No Teachers Yet
+        {{ 'teacherBrowse.noTeachers' | translate }}
       </h2>
       
       <!-- Sub Message -->
       <p class="text-xl text-gray-700 mb-6 leading-relaxed">
-        We're still building our teacher team for your grade! 🎓
+        {{ 'teacherBrowse.noTeachersMessage' | translate }}
       </p>
       
       <!-- Details Card -->
@@ -128,19 +128,19 @@
             </svg>
           </div>
           <div class="flex-1">
-            <h3 class="font-bold text-gray-900 text-lg mb-3">What's Happening?</h3>
+            <h3 class="font-bold text-gray-900 text-lg mb-3">{{ 'teacherBrowse.whatHappening' | translate }}</h3>
             <ul class="space-y-2 text-gray-700">
               <li class="flex items-start gap-2">
                 <span class="text-indigo-500 font-bold text-lg">•</span>
-                <span>We're actively recruiting amazing teachers for your grade level</span>
+                <span>{{ 'teacherBrowse.recruiting' | translate }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-purple-500 font-bold text-lg">•</span>
-                <span>New teachers are joining every week!</span>
+                <span>{{ 'teacherBrowse.newTeachers' | translate }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-pink-500 font-bold text-lg">•</span>
-                <span>You'll be notified as soon as teachers become available</span>
+                <span>{{ 'teacherBrowse.notified' | translate }}</span>
               </li>
             </ul>
           </div>
@@ -155,7 +155,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
-          Refresh & Check Again
+          {{ 'teacherBrowse.refreshAndCheck' | translate }}
         </button>
         
         <a href="mailto:support@droseonline.com" 
@@ -163,14 +163,14 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
-          Contact Support
+          {{ 'teacherBrowse.contactSupport' | translate }}
         </a>
       </div>
 
       <!-- Motivational Quote -->
       <div class="mt-8 pt-8 border-t border-gray-200">
         <p class="text-gray-500 italic text-sm">
-          "Great things take time. Your perfect teacher is on the way!" ⏰✨
+          {{ 'teacherBrowse.motivationalQuote' | translate }}
         </p>
       </div>
     </div>
@@ -230,7 +230,7 @@
           <!-- Online Status Indicator -->
           <div class="flex items-center gap-1.5 px-2 py-1 bg-green-100 rounded-full">
             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span class="text-xs font-semibold text-green-700">Active</span>
+            <span class="text-xs font-semibold text-green-700">{{ 'teacherBrowse.active' | translate }}</span>
           </div>
         </div>
         
@@ -263,7 +263,7 @@
               </svg>
               <div>
                 <div class="text-xl font-black text-indigo-600">{{ teacher.totalGroups }}</div>
-                <div class="text-xs text-indigo-700 font-medium">Groups</div>
+                <div class="text-xs text-indigo-700 font-medium">{{ 'teacherBrowse.groups' | translate }}</div>
               </div>
             </div>
           </div>
@@ -274,7 +274,7 @@
               </svg>
               <div>
                 <div class="text-xl font-black text-purple-600">{{ teacher.totalCourses }}</div>
-                <div class="text-xs text-purple-700 font-medium">Courses</div>
+                <div class="text-xs text-purple-700 font-medium">{{ 'teacherBrowse.courses' | translate }}</div>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@
         <button class="relative mt-4 w-full px-4 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl overflow-hidden group-hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-2">
           <!-- Shine Effect -->
           <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
-          <span class="relative z-10">View Courses & Join</span>
+          <span class="relative z-10">{{ 'teacherBrowse.viewCoursesAndJoin' | translate }}</span>
           <svg class="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
           </svg>
@@ -299,8 +299,8 @@
     <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
     </svg>
-    <h3 class="text-xl font-bold text-gray-700 mb-2">No teachers found</h3>
-    <p class="text-gray-500">Try adjusting your search criteria</p>
+    <h3 class="text-xl font-bold text-gray-700 mb-2">{{ 'teacherBrowse.noTeachers' | translate }}</h3>
+    <p class="text-gray-500">{{ 'teacherBrowse.noTeachersMessage' | translate }}</p>
   </div>
 </div>
 
@@ -335,7 +335,7 @@
     <div class="p-8 overflow-y-auto max-h-[calc(90vh-12rem)]">
       <div *ngIf="!selectedTeacher" class="text-center py-8">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 border-t-indigo-600 mx-auto"></div>
-        <p class="mt-4 text-gray-600">Loading teacher details...</p>
+        <p class="mt-4 text-gray-600">{{ 'teacherBrowse.loadingDetails' | translate }}</p>
       </div>
 
       <div *ngIf="selectedTeacher">
@@ -349,7 +349,7 @@
 
         <!-- Courses List -->
         <div *ngIf="selectedTeacher.courses && selectedTeacher.courses.length > 0">
-          <h3 class="text-2xl font-bold text-gray-900 mb-6">Available Courses</h3>
+          <h3 class="text-2xl font-bold text-gray-900 mb-6">{{ 'teacherBrowse.availableCourses' | translate }}</h3>
           
           <div class="space-y-6">
             <div *ngFor="let course of selectedTeacher.courses" class="border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-indigo-500 transition-all">
@@ -369,7 +369,7 @@
 
               <!-- Groups -->
               <div class="p-6">
-                <h5 class="font-semibold text-gray-900 mb-4">Available Groups</h5>
+                <h5 class="font-semibold text-gray-900 mb-4">{{ 'teacherBrowse.availableGroups' | translate }}</h5>
                 
                 <div *ngIf="course.groups && course.groups.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div *ngFor="let group of course.groups" 
@@ -381,7 +381,7 @@
                         <p class="text-sm text-gray-600">{{ group.code }}</p>
                       </div>
                       <span *ngIf="group.isEnrolled" class="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-                        Enrolled
+                        {{ 'teacherBrowse.enrolled' | translate }}
                       </span>
                     </div>
 
@@ -390,18 +390,18 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                         </svg>
-                        {{ group.currentEnrollment }} students
+                        {{ group.currentEnrollment }} {{ 'teacherBrowse.students' | translate }}
                       </div>
                       <div class="flex items-center gap-2 text-sm text-gray-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        {{ group.pricePerSession || 0 }} EGP/session
+                        {{ group.pricePerSession || 0 }} {{ 'teacherBrowse.perSession' | translate }}
                       </div>
                     </div>
 
                     <div *ngIf="group.schedule && group.schedule.length > 0" class="text-xs text-gray-600 mb-3">
-                      <strong>Schedule:</strong> {{ getScheduleText(group.schedule) }}
+                      <strong>{{ 'teacherBrowse.schedule' | translate }}:</strong> {{ getScheduleText(group.schedule) }}
                     </div>
 
                     <button *ngIf="!group.isEnrolled"
@@ -410,19 +410,19 @@
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                       </svg>
-                      Join Group
+                      {{ 'teacherBrowse.joinGroup' | translate }}
                     </button>
 
                     <button *ngIf="group.isEnrolled"
                             (click)="leaveGroup(group, course)"
                             class="w-full px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-semibold rounded-lg transition-all">
-                      Leave Group
+                      {{ 'teacherBrowse.leaveGroup' | translate }}
                     </button>
                   </div>
                 </div>
 
                 <div *ngIf="!course.groups || course.groups.length === 0" class="text-center py-8 text-gray-500">
-                  No groups available for this course
+                  {{ 'teacherBrowse.noGroups' | translate }}
                 </div>
               </div>
             </div>
@@ -433,7 +433,7 @@
           <svg class="w-16 h-16 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"></path>
           </svg>
-          <p>This teacher doesn't have any active courses yet</p>
+          <p>{{ 'teacherBrowse.noCoursesActive' | translate }}</p>
         </div>
       </div>
     </div>

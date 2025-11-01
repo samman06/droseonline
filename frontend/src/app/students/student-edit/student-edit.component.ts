@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { StudentFormComponent } from '../student-form/student-form.component';
 import { StudentService } from '../../services/student.service';
 import { ToastService } from '../../services/toast.service';
@@ -32,7 +33,7 @@ interface Student {
 @Component({
   selector: 'app-student-edit',
   standalone: true,
-  imports: [CommonModule, StudentFormComponent],
+  imports: [CommonModule, StudentFormComponent, TranslateModule],
   template: `
     <div *ngIf="isLoading" class="flex justify-center items-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -46,7 +47,7 @@ interface Student {
           </svg>
         </div>
         <div class="ml-3">
-          <h3 class="text-sm font-medium text-red-800">Error</h3>
+          <h3 class="text-sm font-medium text-red-800">{{ 'students.error' | translate }}</h3>
           <p class="mt-1 text-sm text-red-700">{{ error }}</p>
         </div>
       </div>
@@ -71,7 +72,8 @@ export class StudentEditComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private studentService: StudentService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -112,18 +114,18 @@ export class StudentEditComponent implements OnInit {
 
   onStudentUpdate(studentData: Student): void {
     if (!this.studentId) {
-      this.toastService.error('Student ID is missing');
+      this.toastService.error(this.translate.instant('students.studentIdMissing'));
       return;
     }
 
     this.studentService.updateStudent(this.studentId, studentData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.showUpdateSuccess('Student');
+          this.toastService.showUpdateSuccess(this.translate.instant('students.student'));
           // Navigate to the student detail page
           this.router.navigate(['/dashboard/students', this.studentId]);
         } else {
-          this.toastService.error(response.message || 'Failed to update student');
+          this.toastService.error(response.message || this.translate.instant('students.failedToUpdate'));
         }
       },
       error: (error) => {

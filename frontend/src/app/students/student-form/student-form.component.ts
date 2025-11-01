@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { StudentService } from '../../services/student.service';
 import { ApiService } from '../../services/api.service';
 
@@ -32,7 +33,7 @@ interface Student {
 @Component({
   selector: 'app-student-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslateModule],
   template: `
     <div class="max-w-4xl mx-auto p-6">
       <!-- Modern Header with Gradient -->
@@ -45,10 +46,10 @@ interface Student {
           </div>
           <div>
             <h1 class="text-3xl font-bold mb-1">
-              {{ isEditMode ? 'Edit Student' : 'Add New Student' }}
+              {{ (isEditMode ? 'students.editStudent' : 'students.addNewStudent') | translate }}
             </h1>
             <p class="text-indigo-100">
-              {{ isEditMode ? 'Update student information and academic details' : 'Create a new student profile and enrollment' }}
+              {{ (isEditMode ? 'students.updateStudentInfo' : 'students.createStudentProfile') | translate }}
             </p>
           </div>
         </div>
@@ -63,51 +64,51 @@ interface Student {
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
-          Back to Students
+          {{ 'students.backToStudents' | translate }}
         </button>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="px-8 py-6 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Student Information</h2>
-          <p class="mt-1 text-sm text-gray-600">Fill in the required details below</p>
+          <h2 class="text-xl font-semibold text-gray-900">{{ 'students.studentInformation' | translate }}</h2>
+          <p class="mt-1 text-sm text-gray-600">{{ 'students.fillRequiredDetails' | translate }}</p>
         </div>
         
         <form [formGroup]="studentForm" (ngSubmit)="onSubmit()" class="card-body space-y-6">
           <!-- Personal Information Section -->
           <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ 'students.personalInformation' | translate }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="form-label">First Name *</label>
+                <label class="form-label">{{ 'students.firstName' | translate }} *</label>
                 <input 
                   type="text" 
                   formControlName="firstName"
                   class="form-input"
                   [class.border-red-300]="isFieldInvalid('firstName')"
-                  placeholder="Enter first name"
+                  [placeholder]="'students.firstName' | translate"
                 >
                 <div *ngIf="isFieldInvalid('firstName')" class="form-error">
-                  First name is required and must be at least 2 characters
+                  {{ 'students.firstNameRequired' | translate }}
                 </div>
               </div>
               
               <div>
-                <label class="form-label">Last Name *</label>
+                <label class="form-label">{{ 'students.lastName' | translate }} *</label>
                 <input 
                   type="text" 
                   formControlName="lastName"
                   class="form-input"
                   [class.border-red-300]="isFieldInvalid('lastName')"
-                  placeholder="Enter last name"
+                  [placeholder]="'students.lastName' | translate"
                 >
                 <div *ngIf="isFieldInvalid('lastName')" class="form-error">
-                  Last name is required and must be at least 2 characters
+                  {{ 'students.lastNameRequired' | translate }}
                 </div>
               </div>
               
               <div>
-                <label class="form-label">Email *</label>
+                <label class="form-label">{{ 'students.email' | translate }} *</label>
                 <input 
                   type="email" 
                   formControlName="email"
@@ -116,12 +117,12 @@ interface Student {
                   placeholder="student@example.com"
                 >
                 <div *ngIf="isFieldInvalid('email')" class="form-error">
-                  Please enter a valid email address
+                  {{ 'students.pleaseEnterValidEmail' | translate }}
                 </div>
               </div>
               
               <div>
-                <label class="form-label">Phone Number</label>
+                <label class="form-label">{{ 'students.phone' | translate }}</label>
                 <input 
                   type="tel" 
                   formControlName="phoneNumber"
@@ -131,7 +132,7 @@ interface Student {
               </div>
               
               <div>
-                <label class="form-label">Date of Birth</label>
+                <label class="form-label">{{ 'students.dateOfBirth' | translate }}</label>
                 <input 
                   type="date" 
                   formControlName="dateOfBirth"
@@ -141,10 +142,10 @@ interface Student {
               </div>
               
               <div>
-                <label class="form-label">Status</label>
+                <label class="form-label">{{ 'students.status' | translate }}</label>
                 <select formControlName="isActive" class="form-select">
-                  <option [value]="true">Active</option>
-                  <option [value]="false">Inactive</option>
+                  <option [value]="true">{{ 'students.active' | translate }}</option>
+                  <option [value]="false">{{ 'students.inactive' | translate }}</option>
                 </select>
               </div>
             </div>
@@ -152,10 +153,10 @@ interface Student {
 
           <!-- Address Section -->
           <div class="bg-gray-50 p-4 rounded-lg" formGroupName="address">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Address Information</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ 'students.addressInformation' | translate }}</h3>
             <div class="grid grid-cols-1 gap-4">
               <div>
-                <label class="form-label">City</label>
+                <label class="form-label">{{ 'students.city' | translate }}</label>
                 <input 
                   type="text" 
                   formControlName="city"
@@ -168,10 +169,10 @@ interface Student {
 
           <!-- Parent Contact Section -->
           <div class="bg-gray-50 p-4 rounded-lg" formGroupName="parentContact">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Parent Contact Information</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ 'students.parentContactInformation' | translate }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="form-label">Primary Parent Phone *</label>
+                <label class="form-label">{{ 'students.primaryParentPhone' | translate }} *</label>
                 <input 
                   type="tel" 
                   formControlName="primaryPhone"
@@ -180,17 +181,17 @@ interface Student {
                   placeholder="01XXXXXXXXX"
                 >
                 <div *ngIf="isFieldInvalid('parentContact.primaryPhone')" class="form-error">
-                  Primary parent phone is required
+                  {{ 'students.primaryParentPhoneRequired' | translate }}
                 </div>
               </div>
               
               <div>
-                <label class="form-label">Secondary Parent Phone</label>
+                <label class="form-label">{{ 'students.secondaryParentPhone' | translate }}</label>
                 <input 
                   type="tel" 
                   formControlName="secondaryPhone"
                   class="form-input"
-                  placeholder="01XXXXXXXXX (Optional)"
+                  placeholder="01XXXXXXXXX ({{ 'students.optional' | translate }})"
                 >
               </div>
             </div>
@@ -198,29 +199,29 @@ interface Student {
 
           <!-- Academic Information Section -->
           <div class="bg-gray-50 p-4 rounded-lg" formGroupName="academicInfo">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Academic Information</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ 'students.academicInformation' | translate }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="form-label">Student ID <span class="text-xs text-gray-500">(Auto-generated)</span></label>
+                <label class="form-label">{{ 'students.studentId' | translate }} <span class="text-xs text-gray-500">({{ 'students.autoGenerated' | translate }})</span></label>
                 <input 
                   type="text" 
                   formControlName="studentId"
                   class="form-input bg-gray-100 cursor-not-allowed"
-                  placeholder="Auto-generated (e.g., ST-000001)"
+                  placeholder="{{ ('students.autoGenerated' | translate) }} (e.g., ST-000001)"
                   [disabled]="true"
                 >
-                <p class="text-xs text-gray-500 mt-1">Student ID will be automatically generated when you save</p>
+                <p class="text-xs text-gray-500 mt-1">{{ 'students.autoGeneratedHelp' | translate }}</p>
               </div>
               
               <div>
-                <label class="form-label">Current Grade *</label>
+                <label class="form-label">{{ 'students.currentGrade' | translate }} *</label>
                 <select 
                   formControlName="currentGrade"
                   class="form-select"
                   [class.border-red-300]="isFieldInvalid('academicInfo.currentGrade')"
                 >
-                  <option value="">Select Grade</option>
-                  <optgroup label="Primary School">
+                  <option value="">{{ 'students.selectGrade' | translate }}</option>
+                  <optgroup [label]="'students.primarySchool' | translate">
                     <option value="Grade 1">Grade 1</option>
                     <option value="Grade 2">Grade 2</option>
                     <option value="Grade 3">Grade 3</option>
@@ -228,24 +229,24 @@ interface Student {
                     <option value="Grade 5">Grade 5</option>
                     <option value="Grade 6">Grade 6</option>
                   </optgroup>
-                  <optgroup label="Preparatory School">
+                  <optgroup [label]="'students.preparatorySchool' | translate">
                     <option value="Grade 7">Grade 7</option>
                     <option value="Grade 8">Grade 8</option>
                     <option value="Grade 9">Grade 9</option>
                   </optgroup>
-                  <optgroup label="Secondary School">
+                  <optgroup [label]="'students.secondarySchool' | translate">
                     <option value="Grade 10">Grade 10</option>
                     <option value="Grade 11">Grade 11</option>
                     <option value="Grade 12">Grade 12</option>
                   </optgroup>
                 </select>
                 <div *ngIf="isFieldInvalid('academicInfo.currentGrade')" class="form-error">
-                  Current grade is required
+                  {{ 'students.currentGradeRequired' | translate }}
                 </div>
               </div>
               
               <div>
-                <label class="form-label">Enrollment Date *</label>
+                <label class="form-label">{{ 'students.enrollmentDate' | translate }} *</label>
                 <input 
                   type="date" 
                   formControlName="enrollmentDate"
@@ -253,7 +254,7 @@ interface Student {
                   [class.border-red-300]="isFieldInvalid('academicInfo.enrollmentDate')"
                 >
                 <div *ngIf="isFieldInvalid('academicInfo.enrollmentDate')" class="form-error">
-                  Enrollment date is required
+                  {{ 'students.enrollmentDate' | translate }} {{ 'students.required' | translate }}
                 </div>
               </div>
             </div>
@@ -266,7 +267,7 @@ interface Student {
               (click)="onCancel()"
               class="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-sm font-semibold rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200"
             >
-              Cancel
+              {{ 'students.cancel' | translate }}
             </button>
             <button 
               type="submit" 
@@ -277,7 +278,7 @@ interface Student {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Student' : 'Create Student') }}
+              {{ isSubmitting ? ('common.saving' | translate) : ((isEditMode ? 'students.editStudent' : 'students.createStudent') | translate) }}
             </button>
           </div>
         </form>

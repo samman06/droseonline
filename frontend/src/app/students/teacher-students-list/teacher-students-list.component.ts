@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { StudentService } from '../../services/student.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -25,7 +26,7 @@ interface Student {
 @Component({
   selector: 'app-teacher-students-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Header Section -->
@@ -38,14 +39,14 @@ interface Student {
               </svg>
             </div>
             <div>
-              <h1 class="text-4xl font-bold text-white">My Students</h1>
-              <p class="mt-2 text-purple-100 text-lg">Students enrolled in your courses</p>
+              <h1 class="text-4xl font-bold text-white">{{ 'teacherStudents.title' | translate }}</h1>
+              <p class="mt-2 text-purple-100 text-lg">{{ 'teacherStudents.subtitle' | translate }}</p>
               <div class="mt-3 flex items-center space-x-4">
                 <span class="inline-flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white font-semibold border border-white/30">
                   <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                   </svg>
-                  {{ pagination.total }} Student{{ pagination.total === 1 ? '' : 's' }}
+                  {{ pagination.total }} {{ (pagination.total === 1 ? 'teacherStudents.student' : 'teacherStudents.studentPlural') | translate }}
                 </span>
               </div>
             </div>
@@ -58,7 +59,7 @@ interface Student {
                 [class]="viewMode === 'card' 
                   ? 'px-4 py-2 bg-white text-purple-600 rounded-lg shadow-md font-medium transition-all' 
                   : 'px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all'"
-                title="Card View"
+                [title]="'teacherStudents.cardView' | translate"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
@@ -69,7 +70,7 @@ interface Student {
                 [class]="viewMode === 'table' 
                   ? 'px-4 py-2 bg-white text-purple-600 rounded-lg shadow-md font-medium transition-all' 
                   : 'px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-all'"
-                title="Table View"
+                [title]="'teacherStudents.tableView' | translate"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -84,7 +85,7 @@ interface Student {
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              Export List
+              {{ 'teacherStudents.exportList' | translate }}
             </button>
           </div>
         </div>
@@ -97,7 +98,7 @@ interface Student {
             <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
             </svg>
-            Filter Students
+            {{ 'teacherStudents.filterStudents' | translate }}
           </h3>
           <button 
             *ngIf="hasActiveFilters()" 
@@ -107,7 +108,7 @@ interface Student {
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
-            Clear All
+            {{ 'teacherStudents.clearAll' | translate }}
           </button>
         </div>
 
@@ -142,7 +143,7 @@ interface Student {
               [(ngModel)]="filters.search"
               (ngModelChange)="onSearchChange($event)"
               class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
-              placeholder="Search by name or email..."
+              [placeholder]="'teacherStudents.searchPlaceholder' | translate"
             >
           </div>
           
@@ -158,7 +159,7 @@ interface Student {
               (ngModelChange)="onFiltersChange()"
               class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 appearance-none transition-all"
             >
-              <option value="">All Grade Levels</option>
+              <option value="">{{ 'teacherStudents.allGradeLevels' | translate }}</option>
               <option value="Grade 9">Grade 9</option>
               <option value="Grade 10">Grade 10</option>
               <option value="Grade 11">Grade 11</option>
@@ -174,7 +175,7 @@ interface Student {
         <div *ngIf="isLoading" class="flex justify-center items-center py-16">
           <div class="text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Loading students...</p>
+            <p class="mt-4 text-gray-600">{{ 'teacherStudents.loadingStudents' | translate }}</p>
           </div>
         </div>
 
@@ -185,10 +186,10 @@ interface Student {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
             </svg>
           </div>
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">No Students Found</h3>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ 'teacherStudents.noStudentsFound' | translate }}</h3>
           <p class="text-gray-500 mb-6">
-            <span *ngIf="hasActiveFilters()">Try adjusting your filters to see more results.</span>
-            <span *ngIf="!hasActiveFilters()">You don't have any students enrolled in your courses yet.</span>
+            <span *ngIf="hasActiveFilters()">{{ 'teacherStudents.adjustFilters' | translate }}</span>
+            <span *ngIf="!hasActiveFilters()">{{ 'teacherStudents.noStudentsYet' | translate }}</span>
           </p>
         </div>
 
@@ -226,7 +227,7 @@ interface Student {
                   <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                   </svg>
-                  {{ student.academicInfo.groups.length || 0 }} Group(s)
+                  {{ student.academicInfo.groups.length || 0 }} {{ 'teacherStudents.groupsCount' | translate }}
                 </div>
               </div>
 
@@ -239,7 +240,7 @@ interface Student {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
-                View Details
+                {{ 'teacherStudents.viewDetails' | translate }}
               </button>
             </div>
           </div>
@@ -251,22 +252,22 @@ interface Student {
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Student
+                  {{ 'teacherStudents.student' | translate }}
                 </th>
                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Student ID
+                  {{ 'teacherStudents.studentId' | translate }}
                 </th>
                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Grade
+                  {{ 'teacherStudents.grade' | translate }}
                 </th>
                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Email
+                  {{ 'students.email' | translate }}
                 </th>
                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Groups
+                  {{ 'teacherStudents.groupsCount' | translate }}
                 </th>
                 <th class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Actions
+                  {{ 'students.actions' | translate }}
                 </th>
               </tr>
             </thead>
@@ -302,7 +303,7 @@ interface Student {
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                      {{ student.academicInfo.groups.length || 0 }} Groups
+                      {{ student.academicInfo.groups.length || 0 }} {{ 'teacherStudents.groupsCount' | translate }}
                     </span>
                   </div>
                 </td>
@@ -315,7 +316,7 @@ interface Student {
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                     </svg>
-                    View
+                    {{ 'teacherStudents.view' | translate }}
                   </button>
                 </td>
               </tr>
@@ -327,9 +328,9 @@ interface Student {
         <div *ngIf="!isLoading && students.length > 0" class="p-6">
           <div *ngIf="pagination.pages > 1" class="flex items-center justify-between border-t border-gray-200 pt-6">
             <div class="text-sm text-gray-700">
-              Showing <span class="font-semibold">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> to
-              <span class="font-semibold">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> of
-              <span class="font-semibold">{{ pagination.total }}</span> students
+              {{ 'teacherStudents.showing' | translate }} <span class="font-semibold">{{ (pagination.page - 1) * pagination.limit + 1 }}</span> {{ 'teacherStudents.to' | translate }}
+              <span class="font-semibold">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span> {{ 'teacherStudents.of' | translate }}
+              <span class="font-semibold">{{ pagination.total }}</span> {{ (pagination.total === 1 ? 'teacherStudents.student' : 'teacherStudents.studentPlural') | translate }}
             </div>
             <div class="flex gap-2">
               <button 
@@ -396,7 +397,8 @@ export class TeacherStudentsListComponent implements OnInit {
     private studentService: StudentService,
     private router: Router,
     private toastService: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {
     this.currentUser = this.authService.currentUser;
     // Load saved view preference
@@ -408,7 +410,7 @@ export class TeacherStudentsListComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.currentUser?.role !== 'teacher') {
-      this.toastService.error('Access denied. Teachers only.');
+      this.toastService.error(this.translate.instant('teacherStudents.accessDenied'));
       this.router.navigate(['/dashboard']);
       return;
     }
@@ -436,7 +438,7 @@ export class TeacherStudentsListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading students:', error);
-        this.toastService.error('Failed to load students');
+        this.toastService.error(this.translate.instant('teacherStudents.failedToLoad'));
         this.isLoading = false;
       }
     });
@@ -533,7 +535,7 @@ export class TeacherStudentsListComponent implements OnInit {
     link.click();
     window.URL.revokeObjectURL(url);
     
-    this.toastService.success('Student list exported successfully');
+    this.toastService.success(this.translate.instant('teacherStudents.exportSuccess'));
   }
 }
 

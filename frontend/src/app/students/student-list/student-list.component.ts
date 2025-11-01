@@ -125,7 +125,7 @@ interface Student {
               [(ngModel)]="filters.search"
               (ngModelChange)="onSearchChange($event)"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="🔍 Search by name..."
+              placeholder="🔍 {{ 'students.searchStudents' | translate }}"
             >
           </div>
           
@@ -136,7 +136,7 @@ interface Student {
               (ngModelChange)="onFiltersChange()"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">All Grades</option>
+              <option value="">{{ 'students.allGrades' | translate }}</option>
               <optgroup label="Primary School">
                 <option value="Grade 1">Grade 1</option>
                 <option value="Grade 2">Grade 2</option>
@@ -165,7 +165,7 @@ interface Student {
               (ngModelChange)="onFiltersChange()"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">All Teachers</option>
+              <option value="">{{ 'students.allTeachers' | translate }}</option>
               <option *ngFor="let teacher of teachers" [value]="teacher.id || teacher._id">
                 {{ teacher.fullName }}
               </option>
@@ -179,7 +179,7 @@ interface Student {
               (ngModelChange)="onFiltersChange()"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              <option value="">All Subjects</option>
+              <option value="">{{ 'students.allSubjects' | translate }}</option>
               <option *ngFor="let subject of subjects" [value]="subject.id || subject._id">
                 {{ subject.name }} ({{ subject.code }})
               </option>
@@ -199,9 +199,9 @@ interface Student {
             </div>
             <div>
               <span class="text-base font-bold text-gray-900">
-                {{ selectedStudents.length }} student{{ selectedStudents.length === 1 ? '' : 's' }} selected
+                {{ selectedStudents.length }} {{ selectedStudents.length === 1 ? ('students.studentSelected' | translate) : ('students.studentsSelected' | translate) }}
               </span>
-              <p class="text-xs text-gray-600">Choose an action to apply</p>
+              <p class="text-xs text-gray-600">{{ 'students.chooseAction' | translate }}</p>
             </div>
           </div>
           <div class="flex space-x-2">
@@ -209,13 +209,13 @@ interface Student {
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
-              Delete
+              {{ 'students.bulkDelete' | translate }}
             </button>
             <button (click)="clearSelection()" class="btn-outline text-gray-600 border-gray-300 hover:bg-gray-50">
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
-              Clear
+              {{ 'students.clearSelection' | translate }}
             </button>
           </div>
         </div>
@@ -234,8 +234,8 @@ interface Student {
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No students found</h3>
-            <p class="mt-1 text-sm text-gray-500">Get started by adding a new student.</p>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">{{ 'students.noStudentsFound' | translate }}</h3>
+            <p class="mt-1 text-sm text-gray-500">{{ 'students.tryAdjustingFilters' | translate }}</p>
             <div class="mt-6">
               <button 
                 routerLink="/dashboard/students/new"
@@ -244,7 +244,7 @@ interface Student {
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
-                Add Student
+                {{ 'students.addStudent' | translate }}
               </button>
             </div>
           </div>
@@ -263,17 +263,17 @@ interface Student {
                     >
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Student
+                    {{ 'students.name' | translate }}
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Academic Info
+                    {{ 'students.gradeLevel' | translate }}
                   </th>
                   
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Enrolled
+                    {{ 'students.enrolled' | translate }}
                   </th>
                   <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {{ 'students.actions' | translate }}
                   </th>
                 </tr>
               </thead>
@@ -346,7 +346,7 @@ interface Student {
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
-                            View Details
+                            {{ 'students.view' | translate }}
                           </button>
                           <button
                             (click)="editStudent(student); closeDropdown()"
@@ -355,7 +355,7 @@ interface Student {
                             <svg class="mr-3 h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
-                            Edit Student
+                            {{ 'students.edit' | translate }}
                           </button>
                           <div class="border-t border-gray-100"></div>
                           <button
@@ -365,7 +365,7 @@ interface Student {
                             <svg class="mr-3 h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Delete Student
+                            {{ 'students.delete' | translate }}
                           </button>
                         </div>
                       </div>
@@ -385,26 +385,26 @@ interface Student {
                   [disabled]="pagination.page <= 1"
                   class="btn-outline"
                 >
-                  Previous
+                  {{ 'pagination.previous' | translate }}
                 </button>
                 <button 
                   (click)="changePage(pagination.page + 1)"
                   [disabled]="pagination.page >= pagination.pages"
                   class="btn-outline"
                 >
-                  Next
+                  {{ 'pagination.next' | translate }}
                 </button>
               </div>
               <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p class="text-sm text-gray-700">
-                    Showing
+                    {{ 'students.showing' | translate }}
                     <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span>
-                    to
+                    {{ 'students.to' | translate }}
                     <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
-                    of
+                    {{ 'students.of' | translate }}
                     <span class="font-medium">{{ pagination.total }}</span>
-                    results
+                    {{ 'students.results' | translate }}
                   </p>
                 </div>
                 <div>
@@ -414,7 +414,7 @@ interface Student {
                       [disabled]="pagination.page <= 1"
                       class="pagination-btn rounded-l-md"
                     >
-                      Previous
+                      {{ 'pagination.previous' | translate }}
                     </button>
                     
                     <button 
@@ -430,7 +430,7 @@ interface Student {
                       [disabled]="pagination.page >= pagination.pages"
                       class="pagination-btn rounded-r-md"
                     >
-                      Next
+                      {{ 'pagination.next' | translate }}
                     </button>
                   </nav>
                 </div>

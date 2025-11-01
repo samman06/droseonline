@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TeacherService } from '../../services/teacher.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
@@ -9,7 +10,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
 @Component({
   selector: 'app-teacher-browse',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   templateUrl: './teacher-browse.component.html',
   styleUrls: ['./teacher-browse.component.scss']
 })
@@ -26,7 +27,8 @@ export class TeacherBrowseComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private toastService: ToastService,
     private confirmationService: ConfirmationService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -115,17 +117,20 @@ export class TeacherBrowseComponent implements OnInit, OnDestroy {
 
   joinGroup(group: any, course: any) {
     this.confirmationService.confirm({
-      title: '🎓 Join Group',
-      message: `You're about to join "${group.name}" for ${course.subject.name}. You'll get access to all course materials and assignments!`,
-      confirmText: 'Join Now',
-      cancelText: 'Maybe Later',
+      title: this.translate.instant('teacherBrowse.joinGroupTitle'),
+      message: this.translate.instant('teacherBrowse.joinGroupMessage', { 
+        groupName: group.name, 
+        subjectName: course.subject.name 
+      }),
+      confirmText: this.translate.instant('teacherBrowse.joinNow'),
+      cancelText: this.translate.instant('teacherBrowse.maybeLater'),
       type: 'success'
     }).then((confirmed) => {
       if (confirmed) {
         this.teacherService.joinGroup(group._id).subscribe({
           next: (response) => {
             if (response.success) {
-              this.toastService.success(response.message || 'Successfully joined group!');
+              this.toastService.success(response.message || this.translate.instant('teacherBrowse.successfullyJoined'));
               // Reload teacher detail to update enrollment status
               this.openTeacherDetail({ _id: this.selectedTeacher.teacher._id });
             }
@@ -140,23 +145,17 @@ export class TeacherBrowseComponent implements OnInit, OnDestroy {
 
   leaveGroup(group: any, course: any) {
     this.confirmationService.confirm({
-      title: '⚠️ Leave Group',
-      message: `Are you sure you want to leave "${group.name}"? This will:
-      
-• Remove you from all group activities
-• Revoke access to course materials
-• Clear your progress history
-      
-This action can be reversed by rejoining the group.`,
-      confirmText: 'Yes, Leave Group',
-      cancelText: 'Stay in Group',
+      title: this.translate.instant('teacherBrowse.leaveGroupTitle'),
+      message: this.translate.instant('teacherBrowse.leaveGroupMessage', { groupName: group.name }),
+      confirmText: this.translate.instant('teacherBrowse.yesLeaveGroup'),
+      cancelText: this.translate.instant('teacherBrowse.stayInGroup'),
       type: 'danger'
     }).then((confirmed) => {
       if (confirmed) {
         this.teacherService.leaveGroup(group._id).subscribe({
           next: (response) => {
             if (response.success) {
-              this.toastService.success(response.message || 'Successfully left group');
+              this.toastService.success(response.message || this.translate.instant('teacherBrowse.successfullyLeft'));
               // Reload teacher detail to update enrollment status
               this.openTeacherDetail({ _id: this.selectedTeacher.teacher._id });
             }
@@ -177,7 +176,7 @@ This action can be reversed by rejoining the group.`,
   }
 
   getScheduleText(schedule: any[]): string {
-    if (!schedule || schedule.length === 0) return 'No schedule set';
+    if (!schedule || schedule.length === 0) return this.translate.instant('teacherBrowse.noSchedule');
     return schedule.map(s => `${s.day}: ${s.startTime}-${s.endTime}`).join(', ');
   }
 
