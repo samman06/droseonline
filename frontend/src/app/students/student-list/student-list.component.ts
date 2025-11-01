@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { StudentService } from '../../services/student.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -26,7 +27,7 @@ interface Student {
 @Component({
   selector: 'app-student-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Header Section with Enhanced Design -->
@@ -40,15 +41,15 @@ interface Student {
             </div>
             <div>
               <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Students Management
+                {{ 'students.studentsManagement' | translate }}
               </h1>
-              <p class="mt-1 text-gray-600">Manage student records and enrollments</p>
+              <p class="mt-1 text-gray-600">{{ 'students.manageStudentRecords' | translate }}</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                   </svg>
-                  {{ pagination.total }} Total
+                  {{ pagination.total }} {{ 'students.total' | translate }}
                 </span>
               </div>
             </div>
