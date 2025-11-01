@@ -148,7 +148,22 @@
     "myStudents": "My Students",
     "avgAttendance": "Avg Attendance",
     "myClasses": "My Classes",
-    "pending": "Pending"
+    "pending": "Pending",
+    "todaysSessions": "Today's Sessions",
+    "pendingAttendance": "pending",
+    "studentsAtRisk": "Students at Risk",
+    "recentSubmissions": "Recent Submissions",
+    "noSessionsToday": "No sessions scheduled for today",
+    "noStudentsAtRisk": "All students are doing well!",
+    "noUpcomingAssignments": "No upcoming assignments",
+    "noRecentSubmissions": "No recent submissions",
+    "enrolledCourses": "Enrolled Courses",
+    "recentGrades": "Recent Grades",
+    "myProgress": "My Progress",
+    "markAttendance": "Mark Attendance",
+    "absences": "absences",
+    "submitted": "Submitted",
+    "pts": "pts"
   },
   "students": {
     "title": "Students",
