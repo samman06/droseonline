@@ -163,7 +163,21 @@
     "markAttendance": "Mark Attendance",
     "absences": "absences",
     "submitted": "Submitted",
-    "pts": "pts"
+    "pts": "pts",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "excused": "Excused",
+    "atRisk": "At Risk",
+    "templates": "Templates",
+    "reuseAssignments": "Reuse assignments →",
+    "reviewSubmissions": "Review submissions →",
+    "lowAttendance": "Low attendance →",
+    "next7Days": "Next 7 days →",
+    "upcomingDue": "Upcoming Due",
+    "allCaughtUp": "You're all caught up!",
+    "priorityTasks": "Your priority tasks at a glance",
+    "noSessionsScheduled": "No sessions scheduled for today"
   },
   "students": {
     "title": "Students",
