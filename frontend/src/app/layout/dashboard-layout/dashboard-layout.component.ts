@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService, User } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationsComponent } from '../../shared/notifications/notifications.component';
@@ -10,7 +11,7 @@ import { Subscription, interval } from 'rxjs';
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NotificationsComponent, LanguageSwitcherComponent],
+  imports: [CommonModule, RouterModule, TranslateModule, NotificationsComponent, LanguageSwitcherComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.scss']
 })

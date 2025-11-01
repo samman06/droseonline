@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from './services/auth.service';
 import { ConfigService } from './services/config.service';
 import { LanguageService } from './services/language.service';
@@ -14,7 +15,8 @@ import { ToastContainerComponent } from './shared/toast-container/toast-containe
   imports: [
     CommonModule, 
     RouterOutlet, 
-    HttpClientModule, 
+    HttpClientModule,
+    TranslateModule,
     ConfirmationModalComponent,
     ToastContainerComponent
   ],
