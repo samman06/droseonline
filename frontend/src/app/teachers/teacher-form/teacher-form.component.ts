@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
 import { ToastService } from '../../services/toast.service';
@@ -33,7 +34,7 @@ interface Subject {
 @Component({
   selector: 'app-teacher-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslateModule],
   template: `
     <div class="max-w-5xl mx-auto p-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
       <!-- Header -->
@@ -47,9 +48,9 @@ interface Subject {
             </button>
             <div>
               <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                {{ isEditMode ? 'Edit Teacher' : 'Add New Teacher' }}
+                {{ (isEditMode ? 'teachers.editTeacherTitle' : 'teachers.addNewTeacherTitle') | translate }}
               </h1>
-              <p class="text-gray-600 mt-1">{{ isEditMode ? 'Update teacher information' : 'Create a new teacher profile' }}</p>
+              <p class="text-gray-600 mt-1">{{ (isEditMode ? 'teachers.updateInfo' : 'teachers.createProfile') | translate }}</p>
             </div>
           </div>
           <div class="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
@@ -69,26 +70,26 @@ interface Subject {
               <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
               </svg>
-              <h3 class="text-lg font-bold text-gray-900">Personal Information</h3>
+              <h3 class="text-lg font-bold text-gray-900">{{ 'teachers.personalInformation' | translate }}</h3>
             </div>
           </div>
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="form-label">First Name *</label>
-                <input type="text" formControlName="firstName" class="form-input" placeholder="Enter first name">
+                <label class="form-label">{{ 'teachers.firstName' | translate }} *</label>
+                <input type="text" formControlName="firstName" class="form-input" [placeholder]="'teachers.enterFirstName' | translate">
               </div>
               <div>
-                <label class="form-label">Last Name *</label>
-                <input type="text" formControlName="lastName" class="form-input" placeholder="Enter last name">
+                <label class="form-label">{{ 'teachers.lastName' | translate }} *</label>
+                <input type="text" formControlName="lastName" class="form-input" [placeholder]="'teachers.enterLastName' | translate">
               </div>
               <div>
-                <label class="form-label">Email *</label>
-                <input type="email" formControlName="email" class="form-input" placeholder="teacher@example.com">
+                <label class="form-label">{{ 'teachers.email' | translate }} *</label>
+                <input type="email" formControlName="email" class="form-input" [placeholder]="'teachers.enterEmail' | translate">
               </div>
               <div>
-                <label class="form-label">Phone Number</label>
-                <input type="tel" formControlName="phoneNumber" class="form-input" placeholder="+20 123 456 7890">
+                <label class="form-label">{{ 'teachers.phoneNumber' | translate }}</label>
+                <input type="tel" formControlName="phoneNumber" class="form-input" [placeholder]="'teachers.enterPhone' | translate">
               </div>
             </div>
           </div>
@@ -101,18 +102,18 @@ interface Subject {
               <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              <h3 class="text-lg font-bold text-gray-900">Academic Information</h3>
+              <h3 class="text-lg font-bold text-gray-900">{{ 'teachers.academicInformation' | translate }}</h3>
             </div>
           </div>
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="form-label">Employee ID <span class="text-xs text-gray-500">(Auto-generated)</span></label>
+                <label class="form-label">{{ 'teachers.employeeIdLabel' | translate }} <span class="text-xs text-gray-500">({{ 'teachers.autoGenerated' | translate }})</span></label>
                 <input type="text" formControlName="employeeId" class="form-input bg-gray-100 cursor-not-allowed" placeholder="Auto-generated (e.g., TE-000001)" [disabled]="true">
                 <p class="text-xs text-gray-500 mt-1">Employee ID will be automatically generated when you save</p>
               </div>
               <div>
-                <label class="form-label">Hire Date *</label>
+                <label class="form-label">{{ 'teachers.hireDateLabel' | translate }} *</label>
                 <input type="date" formControlName="hireDate" class="form-input">
               </div>
               <div class="md:col-span-2">
@@ -152,13 +153,13 @@ interface Subject {
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
-            Cancel
+            {{ 'teachers.cancel' | translate }}
           </button>
           <button type="submit" [disabled]="teacherForm.invalid || isSubmitting" class="btn-primary">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
-            {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Teacher' : 'Create Teacher') }}
+            {{ isSubmitting ? ('teachers.saving' | translate) : ((isEditMode ? 'teachers.updateTeacher' : 'teachers.createTeacher') | translate) }}
           </button>
         </div>
       </form>

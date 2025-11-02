@@ -687,7 +687,7 @@
     "adding": "Adding...",
     "removeTitle": "Remove Assistant?",
     "removeSubtitle": "This action cannot be undone",
-    "removeConfirmMessage": "Are you sure you want to remove <strong>{{name}}</strong> as your assistant? They will lose access to all teaching functions.",
+    "removeConfirmText": "Are you sure you want to remove <strong>{{name}}</strong> as your assistant? They will lose access to all teaching functions.",
     "removing": "Removing...",
     "removeAssistant": "Remove Assistant",
     "addedSuccess": "Assistant added successfully",
@@ -750,7 +750,23 @@
     "updatedSuccess": "Assistant updated successfully",
     "failedToUpdate": "Failed to update assistant",
     "imageSizeError": "Image size must be less than 2MB",
-    "imageTypeError": "Please select an image file"
+    "imageTypeError": "Please select an image file",
+    "notFoundEditMessage": "The assistant you're trying to edit doesn't exist or you don't have permission to edit it.",
+    "editAssistantTitle": "Edit Assistant",
+    "editAssistantSubtitle": "Update assistant information and permissions",
+    "inactiveNote": "Inactive assistants cannot log in or access the system",
+    "markAttendanceDesc": "Can mark student attendance",
+    "manageAssignmentsDesc": "Can create and grade assignments",
+    "manageMaterialsDesc": "Can upload and manage course materials",
+    "viewStudentsDesc": "Can view student information",
+    "manageAnnouncementsDesc": "Can create and edit announcements",
+    "viewGradesDesc": "Can view student grades",
+    "phone": "Phone",
+    "status": "Status",
+    "created": "Created",
+    "noAccountingAccessTitle": "⛔ No Accounting Access",
+    "noAccountingAccessMessage": "Assistants cannot access any financial or accounting features, including payments, revenue reports, and financial data.",
+    "failedToLoadDetails": "Failed to load assistant details"
   }
 }
 

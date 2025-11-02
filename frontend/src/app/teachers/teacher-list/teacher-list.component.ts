@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TeacherService } from '../../services/teacher.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { SubjectService } from '../../services/subject.service';
@@ -30,7 +31,7 @@ interface Teacher {
 @Component({
   selector: 'app-teacher-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Header Section with Enhanced Design -->
@@ -44,19 +45,19 @@ interface Teacher {
             </div>
             <div>
               <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Teachers Management
+                {{ 'teachers.teachersManagement' | translate }}
               </h1>
-              <p class="mt-1 text-gray-600">Manage teacher profiles, assignments, and performance</p>
+              <p class="mt-1 text-gray-600">{{ 'teachers.managementSubtitle' | translate }}</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
                   </svg>
-                  {{ pagination.total }} Total
+                  {{ pagination.total }} {{ 'teachers.total' | translate }}
                 </span>
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">
                   <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-                  {{ getActiveTeachersCount() }} Active
+                  {{ getActiveTeachersCount() }} {{ 'teachers.active' | translate }}
                 </span>
               </div>
             </div>
@@ -66,13 +67,13 @@ interface Teacher {
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              Export Data
+              {{ 'teachers.exportData' | translate }}
             </button>
             <button (click)="addNewTeacher()" class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
-              Add New Teacher
+              {{ 'teachers.addNewTeacher' | translate }}
             </button>
           </div>
         </div>
@@ -82,9 +83,9 @@ interface Teacher {
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <!-- Filters Header -->
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <h3 class="text-sm font-semibold text-gray-700">{{ 'teachers.filters' | translate }}</h3>
           <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
-            Clear Filters
+            {{ 'teachers.clearFilters' | translate }}
           </button>
         </div>
 
@@ -108,7 +109,7 @@ interface Teacher {
               [(ngModel)]="filters.search" 
               (ngModelChange)="onSearchChange($event)" 
               class="form-input" 
-              placeholder="🔍 Search by name, email, or ID..."
+              [placeholder]="'teachers.searchPlaceholder' | translate"
             >
           </div>
           
@@ -119,7 +120,7 @@ interface Teacher {
               (ngModelChange)="onFiltersChange()" 
               class="form-select"
             >
-              <option value="">All Subjects</option>
+              <option value="">{{ 'teachers.allSubjects' | translate }}</option>
               <option *ngFor="let subject of subjects" [value]="subject.id || subject._id">
                 {{ subject.name }} ({{ subject.code }})
               </option>
@@ -137,21 +138,21 @@ interface Teacher {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span class="text-sm font-medium text-orange-800">
-                {{ selectedTeachers.length }} teacher(s) selected
+                {{ selectedTeachers.length }} {{ 'teachers.selected' | translate }}
               </span>
             </div>
             <div class="flex space-x-2">
               <button (click)="bulkActivate()" class="btn-outline text-green-600 border-green-300 hover:bg-green-50">
-                Activate Selected
+                {{ 'teachers.activateSelected' | translate }}
               </button>
               <button (click)="bulkDeactivate()" class="btn-outline text-yellow-600 border-yellow-300 hover:bg-yellow-50">
-                Deactivate Selected
+                {{ 'teachers.deactivateSelected' | translate }}
               </button>
               <button (click)="bulkDelete()" class="btn-outline text-red-600 border-red-300 hover:bg-red-50">
-                Delete Selected
+                {{ 'teachers.deleteSelected' | translate }}
               </button>
               <button (click)="clearSelection()" class="btn-outline">
-                Clear Selection
+                {{ 'teachers.clearSelection' | translate }}
               </button>
             </div>
           </div>
@@ -161,7 +162,7 @@ interface Teacher {
       <!-- Loading State -->
       <div *ngIf="isLoading" class="text-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="mt-4 text-gray-500">Loading teachers...</p>
+        <p class="mt-4 text-gray-500">{{ 'teachers.loadingTeachers' | translate }}</p>
       </div>
 
       <!-- Empty State -->
@@ -169,14 +170,14 @@ interface Teacher {
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No teachers found</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by adding a new teacher to the system.</p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{{ 'teachers.noTeachersFound' | translate }}</h3>
+        <p class="mt-1 text-sm text-gray-500">{{ 'teachers.noTeachersMessage' | translate }}</p>
         <div class="mt-6">
           <button (click)="addNewTeacher()" class="btn-primary">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            Add Teacher
+            {{ 'teachers.addTeacher' | translate }}
           </button>
         </div>
       </div>
@@ -197,14 +198,14 @@ interface Teacher {
                   >
                 </th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Teacher Information
+                  {{ 'teachers.teacherInformation' | translate }}
                 </th>
                 <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <div class="flex items-center justify-center">
                     <svg class="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                     </svg>
-                    Courses
+                    {{ 'teachers.courses' | translate }}
                   </div>
                 </th>
                 <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -212,7 +213,7 @@ interface Teacher {
                     <svg class="w-4 h-4 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    Subjects
+                    {{ 'teachers.subjects' | translate }}
                   </div>
                 </th>
                 <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -220,11 +221,11 @@ interface Teacher {
                     <svg class="w-4 h-4 mr-1.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    Groups
+                    {{ 'teachers.groups' | translate }}
                   </div>
                 </th>
                 <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Actions
+                  {{ 'teachers.actions' | translate }}
                 </th>
               </tr>
             </thead>
@@ -277,7 +278,7 @@ interface Teacher {
                     </span>
                     <span *ngIf="!teacher.academicInfo.subjects || teacher.academicInfo.subjects.length === 0"
                           class="text-sm text-gray-400 italic">
-                      No subjects assigned
+                      {{ 'teachers.noSubjectsAssigned' | translate }}
                     </span>
                   </div>
                 </td>
@@ -312,7 +313,7 @@ interface Teacher {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                           </svg>
-                          View Details
+                          {{ 'teachers.viewDetails' | translate }}
                         </button>
                         <button
                           (click)="editTeacher(teacher); closeDropdown()"
@@ -321,7 +322,7 @@ interface Teacher {
                           <svg class="mr-3 h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                           </svg>
-                          Edit Teacher
+                          {{ 'teachers.editTeacher' | translate }}
                         </button>
                         <div class="border-t border-gray-100"></div>
                         <button
@@ -331,7 +332,7 @@ interface Teacher {
                           <svg class="mr-3 h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                           </svg>
-                          Delete Teacher
+                          {{ 'teachers.deleteTeacher' | translate }}
                         </button>
                       </div>
                     </div>
@@ -352,7 +353,7 @@ interface Teacher {
               [class.cursor-not-allowed]="pagination.page === 1"
               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
-              Previous
+              {{ 'teachers.previous' | translate }}
             </button>
             <button 
               (click)="changePage(pagination.page + 1)"
@@ -361,19 +362,19 @@ interface Teacher {
               [class.cursor-not-allowed]="pagination.page === pagination.pages"
               class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
-              Next
+              {{ 'teachers.next' | translate }}
             </button>
           </div>
           <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p class="text-sm text-gray-700">
-                Showing
+                {{ 'teachers.showing' | translate }}
                 <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span>
-                to
+                {{ 'teachers.to' | translate }}
                 <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
-                of
+                {{ 'teachers.of' | translate }}
                 <span class="font-medium">{{ pagination.total }}</span>
-                results
+                {{ 'teachers.results' | translate }}
               </p>
             </div>
             <div>
@@ -489,7 +490,8 @@ export class TeacherListComponent implements OnInit {
     private teacherService: TeacherService,
     private router: Router,
     private confirmationService: ConfirmationService,
-    private subjectService: SubjectService
+    private subjectService: SubjectService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -637,10 +639,10 @@ export class TeacherListComponent implements OnInit {
 
   async bulkActivate(): Promise<void> {
     const confirmed = await this.confirmationService.confirm({
-      title: 'Activate Teachers',
-      message: `Are you sure you want to activate ${this.selectedTeachers.length} teacher(s)? They will be able to access the system and perform their duties.`,
-      confirmText: 'Yes, Activate',
-      cancelText: 'Cancel',
+      title: this.translate.instant('teachers.bulkActivateTitle'),
+      message: this.translate.instant('teachers.bulkActivateMessage', { count: this.selectedTeachers.length }),
+      confirmText: this.translate.instant('teachers.yesActivate'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'info'
     });
 
@@ -661,10 +663,10 @@ export class TeacherListComponent implements OnInit {
 
   async bulkDeactivate(): Promise<void> {
     const confirmed = await this.confirmationService.confirm({
-      title: 'Deactivate Teachers',
-      message: `Are you sure you want to deactivate ${this.selectedTeachers.length} teacher(s)? They will lose access to the system temporarily.`,
-      confirmText: 'Yes, Deactivate',
-      cancelText: 'Cancel',
+      title: this.translate.instant('teachers.bulkDeactivateTitle'),
+      message: this.translate.instant('teachers.bulkDeactivateMessage', { count: this.selectedTeachers.length }),
+      confirmText: this.translate.instant('teachers.yesDeactivate'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'warning'
     });
 
@@ -685,10 +687,10 @@ export class TeacherListComponent implements OnInit {
 
   async bulkDelete(): Promise<void> {
     const confirmed = await this.confirmationService.confirm({
-      title: 'Delete Teachers',
-      message: `Are you sure you want to delete ${this.selectedTeachers.length} teacher(s)? This action cannot be undone.`,
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('teachers.bulkDeleteTitle'),
+      message: this.translate.instant('teachers.bulkDeleteMessage', { count: this.selectedTeachers.length }),
+      confirmText: this.translate.instant('teachers.yesDelete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     });
 
@@ -709,10 +711,10 @@ export class TeacherListComponent implements OnInit {
 
   async deleteTeacher(teacher: Teacher): Promise<void> {
     const confirmed = await this.confirmationService.confirm({
-      title: 'Delete Teacher',
-      message: `Are you sure you want to delete ${teacher.fullName}? This action cannot be undone.`,
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('teachers.deleteConfirmTitle'),
+      message: this.translate.instant('teachers.deleteConfirmMessage', { name: teacher.fullName }),
+      confirmText: this.translate.instant('teachers.yesDelete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     });
 

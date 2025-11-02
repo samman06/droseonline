@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -36,7 +37,7 @@ interface ApiResponse {
 @Component({
   selector: 'app-manage-assistants',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Header -->
@@ -44,15 +45,15 @@ interface ApiResponse {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900">👥 Manage Assistants</h1>
-              <p class="mt-1 text-sm text-gray-500">Add and manage assistants who can help with your teaching tasks</p>
+              <h1 class="text-3xl font-bold text-gray-900">👥 {{ 'assistants.manageAssistants' | translate }}</h1>
+              <p class="mt-1 text-sm text-gray-500">{{ 'assistants.subtitle' | translate }}</p>
             </div>
             <button (click)="showAddModal = true"
                     class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all shadow-lg transform hover:-translate-y-0.5">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
-              Add Assistant
+              {{ 'assistants.addAssistant' | translate }}
             </button>
           </div>
         </div>
@@ -70,14 +71,14 @@ interface ApiResponse {
             <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">No Assistants Yet</h3>
-            <p class="text-gray-600 mb-6">Add your first assistant to help manage your teaching tasks</p>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">{{ 'assistants.noAssistantsYet' | translate }}</h3>
+            <p class="text-gray-600 mb-6">{{ 'assistants.noAssistantsMessage' | translate }}</p>
             <button (click)="showAddModal = true"
                     class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all shadow-lg">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
-              Add Your First Assistant
+              {{ 'assistants.addFirstAssistant' | translate }}
             </button>
           </div>
         </div>
@@ -109,7 +110,7 @@ interface ApiResponse {
                 <span [class.bg-green-500]="assistant.isActive"
                       [class.bg-red-500]="!assistant.isActive"
                       class="px-3 py-1 rounded-full text-xs font-semibold">
-                  {{ assistant.isActive ? 'Active' : 'Inactive' }}
+                  {{ assistant.isActive ? ('assistants.active' | translate) : ('assistants.inactive' | translate) }}
                 </span>
               </div>
               <h3 class="text-xl font-bold">{{ assistant.fullName }}</h3>
@@ -131,20 +132,20 @@ interface ApiResponse {
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <span class="text-sm text-gray-600">Assigned {{ formatDate(assistant.assistantInfo.assignedDate) }}</span>
+                <span class="text-sm text-gray-600">{{ 'assistants.assignedDate' | translate }} {{ formatDate(assistant.assistantInfo.assignedDate) }}</span>
               </div>
 
               <!-- Permissions -->
               <div class="pt-4 border-t">
-                <p class="text-xs font-semibold text-gray-500 mb-2">ACCESS LEVEL</p>
+                <p class="text-xs font-semibold text-gray-500 mb-2">{{ 'assistants.accessLevel' | translate }}</p>
                 <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                   <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span class="text-xs font-semibold text-green-800">Full Teaching Access</span>
+                    <span class="text-xs font-semibold text-green-800">{{ 'assistants.fullTeachingAccess' | translate }}</span>
                   </div>
-                  <p class="text-xs text-gray-600 mt-1">Can do everything except accounting</p>
+                  <p class="text-xs text-gray-600 mt-1">{{ 'assistants.fullAccessNote' | translate }}</p>
                 </div>
               </div>
             </div>
@@ -158,14 +159,14 @@ interface ApiResponse {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                   </svg>
-                  View
+                  {{ 'assistants.view' | translate }}
                 </button>
                 <button (click)="editAssistant(assistant)"
                         class="text-green-600 hover:text-green-800 text-sm font-medium flex items-center gap-1">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                   </svg>
-                  Edit
+                  {{ 'assistants.edit' | translate }}
                 </button>
               </div>
               <button (click)="confirmRemoveAssistant(assistant)"
@@ -173,7 +174,7 @@ interface ApiResponse {
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
-                Remove
+                {{ 'assistants.remove' | translate }}
               </button>
             </div>
           </div>
@@ -181,7 +182,7 @@ interface ApiResponse {
       </div>
     </div>
 
-    <!-- Add Assistant Modal -->
+    <!-- {{ 'assistants.addAssistant' | translate }} Modal -->
     <div *ngIf="showAddModal"
          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
          (click)="closeAddModal()">
@@ -191,8 +192,8 @@ interface ApiResponse {
         <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 rounded-t-2xl">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-2xl font-bold text-white">Add New Assistant</h2>
-              <p class="text-blue-100 text-sm mt-1">Create a new assistant account</p>
+              <h2 class="text-2xl font-bold text-white">{{ 'assistants.addNewAssistant' | translate }}</h2>
+              <p class="text-blue-100 text-sm mt-1">{{ 'assistants.createAccount' | translate }}</p>
             </div>
             <button (click)="closeAddModal()"
                     class="text-white hover:bg-white/20 rounded-lg p-2 transition-colors">
@@ -208,53 +209,53 @@ interface ApiResponse {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-2">
-                First Name <span class="text-red-500">*</span>
+                {{ 'assistants.firstName' | translate }} <span class="text-red-500">*</span>
               </label>
               <input type="text" 
                      [(ngModel)]="newAssistant.firstName"
-                     placeholder="Enter first name"
+                     placeholder="{{ 'assistants.enterFirstName' | translate }}"
                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-2">
-                Last Name <span class="text-red-500">*</span>
+                {{ 'assistants.lastName' | translate }} <span class="text-red-500">*</span>
               </label>
               <input type="text"
                      [(ngModel)]="newAssistant.lastName"
-                     placeholder="Enter last name"
+                     placeholder="{{ 'assistants.enterLastName' | translate }}"
                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">
-              Email <span class="text-red-500">*</span>
+              {{ 'assistants.email' | translate }} <span class="text-red-500">*</span>
             </label>
             <input type="email"
                    [(ngModel)]="newAssistant.email"
-                   placeholder="assistant@example.com"
+                   placeholder="{{ 'assistants.enterEmail' | translate }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           </div>
 
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">
-              Phone Number <span class="text-gray-400 text-xs">(Optional)</span>
+              {{ 'assistants.phoneNumber' | translate }} <span class="text-gray-400 text-xs">{{ 'assistants.optional' | translate }}</span>
             </label>
             <input type="tel"
                    [(ngModel)]="newAssistant.phoneNumber"
-                   placeholder="+201234567890"
+                   placeholder="{{ 'assistants.enterPhone' | translate }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           </div>
 
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">
-              Password <span class="text-red-500">*</span>
+              {{ 'assistants.password' | translate }} <span class="text-red-500">*</span>
             </label>
             <input type="password"
                    [(ngModel)]="newAssistant.password"
-                   placeholder="Enter secure password"
+                   placeholder="{{ 'assistants.enterPassword' | translate }}"
                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+            <p class="text-xs text-gray-500 mt-1">{{ 'assistants.passwordMinLength' | translate }}</p>
           </div>
 
           <!-- Info Box -->
@@ -264,13 +265,13 @@ interface ApiResponse {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <div class="flex-1">
-                <p class="font-semibold text-gray-900 mb-1">What can assistants do?</p>
+                <p class="font-semibold text-gray-900 mb-1">{{ 'assistants.whatCanDo' | translate }}</p>
                 <ul class="text-sm text-gray-700 space-y-1">
-                  <li>✅ Mark attendance for your groups</li>
-                  <li>✅ Create and manage assignments</li>
-                  <li>✅ Upload and manage materials</li>
-                  <li>✅ View and manage students</li>
-                  <li>❌ Cannot access accounting/financial data</li>
+                  <li>{{ 'assistants.canMarkAttendance' | translate }}</li>
+                  <li>{{ 'assistants.canManageAssignments' | translate }}</li>
+                  <li>{{ 'assistants.canManageMaterials' | translate }}</li>
+                  <li>{{ 'assistants.canViewStudents' | translate }}</li>
+                  <li>{{ 'assistants.cannotAccounting' | translate }}</li>
                 </ul>
               </div>
             </div>
@@ -282,7 +283,7 @@ interface ApiResponse {
           <button (click)="closeAddModal()"
                   [disabled]="isSaving"
                   class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors disabled:opacity-50">
-            Cancel
+            {{ 'assistants.cancel' | translate }}
           </button>
           <button (click)="addAssistant()"
                   [disabled]="!isFormValid() || isSaving"
@@ -291,14 +292,14 @@ interface ApiResponse {
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span *ngIf="!isSaving">Add Assistant</span>
-            <span *ngIf="isSaving">Adding...</span>
+            <span *ngIf="!isSaving">{{ 'assistants.addAssistant' | translate }}</span>
+            <span *ngIf="isSaving">{{ 'assistants.adding' | translate }}</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Remove Confirmation Modal -->
+    <!-- {{ 'assistants.remove' | translate }} Confirmation Modal -->
     <div *ngIf="showRemoveModal"
          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
          (click)="closeRemoveModal()">
@@ -312,23 +313,20 @@ interface ApiResponse {
               </svg>
             </div>
             <div>
-              <h3 class="text-xl font-bold text-gray-900">Remove Assistant?</h3>
-              <p class="text-sm text-gray-600 mt-1">This action cannot be undone</p>
+              <h3 class="text-xl font-bold text-gray-900">{{ 'assistants.removeTitle' | translate }}</h3>
+              <p class="text-sm text-gray-600 mt-1">{{ 'assistants.removeSubtitle' | translate }}</p>
             </div>
           </div>
 
           <div class="bg-gray-50 rounded-lg p-4 mb-6">
-            <p class="text-sm text-gray-700">
-              Are you sure you want to remove <strong>{{ assistantToRemove?.fullName }}</strong> as your assistant?
-              They will lose access to all teaching functions.
-            </p>
+            <p class="text-sm text-gray-700" [innerHTML]="'assistants.removeConfirmText' | translate: { name: assistantToRemove?.fullName }"></p>
           </div>
 
           <div class="flex items-center justify-end gap-3">
             <button (click)="closeRemoveModal()"
                     [disabled]="isRemoving"
                     class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors disabled:opacity-50">
-              Cancel
+              {{ 'assistants.cancel' | translate }}
             </button>
             <button (click)="removeAssistant()"
                     [disabled]="isRemoving"
@@ -337,8 +335,8 @@ interface ApiResponse {
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span *ngIf="!isRemoving">Remove Assistant</span>
-              <span *ngIf="isRemoving">Removing...</span>
+              <span *ngIf="!isRemoving">{{ 'assistants.removeAssistant' | translate }}</span>
+              <span *ngIf="isRemoving">{{ 'assistants.removing' | translate }}</span>
             </button>
           </div>
         </div>
@@ -370,7 +368,8 @@ export class ManageAssistantsComponent implements OnInit {
     private http: HttpClient,
     private toastService: ToastService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -388,7 +387,7 @@ export class ManageAssistantsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Load assistants error:', error);
-        this.toastService.error('Failed to load assistants');
+        this.toastService.error(this.translate.instant('assistants.failedToLoad'));
         this.isLoading = false;
       }
     });
@@ -401,7 +400,7 @@ export class ManageAssistantsComponent implements OnInit {
     this.http.post<ApiResponse>(`${this.API_URL}/assistants`, this.newAssistant).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Assistant added successfully');
+          this.toastService.success(this.translate.instant('assistants.addedSuccess'));
           this.loadAssistants();
           this.closeAddModal();
         }
@@ -409,7 +408,7 @@ export class ManageAssistantsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Add assistant error:', error);
-        this.toastService.error(error.error?.message || 'Failed to add assistant');
+        this.toastService.error(error.error?.message || this.translate.instant('assistants.failedToAdd'));
         this.isSaving = false;
       }
     });
@@ -427,15 +426,15 @@ export class ManageAssistantsComponent implements OnInit {
     this.http.delete<ApiResponse>(`${this.API_URL}/assistants/${this.assistantToRemove._id}`).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Assistant removed successfully');
+          this.toastService.success(this.translate.instant('assistants.removedSuccess'));
           this.loadAssistants();
           this.closeRemoveModal();
         }
         this.isRemoving = false;
       },
       error: (error) => {
-        console.error('Remove assistant error:', error);
-        this.toastService.error('Failed to remove assistant');
+        console.error(this.translate.instant('assistants.remove'), 'assistant error:', error);
+        this.toastService.error(this.translate.instant('assistants.failedToRemove'));
         this.isRemoving = false;
       }
     });
@@ -481,12 +480,12 @@ export class ManageAssistantsComponent implements OnInit {
     const diffTime = Math.abs(now.getTime() - d.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'today';
-    if (diffDays === 1) return 'yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return `${Math.floor(diffDays / 365)} years ago`;
+    if (diffDays === 0) return this.translate.instant('assistants.today');
+    if (diffDays === 1) return this.translate.instant('assistants.yesterday');
+    if (diffDays < 7) return this.translate.instant('assistants.daysAgo', { count: diffDays });
+    if (diffDays < 30) return this.translate.instant('assistants.weeksAgo', { count: Math.floor(diffDays / 7) });
+    if (diffDays < 365) return this.translate.instant('assistants.monthsAgo', { count: Math.floor(diffDays / 30) });
+    return this.translate.instant('assistants.yearsAgo', { count: Math.floor(diffDays / 365) });
   }
 
   formatPermission(permission: string): string {

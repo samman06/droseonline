@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TeacherService } from '../../services/teacher.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 
 @Component({
   selector: 'app-teacher-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   template: `
     <div class="max-w-7xl mx-auto p-6 space-y-6">
       <!-- Back Button -->
@@ -16,7 +17,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
-          <span class="text-gray-700 font-medium">Back to Teachers</span>
+          <span class="text-gray-700 font-medium">{{ 'teachers.backToTeachers' | translate }}</span>
         </button>
       </div>
 
@@ -24,7 +25,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
       <div *ngIf="isLoading" class="flex justify-center items-center py-20">
         <div class="text-center">
           <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto"></div>
-          <p class="mt-4 text-gray-600">Loading teacher details...</p>
+          <p class="mt-4 text-gray-600">{{ 'teachers.loadingDetails' | translate }}</p>
         </div>
       </div>
 
@@ -48,13 +49,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
                       <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                       </svg>
-                      {{ teacher.academicInfo.subjects?.length || 0 }} Subjects
+                      {{ teacher.academicInfo.subjects?.length || 0 }} {{ 'teachers.subjects' | translate }}
                     </span>
                     <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-sm font-medium">
                       <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                       </svg>
-                      {{ teacher.academicInfo.groups?.length || 0 }} Groups
+                      {{ teacher.academicInfo.groups?.length || 0 }} {{ 'teachers.groups' | translate }}
                     </span>
                   </div>
                 </div>
@@ -64,13 +65,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                   </svg>
-                  Edit
+                  {{ 'teachers.edit' | translate }}
                 </button>
                 <button (click)="deleteTeacher()" class="btn-danger">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>
-                  Delete
+                  {{ 'teachers.delete' | translate }}
                 </button>
               </div>
             </div>
@@ -86,13 +87,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 <svg class="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
-                <h2 class="text-lg font-bold text-gray-900">Personal Information</h2>
+                <h2 class="text-lg font-bold text-gray-900">{{ 'teachers.personalInformation' | translate }}</h2>
               </div>
             </div>
             <div class="p-6">
               <dl class="space-y-4">
                 <div class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-24">Email</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-24">{{ 'teachers.email' | translate }}</dt>
                   <dd class="text-sm text-gray-900 flex-1 flex items-center">
                     <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
@@ -101,7 +102,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   </dd>
                 </div>
                 <div *ngIf="teacher.phoneNumber" class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-24">Phone</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-24">{{ 'teachers.phone' | translate }}</dt>
                   <dd class="text-sm text-gray-900 flex-1 flex items-center">
                     <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
@@ -110,7 +111,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   </dd>
                 </div>
                 <div *ngIf="teacher.address?.city" class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-24">City</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-24">{{ 'teachers.city' | translate }}</dt>
                   <dd class="text-sm text-gray-900 flex-1 flex items-center">
                     <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -130,33 +131,33 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <h2 class="text-lg font-bold text-gray-900">Academic Information</h2>
+                <h2 class="text-lg font-bold text-gray-900">{{ 'teachers.academicInformation' | translate }}</h2>
               </div>
             </div>
             <div class="p-6">
               <dl class="space-y-4">
                 <div class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-32">Employee ID</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-32">{{ 'teachers.employeeId' | translate }}</dt>
                   <dd class="text-sm text-gray-900 font-mono bg-gray-100 px-3 py-1 rounded-md">{{ teacher.academicInfo.employeeId }}</dd>
                 </div>
                 <div class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-32">Subjects</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-32">{{ 'teachers.subject' | translate }}s</dt>
                   <dd class="text-sm">
                     <span class="inline-flex items-center px-3 py-1 rounded-lg bg-blue-100 text-blue-800 font-medium">
-                      {{ teacher.academicInfo.subjects?.length || 0 }} assigned
+                      {{ teacher.academicInfo.subjects?.length || 0 }} {{ 'teachers.assigned' | translate }}
                     </span>
                   </dd>
                 </div>
                 <div class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-32">Groups</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-32">{{ 'teachers.group' | translate }}s</dt>
                   <dd class="text-sm">
                     <span class="inline-flex items-center px-3 py-1 rounded-lg bg-purple-100 text-purple-800 font-medium">
-                      {{ teacher.academicInfo.groups?.length || 0 }} assigned
+                      {{ teacher.academicInfo.groups?.length || 0 }} {{ 'teachers.assigned' | translate }}
                     </span>
                   </dd>
                 </div>
                 <div class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-32">Hire Date</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-32">{{ 'teachers.hireDate' | translate }}</dt>
                   <dd class="text-sm text-gray-900 flex items-center">
                     <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -165,13 +166,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   </dd>
                 </div>
                 <div class="flex items-start">
-                  <dt class="text-sm font-semibold text-gray-500 w-32">Status</dt>
+                  <dt class="text-sm font-semibold text-gray-500 w-32">{{ 'teachers.status' | translate }}</dt>
                   <dd>
                     <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" 
                           [class]="teacher.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
                       <span class="w-2 h-2 rounded-full mr-2" 
                             [class]="teacher.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-                      {{ teacher.isActive ? 'Active' : 'Inactive' }}
+                      {{ teacher.isActive ? ('teachers.active' | translate) : ('teachers.inactive' | translate) }}
                     </span>
                   </dd>
                 </div>
@@ -188,10 +189,10 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                 </svg>
-                <h2 class="text-lg font-bold text-gray-900">Assigned Subjects</h2>
+                <h2 class="text-lg font-bold text-gray-900">{{ 'teachers.assignedSubjects' | translate }}</h2>
               </div>
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
-                {{ teacher.academicInfo.subjects.length }} Subject{{ teacher.academicInfo.subjects.length !== 1 ? 's' : '' }}
+                {{ teacher.academicInfo.subjects.length }} {{ 'teachers.subject' | translate }}{{ teacher.academicInfo.subjects.length !== 1 ? 's' : '' }}
               </span>
             </div>
           </div>
@@ -213,7 +214,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{ subject.credits }} Credits
+                    {{ subject.credits }} {{ 'teachers.credits' | translate }}
                   </span>
                   <span *ngIf="subject.type" class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-200 text-blue-800 font-medium">
                     {{ subject.type }}
@@ -232,8 +233,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div>
-              <h3 class="text-sm font-semibold text-amber-900">No Subjects Assigned</h3>
-              <p class="text-sm text-amber-700 mt-1">This teacher hasn't been assigned to any subjects yet. Click Edit to assign subjects.</p>
+              <h3 class="text-sm font-semibold text-amber-900">{{ 'teachers.noSubjects' | translate }}</h3>
+              <p class="text-sm text-amber-700 mt-1">{{ 'teachers.noSubjectsMessage' | translate }}</p>
             </div>
           </div>
         </div>
@@ -246,10 +247,10 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
-                <h2 class="text-lg font-bold text-gray-900">Assigned Groups</h2>
+                <h2 class="text-lg font-bold text-gray-900">{{ 'teachers.assignedGroups' | translate }}</h2>
               </div>
               <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
-                {{ teacher.academicInfo.groups.length }} Group{{ teacher.academicInfo.groups.length !== 1 ? 's' : '' }}
+                {{ teacher.academicInfo.groups.length }} {{ 'teachers.group' | translate }}{{ teacher.academicInfo.groups.length !== 1 ? 's' : '' }}
               </span>
             </div>
           </div>
@@ -278,13 +279,13 @@ import { ConfirmationService } from '../../services/confirmation.service';
                     <svg class="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                     </svg>
-                    <span>{{ group.students.length }} Student{{ group.students.length !== 1 ? 's' : '' }}</span>
+                    <span>{{ group.students.length }} {{ group.students.length !== 1 ? ('teachers.studentPlural' | translate) : ('teachers.student' | translate) }}</span>
                   </div>
                   <div *ngIf="group.schedule && group.schedule.length > 0" class="flex items-center">
                     <svg class="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    <span>{{ group.schedule.length }} Session{{ group.schedule.length !== 1 ? 's' : '' }}/week</span>
+                    <span>{{ group.schedule.length }} {{ 'teachers.sessionsPerWeek' | translate }}</span>
                   </div>
                 </div>
               </div>
@@ -300,8 +301,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
             <div>
-              <h3 class="text-sm font-semibold text-amber-900">No Groups Assigned</h3>
-              <p class="text-sm text-amber-700 mt-1">This teacher hasn't been assigned to any groups yet. Groups will appear here once courses are created and assigned.</p>
+              <h3 class="text-sm font-semibold text-amber-900">{{ 'teachers.noGroups' | translate }}</h3>
+              <p class="text-sm text-amber-700 mt-1">{{ 'teachers.noGroupsMessage' | translate }}</p>
             </div>
           </div>
         </div>
@@ -329,7 +330,8 @@ export class TeacherDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private teacherService: TeacherService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -353,10 +355,10 @@ export class TeacherDetailComponent implements OnInit {
     if (!this.teacher) return;
 
     const confirmed = await this.confirmationService.confirm({
-      title: 'Delete Teacher',
-      message: `Are you sure you want to delete ${this.teacher.fullName}? This action cannot be undone and will remove all associated data.`,
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('teachers.deleteDetailTitle'),
+      message: this.translate.instant('teachers.deleteDetailMessage', { name: this.teacher.fullName }),
+      confirmText: this.translate.instant('teachers.yesDelete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     });
 

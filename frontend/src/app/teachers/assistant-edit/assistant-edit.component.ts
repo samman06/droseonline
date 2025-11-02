@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { ToastService } from '../../services/toast.service';
 
@@ -34,7 +35,7 @@ interface ApiResponse {
 @Component({
   selector: 'app-assistant-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Loading State -->
@@ -48,14 +49,14 @@ interface ApiResponse {
           <svg class="w-24 h-24 mx-auto text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">Assistant Not Found</h3>
-          <p class="text-gray-600 mb-6">The assistant you're trying to edit doesn't exist or you don't have permission to edit it.</p>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ 'assistants.notFound' | translate }}</h3>
+          <p class="text-gray-600 mb-6">{{ 'assistants.notFoundEditMessage' | translate }}</p>
           <button routerLink="/dashboard/my-assistants"
                   class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all shadow-lg">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
-            Back to Assistants
+            {{ 'assistants.backToAssistants' | translate }}
           </button>
         </div>
       </div>
@@ -69,10 +70,10 @@ interface ApiResponse {
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
-            Back to Details
+            {{ 'assistants.backToDetails' | translate }}
           </button>
-          <h1 class="text-3xl font-bold text-gray-900">Edit Assistant</h1>
-          <p class="text-gray-600 mt-2">Update assistant information and permissions</p>
+          <h1 class="text-3xl font-bold text-gray-900">{{ 'assistants.editAssistantTitle' | translate }}</h1>
+          <p class="text-gray-600 mt-2">{{ 'assistants.editAssistantSubtitle' | translate }}</p>
         </div>
 
         <!-- Form Card -->
@@ -120,27 +121,27 @@ interface ApiResponse {
                 <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
-                Basic Information
+                {{ 'assistants.basicInformation' | translate }}
               </h3>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    First Name <span class="text-red-500">*</span>
+                    {{ 'assistants.firstName' | translate }} <span class="text-red-500">*</span>
                   </label>
                   <input type="text" 
                          [(ngModel)]="editForm.firstName"
-                         placeholder="Enter first name"
+                         placeholder="{{ 'assistants.enterFirstName' | translate }}"
                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    Last Name <span class="text-red-500">*</span>
+                    {{ 'assistants.lastName' | translate }} <span class="text-red-500">*</span>
                   </label>
                   <input type="text"
                          [(ngModel)]="editForm.lastName"
-                         placeholder="Enter last name"
+                         placeholder="{{ 'assistants.enterLastName' | translate }}"
                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
               </div>
@@ -152,27 +153,27 @@ interface ApiResponse {
                 <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
-                Contact Information
+                {{ 'assistants.contactInformation' | translate }}
               </h3>
               
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    Email <span class="text-red-500">*</span>
+                    {{ 'assistants.email' | translate }} <span class="text-red-500">*</span>
                   </label>
                   <input type="email"
                          [(ngModel)]="editForm.email"
-                         placeholder="assistant@example.com"
+                         placeholder="{{ 'assistants.enterEmail' | translate }}"
                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
                 
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2">
-                    Phone Number <span class="text-gray-400 text-xs">(Optional)</span>
+                    {{ 'assistants.phoneNumber' | translate }} <span class="text-gray-400 text-xs">{{ 'assistants.optional' | translate }}</span>
                   </label>
                   <input type="tel"
                          [(ngModel)]="editForm.phoneNumber"
-                         placeholder="+201234567890"
+                         placeholder="{{ 'assistants.enterPhone' | translate }}"
                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
               </div>
@@ -184,7 +185,7 @@ interface ApiResponse {
                 <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Account Status
+                {{ 'assistants.accountStatus' | translate }}
               </h3>
               
               <div class="flex items-center gap-3">
@@ -195,11 +196,11 @@ interface ApiResponse {
                   <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
                 <span class="text-sm font-medium text-gray-900">
-                  {{ editForm.isActive ? 'Active' : 'Inactive' }}
+                  {{ editForm.isActive ? ('assistants.active' | translate) : ('assistants.inactive' | translate) }}
                 </span>
               </div>
               <p class="text-xs text-gray-500 mt-2">
-                Inactive assistants cannot log in or access the system
+                {{ 'assistants.inactiveNote' | translate }}
               </p>
             </div>
 
@@ -209,13 +210,11 @@ interface ApiResponse {
                 <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                 </svg>
-                Permissions
+                {{ 'assistants.permissions' | translate }}
               </h3>
               
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p class="text-sm text-gray-700">
-                  <strong>Note:</strong> All assistants have full teaching access by default. These permissions cannot be modified.
-                </p>
+                <p class="text-sm text-gray-700" [innerHTML]="'assistants.permissionsNote' | translate"></p>
               </div>
               
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -226,8 +225,8 @@ interface ApiResponse {
                          disabled
                          class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 opacity-50 cursor-not-allowed">
                   <div>
-                    <p class="font-medium text-gray-900">{{ permission.label }}</p>
-                    <p class="text-xs text-gray-500">{{ permission.description }}</p>
+                    <p class="font-medium text-gray-900">{{ permission.label | translate }}</p>
+                    <p class="text-xs text-gray-500">{{ permission.description | translate }}</p>
                   </div>
                 </div>
               </div>
@@ -240,11 +239,11 @@ interface ApiResponse {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div class="flex-1">
-                  <p class="font-semibold text-gray-900 mb-1">Important Notes</p>
+                  <p class="font-semibold text-gray-900 mb-1">{{ 'assistants.importantNotes' | translate }}</p>
                   <ul class="text-sm text-gray-700 space-y-1">
-                    <li>• Assistants have full access to all teaching features</li>
-                    <li>• Assistants cannot access accounting or financial data</li>
-                    <li>• You can only change basic information (name, email, status)</li>
+                    <li>{{ 'assistants.note1' | translate }}</li>
+                    <li>{{ 'assistants.note2' | translate }}</li>
+                    <li>{{ 'assistants.note3' | translate }}</li>
                   </ul>
                 </div>
               </div>
@@ -259,7 +258,7 @@ interface ApiResponse {
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
-              Cancel
+              {{ 'assistants.cancel' | translate }}
             </button>
             <button (click)="saveChanges()"
                     [disabled]="!isFormValid() || isSaving"
@@ -271,8 +270,8 @@ interface ApiResponse {
               <svg *ngIf="!isSaving" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
               </svg>
-              <span *ngIf="!isSaving">Save Changes</span>
-              <span *ngIf="isSaving">Saving...</span>
+              <span *ngIf="!isSaving">{{ 'assistants.saveChanges' | translate }}</span>
+              <span *ngIf="isSaving">{{ 'assistants.saving' | translate }}</span>
             </button>
           </div>
         </div>
@@ -301,33 +300,33 @@ export class AssistantEditComponent implements OnInit {
   availablePermissions = [
     {
       value: 'mark_attendance',
-      label: 'Mark Attendance',
-      description: 'Can mark student attendance'
+      label: 'assistants.markAttendancePerm',
+      description: 'assistants.markAttendanceDesc'
     },
     {
       value: 'manage_assignments',
-      label: 'Manage Assignments',
-      description: 'Can create and grade assignments'
+      label: 'assistants.manageAssignmentsPerm',
+      description: 'assistants.manageAssignmentsDesc'
     },
     {
       value: 'manage_materials',
-      label: 'Manage Materials',
-      description: 'Can upload and manage course materials'
+      label: 'assistants.manageMaterialsPerm',
+      description: 'assistants.manageMaterialsDesc'
     },
     {
       value: 'view_students',
-      label: 'View Students',
-      description: 'Can view student information'
+      label: 'assistants.viewStudentsPerm',
+      description: 'assistants.viewStudentsDesc'
     },
     {
       value: 'manage_announcements',
-      label: 'Manage Announcements',
-      description: 'Can create and edit announcements'
+      label: 'assistants.manageAnnouncementsPerm',
+      description: 'assistants.manageAnnouncementsDesc'
     },
     {
       value: 'view_grades',
-      label: 'View Grades',
-      description: 'Can view student grades'
+      label: 'assistants.viewGradesPerm',
+      description: 'assistants.viewGradesDesc'
     }
   ];
 
@@ -335,7 +334,8 @@ export class AssistantEditComponent implements OnInit {
     private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -357,7 +357,7 @@ export class AssistantEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Load assistant error:', error);
-        this.toastService.error('Failed to load assistant details');
+        this.toastService.error(this.translate.instant('assistants.failedToLoadDetails'));
         this.isLoading = false;
       }
     });
@@ -415,14 +415,14 @@ export class AssistantEditComponent implements OnInit {
     this.http.put<ApiResponse>(`${this.API_URL}/assistants/${this.assistantId}`, updateData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Assistant updated successfully');
+          this.toastService.success(this.translate.instant('assistants.updatedSuccess'));
           this.router.navigate(['/dashboard/my-assistants', this.assistantId]);
         }
         this.isSaving = false;
       },
       error: (error) => {
         console.error('Update assistant error:', error);
-        this.toastService.error(error.error?.message || 'Failed to update assistant');
+        this.toastService.error(error.error?.message || this.translate.instant('assistants.failedToUpdate'));
         this.isSaving = false;
       }
     });
@@ -435,13 +435,13 @@ export class AssistantEditComponent implements OnInit {
       
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        this.toastService.error('Image size must be less than 2MB');
+        this.toastService.error(this.translate.instant('assistants.imageSizeError'));
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        this.toastService.error('Please select an image file');
+        this.toastService.error(this.translate.instant('assistants.imageTypeError'));
         return;
       }
 

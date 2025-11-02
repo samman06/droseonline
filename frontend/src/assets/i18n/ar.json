@@ -687,7 +687,7 @@
     "adding": "جاري الإضافة...",
     "removeTitle": "إزالة المساعد؟",
     "removeSubtitle": "لا يمكن التراجع عن هذا الإجراء",
-    "removeConfirmMessage": "هل أنت متأكد من أنك تريد إزالة <strong>{{name}}</strong> كمساعد؟ سيفقد الوصول إلى جميع وظائف التدريس.",
+    "removeConfirmText": "هل أنت متأكد من أنك تريد إزالة <strong>{{name}}</strong> كمساعد؟ سيفقد الوصول إلى جميع وظائف التدريس.",
     "removing": "جاري الإزالة...",
     "removeAssistant": "إزالة المساعد",
     "addedSuccess": "تمت إضافة المساعد بنجاح",
@@ -750,7 +750,23 @@
     "updatedSuccess": "تم تحديث المساعد بنجاح",
     "failedToUpdate": "فشل في تحديث المساعد",
     "imageSizeError": "يجب أن يكون حجم الصورة أقل من 2 ميجابايت",
-    "imageTypeError": "الرجاء اختيار ملف صورة"
+    "imageTypeError": "الرجاء اختيار ملف صورة",
+    "notFoundEditMessage": "المساعد الذي تحاول تعديله غير موجود أو ليس لديك إذن لتعديله.",
+    "editAssistantTitle": "تعديل المساعد",
+    "editAssistantSubtitle": "تحديث معلومات وصلاحيات المساعد",
+    "inactiveNote": "لا يمكن للمساعدين غير النشطين تسجيل الدخول أو الوصول إلى النظام",
+    "markAttendanceDesc": "يمكنه وضع علامة على حضور الطلاب",
+    "manageAssignmentsDesc": "يمكنه إنشاء وتقييم الواجبات",
+    "manageMaterialsDesc": "يمكنه تحميل وإدارة مواد الدورة",
+    "viewStudentsDesc": "يمكنه عرض معلومات الطلاب",
+    "manageAnnouncementsDesc": "يمكنه إنشاء وتحرير الإعلانات",
+    "viewGradesDesc": "يمكنه عرض درجات الطلاب",
+    "phone": "الهاتف",
+    "status": "الحالة",
+    "created": "تم الإنشاء",
+    "noAccountingAccessTitle": "⛔ لا يوجد وصول للمحاسبة",
+    "noAccountingAccessMessage": "لا يمكن للمساعدين الوصول إلى أي ميزات مالية أو محاسبية، بما في ذلك المدفوعات وتقارير الإيرادات والبيانات المالية.",
+    "failedToLoadDetails": "فشل في تحميل تفاصيل المساعد"
   }
 }
 
