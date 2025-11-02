@@ -767,6 +767,22 @@
     "noAccountingAccessTitle": "⛔ No Accounting Access",
     "noAccountingAccessMessage": "Assistants cannot access any financial or accounting features, including payments, revenue reports, and financial data.",
     "failedToLoadDetails": "Failed to load assistant details"
+  },
+  "groups": {
+    "myGroups": "My Groups",
+    "myTeachingGroups": "My Teaching Groups",
+    "groupsManagement": "Groups Management",
+    "studentDesc": "View your enrolled groups and join new ones",
+    "teacherDesc": "Manage groups you teach and track student progress",
+    "adminDesc": "Organize classes with teachers, subjects, and schedules",
+    "groups": "Groups",
+    "exportData": "Export Data",
+    "addNewGroup": "Add New Group",
+    "filters": "Filters",
+    "clearFilters": "Clear Filters",
+    "search": "Search",
+    "teacher": "Teacher",
+    "subject": "Subject"
   }
 }
 

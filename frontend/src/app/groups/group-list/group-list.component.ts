@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GroupService } from '../../services/group.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -12,7 +13,7 @@ import { PermissionService } from '../../services/permission.service';
 @Component({
   selector: 'app-group-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Header Section with Enhanced Design -->
@@ -27,25 +28,25 @@ import { PermissionService } from '../../services/permission.service';
             <div>
               <!-- Role-specific headers -->
               <h1 *ngIf="currentUser?.role === 'student'" class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                My Groups
+                {{ 'groups.myGroups' | translate }}
               </h1>
               <h1 *ngIf="currentUser?.role === 'teacher'" class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                My Teaching Groups
+                {{ 'groups.myTeachingGroups' | translate }}
               </h1>
               <h1 *ngIf="currentUser?.role === 'admin'" class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Groups Management
+                {{ 'groups.groupsManagement' | translate }}
               </h1>
               
               <!-- Role-specific descriptions -->
-              <p *ngIf="currentUser?.role === 'student'" class="mt-1 text-gray-600">View your enrolled groups and join new ones</p>
-              <p *ngIf="currentUser?.role === 'teacher'" class="mt-1 text-gray-600">Manage groups you teach and track student progress</p>
-              <p *ngIf="currentUser?.role === 'admin'" class="mt-1 text-gray-600">Organize classes with teachers, subjects, and schedules</p>
+              <p *ngIf="currentUser?.role === 'student'" class="mt-1 text-gray-600">{{ 'groups.studentDesc' | translate }}</p>
+              <p *ngIf="currentUser?.role === 'teacher'" class="mt-1 text-gray-600">{{ 'groups.teacherDesc' | translate }}</p>
+              <p *ngIf="currentUser?.role === 'admin'" class="mt-1 text-gray-600">{{ 'groups.adminDesc' | translate }}</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
                   </svg>
-                  {{ groups.length }} Groups
+                  {{ groups.length }} {{ 'groups.groups' | translate }}
                 </span>
               </div>
             </div>
@@ -61,7 +62,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              Export Data
+              {{ 'groups.exportData' | translate }}
             </button>
             
             <!-- Create button - Only for admin and teachers -->
@@ -72,7 +73,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
-              Add New Group
+              {{ 'groups.addNewGroup' | translate }}
             </button>
           </div>
         </div>
@@ -82,24 +83,24 @@ import { PermissionService } from '../../services/permission.service';
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <!-- Filters Header -->
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <h3 class="text-sm font-semibold text-gray-700">{{ 'groups.filters' | translate }}</h3>
           <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
-            Clear Filters
+            {{ 'groups.clearFilters' | translate }}
           </button>
         </div>
 
         <!-- Active Filter Chips -->
         <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mb-3">
           <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Search: {{ filters.search }}
+            {{ 'groups.search' | translate }}: {{ filters.search }}
             <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
           <span *ngIf="filters.teacherId && currentUser?.role === 'admin'" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Teacher: {{ getTeacherName(filters.teacherId) }}
+            {{ 'groups.teacher' | translate }}: {{ getTeacherName(filters.teacherId) }}
             <button (click)="removeFilter('teacherId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
           <span *ngIf="filters.subjectId" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Subject: {{ getSubjectName(filters.subjectId) }}
+            {{ 'groups.subject' | translate }}: {{ getSubjectName(filters.subjectId) }}
             <button (click)="removeFilter('subjectId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
           <span *ngIf="filters.gradeLevel && currentUser?.role !== 'student'" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -343,7 +344,7 @@ export class GroupListComponent implements OnInit {
   /**
    * Load groups based on current user's role
    * - Student: Load only enrolled groups (getMyGroups)
-   * - Teacher: Load groups they teach (getTeacherGroups)
+   * - {{ 'groups.teacher' | translate }}: Load groups they teach (getTeacherGroups)
    * - Admin: Load all groups (getAllGroups)
    */
   loadGroups(): void {
