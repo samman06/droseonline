@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GroupService } from '../../services/group.service';
 import { StudentService } from '../../services/student.service';
 import { AttendanceService } from '../../services/attendance.service';
@@ -15,7 +16,7 @@ import { PermissionService } from '../../services/permission.service';
 @Component({
   selector: 'app-group-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       <div class="max-w-7xl mx-auto p-6 space-y-6">
@@ -28,7 +29,7 @@ import { PermissionService } from '../../services/permission.service';
           </svg>
         </button>
             <div class="flex items-center space-x-2 text-sm">
-              <span class="text-gray-500 hover:text-gray-700 cursor-pointer" (click)="goBack()">Groups</span>
+              <span class="text-gray-500 hover:text-gray-700 cursor-pointer" (click)="goBack()">{{ 'groups.groups' | translate }}</span>
               <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
               </svg>
@@ -38,23 +39,23 @@ import { PermissionService } from '../../services/permission.service';
 
           <!-- Action Buttons - Admin/Teacher only -->
           <div *ngIf="canEdit || canDelete" class="flex items-center gap-2">
-            <button *ngIf="canEdit" (click)="clone()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md" title="Clone Group">
+            <button *ngIf="canEdit" (click)="clone()" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all shadow-sm hover:shadow-md" [title]="'groups.clone' | translate">
               <svg class="w-4 h-4 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
               </svg>
-              <span class="hidden sm:inline">Clone</span>
+              <span class="hidden sm:inline">{{ 'groups.clone' | translate }}</span>
             </button>
             <button *ngIf="canEdit" (click)="edit()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm hover:shadow-md">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
-              <span class="hidden sm:inline">Edit</span>
+              <span class="hidden sm:inline">{{ 'groups.edit' | translate }}</span>
             </button>
             <button *ngIf="canDelete" (click)="delete()" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-sm hover:shadow-md">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
-              <span class="hidden sm:inline">Delete</span>
+              <span class="hidden sm:inline">{{ 'groups.delete' | translate }}</span>
             </button>
           </div>
         </div>
@@ -88,8 +89,8 @@ import { PermissionService } from '../../services/permission.service';
                         </svg>
                       </div>
                       <div class="overflow-hidden">
-                        <div class="text-indigo-100 text-xs font-medium">Teacher</div>
-                        <div class="font-semibold truncate">{{ group?.course?.teacher?.fullName || 'N/A' }}</div>
+                        <div class="text-indigo-100 text-xs font-medium">{{ 'groups.teacher' | translate }}</div>
+                        <div class="font-semibold truncate">{{ group?.course?.teacher?.fullName || ('groups.na' | translate) }}</div>
                       </div>
                     </div>
                     
@@ -100,8 +101,8 @@ import { PermissionService } from '../../services/permission.service';
                         </svg>
                       </div>
                       <div class="overflow-hidden">
-                        <div class="text-indigo-100 text-xs font-medium">Subject</div>
-                        <div class="font-semibold truncate">{{ group?.course?.subject?.name || 'N/A' }}</div>
+                        <div class="text-indigo-100 text-xs font-medium">{{ 'groups.subject' | translate }}</div>
+                        <div class="font-semibold truncate">{{ group?.course?.subject?.name || ('groups.na' | translate) }}</div>
                       </div>
                     </div>
                     
@@ -112,8 +113,8 @@ import { PermissionService } from '../../services/permission.service';
                         </svg>
                       </div>
                       <div>
-                        <div class="text-indigo-100 text-xs font-medium">Price/Session</div>
-                        <div class="font-semibold">{{ group?.pricePerSession || 0 }} EGP</div>
+                        <div class="text-indigo-100 text-xs font-medium">{{ 'groups.pricePerSessionShort' | translate }}</div>
+                        <div class="font-semibold">{{ group?.pricePerSession || 0 }} {{ 'groups.egp' | translate }}</div>
                       </div>
                     </div>
         </div>
@@ -123,11 +124,11 @@ import { PermissionService } from '../../services/permission.service';
                 <div class="grid grid-cols-2 gap-3">
                   <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 text-center">
                     <div class="text-3xl font-bold">{{ group?.students?.length || 0 }}</div>
-                    <div class="text-indigo-100 text-sm font-medium mt-1">Students</div>
+                    <div class="text-indigo-100 text-sm font-medium mt-1">{{ 'groups.students' | translate }}</div>
                   </div>
                   <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 text-center">
                     <div class="text-3xl font-bold">{{ group?.assignmentStats?.total || 0 }}</div>
-                    <div class="text-indigo-100 text-sm font-medium mt-1">Assignments</div>
+                    <div class="text-indigo-100 text-sm font-medium mt-1">{{ 'groups.assignments' | translate }}</div>
                   </div>
                 </div>
               </div>
@@ -149,7 +150,7 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'overview'" [class.text-gray-400]="activeTab !== 'overview'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                 </svg>
-                Overview
+                {{ 'groups.overview' | translate }}
               </button>
               <button 
                 *ngIf="showStudentsTab"
@@ -162,7 +163,7 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'students'" [class.text-gray-400]="activeTab !== 'students'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
-                Students
+                {{ 'groups.students' | translate }}
                 <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
                       [class.bg-indigo-100]="activeTab === 'students'"
                       [class.text-indigo-600]="activeTab === 'students'"
@@ -181,7 +182,7 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'assignments'" [class.text-gray-400]="activeTab !== 'assignments'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                Assignments
+                {{ 'groups.assignments' | translate }}
                 <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
                       [class.bg-indigo-100]="activeTab === 'assignments'"
                       [class.text-indigo-600]="activeTab === 'assignments'"
@@ -200,7 +201,7 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'attendance'" [class.text-gray-400]="activeTab !== 'attendance'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                 </svg>
-                Attendance
+                {{ 'groups.attendance' | translate }}
                 <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
                       [class.bg-indigo-100]="activeTab === 'attendance'"
                       [class.text-indigo-600]="activeTab === 'attendance'"
@@ -219,7 +220,7 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-5 h-5 mr-2" [class.text-indigo-600]="activeTab === 'materials'" [class.text-gray-400]="activeTab !== 'materials'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                 </svg>
-                Materials
+                {{ 'groups.materials' | translate }}
                 <span class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
                       [class.bg-indigo-100]="activeTab === 'materials'"
                       [class.text-indigo-600]="activeTab === 'materials'"
@@ -247,7 +248,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-blue-900">{{ group?.students?.length || 0 }}</div>
-                    <div class="text-sm text-blue-600 font-medium mt-1">Enrolled Students</div>
+                    <div class="text-sm text-blue-600 font-medium mt-1">{{ 'groups.enrolledStudents' | translate }}</div>
                   </div>
 
                   <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
@@ -259,7 +260,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-purple-900">{{ group?.assignmentStats?.total || 0 }}</div>
-                    <div class="text-sm text-purple-600 font-medium mt-1">Total Assignments</div>
+                    <div class="text-sm text-purple-600 font-medium mt-1">{{ 'groups.totalAssignments' | translate }}</div>
                   </div>
 
                   <div *ngIf="group?.totalRevenue && group?.totalRevenue > 0" class="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border-2 border-emerald-200">
@@ -270,8 +271,8 @@ import { PermissionService } from '../../services/permission.service';
                         </svg>
                       </div>
                     </div>
-                    <div class="text-3xl font-bold text-emerald-900">{{ group?.totalRevenue || 0 }} <span class="text-lg">EGP</span></div>
-                    <div class="text-sm text-emerald-600 font-medium mt-1">Total Revenue</div>
+                    <div class="text-3xl font-bold text-emerald-900">{{ group?.totalRevenue || 0 }} <span class="text-lg">{{ 'groups.egp' | translate }}</span></div>
+                    <div class="text-sm text-emerald-600 font-medium mt-1">{{ 'groups.totalRevenue' | translate }}</div>
                   </div>
 
                   <div *ngIf="group?.totalSessionsHeld && group?.totalSessionsHeld > 0" class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200">
@@ -283,7 +284,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-amber-900">{{ group?.totalSessionsHeld || 0 }}</div>
-                    <div class="text-sm text-amber-600 font-medium mt-1">Sessions Completed</div>
+                    <div class="text-sm text-amber-600 font-medium mt-1">{{ 'groups.sessionsCompleted' | translate }}</div>
                   </div>
 
                   <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
@@ -295,7 +296,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-green-900">{{ group?.schedule?.length || 0 }}</div>
-                    <div class="text-sm text-green-600 font-medium mt-1">Sessions Per Week</div>
+                    <div class="text-sm text-green-600 font-medium mt-1">{{ 'groups.sessionsPerWeek' | translate }}</div>
                   </div>
 
                   <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200">
@@ -307,7 +308,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-amber-900">{{ getTotalWeeklyHours() }}</div>
-                    <div class="text-sm text-amber-600 font-medium mt-1">Total Weekly Hours</div>
+                    <div class="text-sm text-amber-600 font-medium mt-1">{{ 'groups.totalWeeklyHours' | translate }}</div>
                   </div>
                 </div>
 
@@ -317,7 +318,7 @@ import { PermissionService } from '../../services/permission.service';
                     <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    Weekly Schedule
+                    {{ 'groups.weeklySchedule' | translate }}
                   </h3>
                   <div class="space-y-3">
                     <div *ngFor="let s of group?.schedule" 
@@ -332,7 +333,7 @@ import { PermissionService } from '../../services/permission.service';
                       <span class="text-sm font-medium">{{ s.startTime }} - {{ s.endTime }}</span>
                     </div>
                     <div *ngIf="!group?.schedule || group?.schedule.length === 0" class="text-center py-4 text-gray-500">
-                      No schedule configured
+                      {{ 'groups.noScheduleConfigured' | translate }}
                     </div>
                   </div>
                 </div>
@@ -344,16 +345,16 @@ import { PermissionService } from '../../services/permission.service';
                   <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                   </svg>
-                  Course Information
+                  {{ 'groups.courseInformation' | translate }}
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p class="text-sm text-gray-600 font-medium mb-1">Course Name</p>
-                    <p class="text-lg font-bold text-gray-900">{{ group?.course?.name || 'N/A' }}</p>
+                    <p class="text-sm text-gray-600 font-medium mb-1">{{ 'groups.courseName' | translate }}</p>
+                    <p class="text-lg font-bold text-gray-900">{{ group?.course?.name || ('groups.na' | translate) }}</p>
                   </div>
                   <div>
-                    <p class="text-sm text-gray-600 font-medium mb-1">Course Code</p>
-                    <p class="text-lg font-mono font-bold text-gray-900">{{ group?.course?.code || 'N/A' }}</p>
+                    <p class="text-sm text-gray-600 font-medium mb-1">{{ 'groups.courseCode' | translate }}</p>
+                    <p class="text-lg font-mono font-bold text-gray-900">{{ group?.course?.code || ('groups.na' | translate) }}</p>
                   </div>
                 </div>
               </div>
@@ -363,16 +364,16 @@ import { PermissionService } from '../../services/permission.service';
             <div *ngIf="activeTab === 'students'">
               <div class="flex items-center justify-between mb-6">
                 <div>
-                  <h3 class="text-lg font-bold text-gray-900">Enrolled Students</h3>
+                  <h3 class="text-lg font-bold text-gray-900">{{ 'groups.enrolledStudents' | translate }}</h3>
                   <p class="text-sm text-gray-600 mt-1">
-                    {{ canManageStudents ? 'Manage student enrollment for this group' : 'View students enrolled in this group' }}
+                    {{ canManageStudents ? ('groups.manageStudentEnrollment' | translate) : ('groups.viewStudentsEnrolled' | translate) }}
                   </p>
                 </div>
                 <button *ngIf="canManageStudents" (click)="openAddStudentModal()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
-                  Add Student
+                  {{ 'groups.addStudent' | translate }}
                 </button>
               </div>
 
@@ -383,12 +384,12 @@ import { PermissionService } from '../../services/permission.service';
                     <thead class="bg-gray-50">
                       <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Contact</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrolled</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.student' | translate }}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.studentId' | translate }}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.contact' | translate }}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.parentContact' | translate }}</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.enrolled' | translate }}</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.actions' | translate }}</th>
                       </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -419,7 +420,7 @@ import { PermissionService } from '../../services/permission.service';
                             <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                             </svg>
-                            {{ studentEnrollment?.student?.phoneNumber || 'N/A' }}
+                            {{ studentEnrollment?.student?.phoneNumber || ('groups.na' | translate) }}
                           </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -427,7 +428,7 @@ import { PermissionService } from '../../services/permission.service';
                             <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                             </svg>
-                            {{ studentEnrollment?.student?.parentContact?.primaryPhone || 'N/A' }}
+                            {{ studentEnrollment?.student?.parentContact?.primaryPhone || ('groups.na' | translate) }}
                           </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -436,7 +437,7 @@ import { PermissionService } from '../../services/permission.service';
                         <td *ngIf="canManageStudents" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button (click)="removeStudent(studentEnrollment?.student?._id || studentEnrollment?.student?.id)" 
                                   class="text-red-600 hover:text-red-900">
-                            Remove
+                            {{ 'groups.remove' | translate }}
                           </button>
                         </td>
                         <td *ngIf="!canManageStudents" class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-400">
@@ -445,7 +446,7 @@ import { PermissionService } from '../../services/permission.service';
                       </tr>
                       <tr *ngIf="!group?.students || group?.students.length === 0">
                         <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                          No students enrolled yet
+                          {{ 'groups.noStudentsEnrolledYet' | translate }}
                         </td>
                       </tr>
                     </tbody>
@@ -458,16 +459,16 @@ import { PermissionService } from '../../services/permission.service';
             <div *ngIf="activeTab === 'assignments'">
               <div class="flex items-center justify-between mb-6">
                 <div>
-                  <h3 class="text-lg font-bold text-gray-900">Assignments</h3>
+                  <h3 class="text-lg font-bold text-gray-900">{{ 'groups.assignmentsTitle' | translate }}</h3>
                   <p class="text-sm text-gray-600 mt-1">
-                    {{ canCreateAssignment ? 'View and manage assignments for this group' : 'View your assignment results' }}
+                    {{ canCreateAssignment ? ('groups.viewAndManageAssignments' | translate) : ('groups.viewAssignmentResults' | translate) }}
                   </p>
                 </div>
                 <button *ngIf="canCreateAssignment" (click)="createAssignmentForGroup()" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                   </svg>
-                  Create Assignment
+                  {{ 'groups.createAssignment' | translate }}
                 </button>
               </div>
 
@@ -475,23 +476,23 @@ import { PermissionService } from '../../services/permission.service';
               <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                 <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                   <div class="text-2xl font-bold text-gray-900">{{ group?.assignmentStats?.total || 0 }}</div>
-                  <div class="text-xs text-gray-600 font-medium mt-1">Total</div>
+                  <div class="text-xs text-gray-600 font-medium mt-1">{{ 'groups.total' | translate }}</div>
                 </div>
                 <div class="bg-green-50 rounded-lg p-4 border border-green-200">
                   <div class="text-2xl font-bold text-green-700">{{ group?.assignmentStats?.published || 0 }}</div>
-                  <div class="text-xs text-green-600 font-medium mt-1">Published</div>
+                  <div class="text-xs text-green-600 font-medium mt-1">{{ 'groups.published' | translate }}</div>
                 </div>
                 <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                   <div class="text-2xl font-bold text-yellow-700">{{ group?.assignmentStats?.draft || 0 }}</div>
-                  <div class="text-xs text-yellow-600 font-medium mt-1">Draft</div>
+                  <div class="text-xs text-yellow-600 font-medium mt-1">{{ 'groups.draft' | translate }}</div>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <div class="text-2xl font-bold text-blue-700">{{ group?.assignmentStats?.upcoming || 0 }}</div>
-                  <div class="text-xs text-blue-600 font-medium mt-1">Upcoming</div>
+                  <div class="text-xs text-blue-600 font-medium mt-1">{{ 'groups.upcoming' | translate }}</div>
                 </div>
                 <div class="bg-red-50 rounded-lg p-4 border border-red-200">
                   <div class="text-2xl font-bold text-red-700">{{ group?.assignmentStats?.overdue || 0 }}</div>
-                  <div class="text-xs text-red-600 font-medium mt-1">Overdue</div>
+                  <div class="text-xs text-red-600 font-medium mt-1">{{ 'groups.overdue' | translate }}</div>
                 </div>
               </div>
 
@@ -529,7 +530,7 @@ import { PermissionService } from '../../services/permission.service';
                             <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                             <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                           </svg>
-                          {{ assignment.maxPoints }} pts
+                          {{ assignment.maxPoints }} {{ 'groups.pts' | translate }}
                         </span>
                       </div>
                     </div>
@@ -544,8 +545,8 @@ import { PermissionService } from '../../services/permission.service';
                   <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                   </svg>
-                  <p class="text-gray-600 font-medium">No assignments yet</p>
-                  <p class="text-sm text-gray-500 mt-1">Create assignments for this group to get started</p>
+                  <p class="text-gray-600 font-medium">{{ 'groups.noAssignmentsYet' | translate }}</p>
+                  <p class="text-sm text-gray-500 mt-1">{{ 'groups.createAssignmentsMessage' | translate }}</p>
                 </div>
               </div>
             </div>
@@ -556,7 +557,7 @@ import { PermissionService } from '../../services/permission.service';
               <div *ngIf="loadingAttendance" class="flex justify-center items-center py-12">
                 <div class="text-center">
                   <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600 mx-auto mb-4"></div>
-                  <p class="text-gray-600">Loading attendance data...</p>
+                  <p class="text-gray-600">{{ 'groups.loadingAttendance' | translate }}</p>
                 </div>
               </div>
 
@@ -565,9 +566,9 @@ import { PermissionService } from '../../services/permission.service';
                 <!-- Header with Quick Action -->
                 <div class="flex items-center justify-between mb-6">
                   <div>
-                    <h3 class="text-lg font-bold text-gray-900">Attendance Overview</h3>
+                    <h3 class="text-lg font-bold text-gray-900">{{ 'groups.attendance' | translate }} Overview</h3>
                     <p class="text-sm text-gray-600 mt-1">
-                      {{ canMarkAttendance ? 'Track and manage attendance for this group' : 'View your attendance records' }}
+                      {{ canMarkAttendance ? ('groups.trackAndManageAttendance' | translate) : ('groups.viewAttendanceRecords' | translate) }}
                     </p>
                   </div>
                   <button 
@@ -577,7 +578,7 @@ import { PermissionService } from '../../services/permission.service';
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
-                    Mark Attendance
+                    {{ 'groups.markAttendance' | translate }}
                   </button>
                 </div>
 
@@ -592,7 +593,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-blue-900">{{ attendanceStats?.totalSessions || 0 }}</div>
-                    <div class="text-sm font-medium text-blue-700">Total Sessions</div>
+                    <div class="text-sm font-medium text-blue-700">{{ 'groups.totalSessions' | translate }}</div>
                   </div>
 
                   <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200">
@@ -604,7 +605,7 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-green-900">{{ attendanceStats?.averageRate || 0 }}%</div>
-                    <div class="text-sm font-medium text-green-700">Average Attendance</div>
+                    <div class="text-sm font-medium text-green-700">{{ 'groups.averageAttendance' | translate }}</div>
                   </div>
 
                   <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border border-yellow-200">
@@ -615,8 +616,8 @@ import { PermissionService } from '../../services/permission.service';
                         </svg>
                       </div>
                     </div>
-                    <div class="text-3xl font-bold text-yellow-900">{{ attendanceStats?.latestDate || 'N/A' }}</div>
-                    <div class="text-sm font-medium text-yellow-700">Latest Session</div>
+                    <div class="text-3xl font-bold text-yellow-900">{{ attendanceStats?.latestDate || ('groups.na' | translate) }}</div>
+                    <div class="text-sm font-medium text-yellow-700">{{ 'groups.latestSession' | translate }}</div>
                   </div>
 
                   <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
@@ -628,23 +629,23 @@ import { PermissionService } from '../../services/permission.service';
                       </div>
                     </div>
                     <div class="text-3xl font-bold text-purple-900">{{ attendanceStats?.averagePresent || 0 }}</div>
-                    <div class="text-sm font-medium text-purple-700">Avg. Students Present</div>
+                    <div class="text-sm font-medium text-purple-700">{{ 'groups.avgStudentsPresent' | translate }}</div>
                   </div>
                 </div>
 
                 <!-- Recent Attendance Sessions -->
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                   <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-                    <h4 class="text-lg font-semibold text-gray-900">Recent Sessions</h4>
+                    <h4 class="text-lg font-semibold text-gray-900">{{ 'groups.recentSessions' | translate }}</h4>
                   </div>
                   
                   <div *ngIf="recentAttendance.length === 0" class="text-center py-12">
                     <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
-                    <p class="text-gray-600 font-medium">No attendance records yet</p>
+                    <p class="text-gray-600 font-medium">{{ 'groups.noAttendanceRecords' | translate }}</p>
                     <p class="text-sm text-gray-500 mt-1">
-                      {{ canMarkAttendance ? 'Mark attendance to start tracking' : 'Attendance will appear here once recorded' }}
+                      {{ canMarkAttendance ? ('groups.markAttendanceToStart' | translate) : ('groups.attendanceWillAppear' | translate) }}
                     </p>
                     <button 
                       *ngIf="canMarkAttendance"
@@ -653,7 +654,7 @@ import { PermissionService } from '../../services/permission.service';
                       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                       </svg>
-                      Mark First Session
+                      {{ 'groups.markFirstSession' | translate }}
                     </button>
                   </div>
 
@@ -665,21 +666,21 @@ import { PermissionService } from '../../services/permission.service';
                         <div class="flex-1">
                           <div class="flex items-center gap-3 mb-2">
                             <span class="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
-                              {{ session.code || 'N/A' }}
+                              {{ session.code || ('groups.na' | translate) }}
                             </span>
                             <span *ngIf="session.isLocked" class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
-                              🔒 Locked
+                              🔒 {{ 'groups.locked' | translate }}
                             </span>
                             <span *ngIf="!session.isLocked" class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                              🔓 Open
+                              🔓 {{ 'groups.open' | translate }}
                             </span>
                           </div>
                           <div class="text-sm text-gray-900 font-medium mb-1">
                             {{ formatDate(session.session.date) }}
                           </div>
                           <div class="text-xs text-gray-500">
-                            {{ session.records?.length || 0 }} students • 
-                            {{ calculateRate(session) }}% attendance rate
+                            {{ session.records?.length || 0 }} {{ 'groups.studentsCount' | translate }} • 
+                            {{ calculateRate(session) }}% {{ 'groups.attendanceRate' | translate }}
                           </div>
                         </div>
                         
@@ -687,13 +688,13 @@ import { PermissionService } from '../../services/permission.service';
                           <!-- Quick Stats -->
                           <div class="flex items-center gap-2 text-sm">
                             <span class="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                              {{ countPresent(session) }} P
+                              {{ countPresent(session) }} {{ 'groups.present' | translate }}
                             </span>
                             <span class="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">
-                              {{ countAbsent(session) }} A
+                              {{ countAbsent(session) }} {{ 'groups.absent' | translate }}
                             </span>
                             <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
-                              {{ countLate(session) }} L
+                              {{ countLate(session) }} {{ 'groups.late' | translate }}
             </span>
                           </div>
                           
@@ -710,7 +711,7 @@ import { PermissionService } from '../../services/permission.service';
                     <button 
                       (click)="viewAllAttendance()"
                       class="w-full text-center text-sm font-medium text-purple-600 hover:text-purple-800 transition-colors">
-                      View All Attendance Records →
+                      {{ 'groups.viewAllAttendanceRecords' | translate }} →
                     </button>
                   </div>
                 </div>
@@ -720,14 +721,14 @@ import { PermissionService } from '../../services/permission.service';
             <!-- Materials Tab -->
             <div *ngIf="activeTab === 'materials'">
               <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">📚 Materials</h2>
+                <h2 class="text-2xl font-bold text-gray-900">📚 {{ 'groups.materialsTitle' | translate }}</h2>
                 <button *ngIf="canEdit"
                         (click)="uploadMaterial()"
                         class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md">
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
-                  Upload Material
+                  {{ 'groups.uploadMaterial' | translate }}
                 </button>
               </div>
 
@@ -761,7 +762,7 @@ import { PermissionService } from '../../services/permission.service';
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                       </svg>
-                      {{ material.stats.viewCount || 0 }} views
+                      {{ material.stats.viewCount || 0 }} {{ 'groups.views' | translate }}
                     </span>
                     <span class="flex items-center gap-1">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -778,15 +779,15 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                 </svg>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No Materials Available</h3>
-                <p class="text-sm text-gray-500 mb-4">Materials for this group will appear here</p>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">{{ 'groups.noMaterialsAvailable' | translate }}</h3>
+                <p class="text-sm text-gray-500 mb-4">{{ 'groups.materialsWillAppear' | translate }}</p>
                 <button *ngIf="canEdit"
                         (click)="uploadMaterial()"
                         class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md text-sm">
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
-                  Upload First Material
+                  {{ 'groups.uploadFirstMaterial' | translate }}
                 </button>
               </div>
             </div>
@@ -806,7 +807,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
               </svg>
-              <h3 class="text-xl font-bold text-white">Add Student to Group</h3>
+              <h3 class="text-xl font-bold text-white">{{ 'groups.addStudentToGroup' | translate }}</h3>
             </div>
             <button (click)="closeAddStudentModal()" class="text-white hover:text-gray-200 transition-colors">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -819,26 +820,26 @@ import { PermissionService } from '../../services/permission.service';
         <!-- Modal Body -->
         <div class="p-6">
           <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Search and Select Student</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'groups.searchAndSelectStudent' | translate }}</label>
             <input
               type="text"
               [(ngModel)]="studentSearchTerm"
               (input)="searchStudents()"
-              placeholder="Search by name, email, or student ID..."
+              [placeholder]="'groups.searchPlaceholderStudents' | translate"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
             />
           </div>
 
           <div *ngIf="loadingStudents" class="text-center py-8">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-            <p class="text-gray-500 mt-2">Loading students...</p>
+            <p class="text-gray-500 mt-2">{{ 'groups.loadingStudents' | translate }}</p>
           </div>
 
           <div *ngIf="!loadingStudents && availableStudents.length === 0" class="text-center py-8">
             <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
             </svg>
-            <p class="text-gray-500">No available students found for grade {{ group?.gradeLevel }}</p>
+            <p class="text-gray-500">{{ 'groups.noAvailableStudents' | translate: { grade: group?.gradeLevel } }}</p>
           </div>
 
           <div *ngIf="!loadingStudents && availableStudents.length > 0" class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
@@ -862,7 +863,7 @@ import { PermissionService } from '../../services/permission.service';
         <!-- Modal Footer -->
         <div class="px-6 py-4 bg-gray-50 rounded-b-2xl flex justify-end">
           <button (click)="closeAddStudentModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
-            Cancel
+            {{ 'groups.cancel' | translate }}
           </button>
         </div>
       </div>
@@ -907,7 +908,8 @@ export class GroupDetailComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     public permissionService: PermissionService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -961,10 +963,10 @@ export class GroupDetailComponent implements OnInit {
 
   async clone(): Promise<void> {
     const confirmed = await this.confirmation.confirm({ 
-      title: 'Clone Group Section', 
-      message: `Create a new section based on "${this.group?.name}"? You can modify the schedule and other details after creation.`, 
-      confirmText: 'Yes, Clone', 
-      cancelText: 'Cancel', 
+      title: this.translate.instant('groups.cloneGroupTitle'), 
+      message: this.translate.instant('groups.cloneGroupMessage', { name: this.group?.name }), 
+      confirmText: this.translate.instant('groups.yesClone'), 
+      cancelText: this.translate.instant('groups.cancel'), 
       type: 'info' 
     });
     
@@ -1008,7 +1010,13 @@ export class GroupDetailComponent implements OnInit {
   }
 
   async delete(): Promise<void> {
-    const confirmed = await this.confirmation.confirm({ title: 'Delete Group', message: `Delete ${this.group?.name}?`, confirmText: 'Yes, Delete', cancelText: 'Cancel', type: 'danger' });
+    const confirmed = await this.confirmation.confirm({ 
+      title: this.translate.instant('groups.confirmDelete'), 
+      message: this.translate.instant('groups.deleteWarning'), 
+      confirmText: this.translate.instant('groups.yesDelete'), 
+      cancelText: this.translate.instant('groups.cancel'), 
+      type: 'danger' 
+    });
     if (!confirmed) return;
     this.groupService.deleteGroup(this.group?.id || this.group?._id).subscribe({ next: _ => this.router.navigate(['/dashboard/groups']) });
   }
@@ -1094,7 +1102,7 @@ export class GroupDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading students:', error);
-        this.toastService.error('Failed to load students');
+        this.toastService.error(this.translate.instant('groups.failedToLoadStudents'));
         this.loadingStudents = false;
       }
     });
@@ -1106,7 +1114,7 @@ export class GroupDetailComponent implements OnInit {
     
     this.groupService.addStudent(groupId, studentId).subscribe({
       next: (res) => {
-        this.toastService.success(`${student.fullName} added to group successfully`);
+        this.toastService.success(this.translate.instant('groups.studentAddedSuccess', { name: student.fullName }));
         this.closeAddStudentModal();
         // Refresh group data
         this.groupService.getGroup(groupId).subscribe({
@@ -1127,10 +1135,10 @@ export class GroupDetailComponent implements OnInit {
     const studentName = studentEnrollment?.student?.fullName || 'this student';
     
     const confirmed = await this.confirmation.confirm({
-      title: 'Remove Student',
-      message: `Remove ${studentName} from this group?`,
-      confirmText: 'Yes, Remove',
-      cancelText: 'Cancel',
+      title: this.translate.instant('groups.removeStudent'),
+      message: this.translate.instant('groups.removeStudentMessage', { name: studentName }),
+      confirmText: this.translate.instant('groups.yesRemove'),
+      cancelText: this.translate.instant('groups.cancel'),
       type: 'warning'
     });
     
@@ -1139,7 +1147,7 @@ export class GroupDetailComponent implements OnInit {
     const groupId = this.group._id || this.group.id;
     this.groupService.removeStudent(groupId, studentId).subscribe({
       next: () => {
-        this.toastService.success(`${studentName} removed from group`);
+        this.toastService.success(this.translate.instant('groups.studentRemovedSuccess', { name: studentName }));
         // Refresh group data
         this.groupService.getGroup(groupId).subscribe({
           next: res => this.group = res.data?.group
@@ -1192,7 +1200,7 @@ export class GroupDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading attendance:', error);
-        this.toastService.error('Failed to load attendance data');
+        this.toastService.error(this.translate.instant('groups.failedToLoadAttendance'));
         this.loadingAttendance = false;
       }
     });
@@ -1203,7 +1211,7 @@ export class GroupDetailComponent implements OnInit {
       this.attendanceStats = {
         totalSessions: 0,
         averageRate: 0,
-        latestDate: 'N/A',
+        latestDate: this.translate.instant('groups.na'),
         averagePresent: 0
       };
       return;
@@ -1222,7 +1230,7 @@ export class GroupDetailComponent implements OnInit {
     const latestSession = this.recentAttendance[0];
     const latestDate = latestSession?.session?.date 
       ? new Date(latestSession.session.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      : 'N/A';
+      : this.translate.instant('groups.na');
 
     this.attendanceStats = {
       totalSessions,
@@ -1254,7 +1262,7 @@ export class GroupDetailComponent implements OnInit {
   }
 
   formatDate(date: any): string {
-    if (!date) return 'N/A';
+    if (!date) return this.translate.instant('groups.na');
     return new Date(date).toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
@@ -1314,7 +1322,7 @@ export class GroupDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load materials', error);
-        this.toastService.error('Failed to load materials');
+        this.toastService.error(this.translate.instant('groups.failedToLoadMaterials'));
       }
     });
   }

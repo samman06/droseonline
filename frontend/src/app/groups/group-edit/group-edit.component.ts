@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { GroupFormComponent } from '../group-form/group-form.component';
 import { GroupService } from '../../services/group.service';
 
@@ -10,9 +11,9 @@ import { GroupService } from '../../services/group.service';
   imports: [CommonModule, GroupFormComponent],
   template: `
     <app-group-form
-      [title]="'Edit Group'"
-      [subtitle]="'Update group details and schedule'"
-      [submitText]="'Update Group'"
+      [title]="translate.instant('groups.editGroup')"
+      [subtitle]="translate.instant('groups.updateGroupSubtitle')"
+      [submitText]="translate.instant('groups.updateGroup')"
       [initialValue]="group"
       (save)="onSave($event)"
       (cancel)="onCancel()"
@@ -22,7 +23,12 @@ import { GroupService } from '../../services/group.service';
 export class GroupEditComponent implements OnInit {
   group: any = {};
 
-  constructor(private groupService: GroupService, private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private groupService: GroupService, 
+    private route: ActivatedRoute, 
+    private router: Router,
+    public translate: TranslateService
+  ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;

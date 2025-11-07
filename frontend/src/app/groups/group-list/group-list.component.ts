@@ -104,7 +104,7 @@ import { PermissionService } from '../../services/permission.service';
             <button (click)="removeFilter('subjectId')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
           <span *ngIf="filters.gradeLevel && currentUser?.role !== 'student'" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Grade: {{ filters.gradeLevel }}
+            {{ 'groups.grade' | translate }}: {{ filters.gradeLevel }}
             <button (click)="removeFilter('gradeLevel')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
         </div>
@@ -114,7 +114,7 @@ import { PermissionService } from '../../services/permission.service';
           <div>
             <input 
               class="form-input" 
-              placeholder="🔍 Search..." 
+              [placeholder]="'groups.searchPlaceholder' | translate"
               [(ngModel)]="filters.search" 
               (ngModelChange)="onSearchChange($event)" 
             />
@@ -123,7 +123,7 @@ import { PermissionService } from '../../services/permission.service';
           <!-- Teacher Filter - Only for admin -->
           <div *ngIf="currentUser?.role === 'admin'">
             <select class="form-select" [(ngModel)]="filters.teacherId" (ngModelChange)="onFiltersChange()">
-              <option value="">All Teachers</option>
+              <option value="">{{ 'groups.allTeachers' | translate }}</option>
               <option *ngFor="let t of teachers" [value]="t.id || t._id">{{ t.fullName || (t.firstName + ' ' + t.lastName) }}</option>
             </select>
           </div>
@@ -131,7 +131,7 @@ import { PermissionService } from '../../services/permission.service';
           <!-- Subject Filter -->
           <div>
             <select class="form-select" [(ngModel)]="filters.subjectId" (ngModelChange)="onFiltersChange()">
-              <option value="">All Subjects</option>
+              <option value="">{{ 'groups.allSubjects' | translate }}</option>
               <option *ngFor="let s of subjects" [value]="s.id || s._id">{{ s.name }} ({{ s.code }})</option>
             </select>
           </div>
@@ -139,7 +139,7 @@ import { PermissionService } from '../../services/permission.service';
           <!-- Grade Filter - Hidden for students (they only see their grade) -->
           <div *ngIf="currentUser?.role !== 'student'">
             <select class="form-select" [(ngModel)]="filters.gradeLevel" (ngModelChange)="onFiltersChange()">
-              <option value="">All Grades</option>
+              <option value="">{{ 'groups.allGrades' | translate }}</option>
               <option *ngFor="let g of grades" [value]="g">{{ g }}</option>
             </select>
           </div>
@@ -151,11 +151,11 @@ import { PermissionService } from '../../services/permission.service';
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Assignments</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.name' | translate }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.teacher' | translate }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.subject' | translate }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.schedule' | translate }}</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.assignments' | translate }}</th>
                 <th class="px-6 py-3"></th>
               </tr>
             </thead>
@@ -185,10 +185,10 @@ import { PermissionService } from '../../services/permission.service';
                       </svg>
                       <span class="font-bold text-purple-700">{{ g.assignmentCount?.total || 0 }}</span>
                     </div>
-                    <div *ngIf="g.assignmentCount?.published > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-semibold" title="Published">
+                    <div *ngIf="g.assignmentCount?.published > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-semibold" [title]="'groups.published' | translate">
                       {{ g.assignmentCount.published }} 📋
                     </div>
-                    <div *ngIf="g.assignmentCount?.draft > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-700 text-xs font-semibold" title="Draft">
+                    <div *ngIf="g.assignmentCount?.draft > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-700 text-xs font-semibold" [title]="'groups.draft' | translate">
                       {{ g.assignmentCount.draft }} ✏️
                     </div>
                   </div>
@@ -211,7 +211,7 @@ import { PermissionService } from '../../services/permission.service';
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                           </svg>
-                          View Details
+                          {{ 'groups.viewDetails' | translate }}
                         </button>
                         
                         <!-- Edit - Only if user has permission -->
@@ -219,7 +219,7 @@ import { PermissionService } from '../../services/permission.service';
                           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                           </svg>
-                          Edit Group
+                          {{ 'groups.edit' | translate }}
                         </button>
                         
                         <!-- Delete - Only if user has permission -->
@@ -228,7 +228,7 @@ import { PermissionService } from '../../services/permission.service';
                           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                           </svg>
-                          Delete Group
+                          {{ 'groups.delete' | translate }}
                         </button>
                       </div>
                     </div>
@@ -238,7 +238,7 @@ import { PermissionService } from '../../services/permission.service';
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading...</td>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">{{ 'groups.loading' | translate }}</td>
               </tr>
             </tbody>
           </table>
@@ -276,7 +276,8 @@ export class GroupListComponent implements OnInit {
     private router: Router,
     private confirmation: ConfirmationService,
     private authService: AuthService,
-    public permissionService: PermissionService
+    public permissionService: PermissionService,
+    private translate: TranslateService
   ) {}
 
   // ==========================================
@@ -423,7 +424,13 @@ export class GroupListComponent implements OnInit {
   editGroup(g: any): void { this.router.navigate(['/dashboard/groups', g.id || g._id, 'edit']); }
 
   async deleteGroup(g: any): Promise<void> {
-    const confirmed = await this.confirmation.confirm({ title: 'Delete Group', message: `Delete ${g.name}?`, confirmText: 'Yes, Delete', cancelText: 'Cancel', type: 'danger' });
+    const confirmed = await this.confirmation.confirm({ 
+      title: this.translate.instant('groups.confirmDelete'), 
+      message: `${this.translate.instant('groups.deleteWarning')}`, 
+      confirmText: this.translate.instant('groups.delete'), 
+      cancelText: this.translate.instant('groups.cancel'), 
+      type: 'danger' 
+    });
     if (!confirmed) return;
     this.groupService.deleteGroup(g.id || g._id).subscribe({ next: _ => this.loadGroups() });
   }
