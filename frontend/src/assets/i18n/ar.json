@@ -26,7 +26,11 @@
     "error": "خطأ",
     "success": "نجح",
     "warning": "تحذير",
-    "info": "معلومات"
+    "info": "معلومات",
+    "export": "تصدير",
+    "total": "المجموع",
+    "selectAll": "تحديد الكل",
+    "lastUpdated": "آخر تحديث"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -343,6 +347,72 @@
   },
   "assignments": {
     "title": "الواجبات",
+    "myAssignments": "واجباتي",
+    "myTeachingAssignments": "واجبات التدريس",
+    "allAssignments": "جميع الواجبات",
+    "viewSubmitDesc": "عرض واجباتك وتسليم العمل",
+    "manageGradeDesc": "إدارة الواجبات وتقييم تسليمات الطلاب",
+    "manageTrackDesc": "إدارة جميع الواجبات وتتبع تقدم الطلاب",
+    "createAssignment": "إنشاء واجب",
+    "assignmentsSelected": "واجب محدد",
+    "clearSelection": "إلغاء التحديد",
+    "publish": "نشر",
+    "close": "إغلاق",
+    "filtersAndView": "الفلاتر والعرض",
+    "searchPlaceholder": "🔍 البحث في الواجبات...",
+    "allTypes": "جميع الأنواع",
+    "allStatus": "جميع الحالات",
+    "statusDraft": "مسودة",
+    "statusPublished": "منشور",
+    "statusClosed": "مغلق",
+    "statusGraded": "تم التقييم",
+    "clearAll": "مسح الكل",
+    "noAssignmentsFound": "لم يتم العثور على واجبات",
+    "tryAdjustingFilters": "جرب تعديل الفلاتر",
+    "getStartedCreating": "ابدأ بإنشاء أول واجب",
+    "noAssignmentsToExport": "لا توجد واجبات للتصدير",
+    "exportedSuccessfully": "تم تصدير الواجبات بنجاح",
+    "loadingAssignments": "جار تحميل الواجبات...",
+    "overdue": "متأخر",
+    "avgGrade": "متوسط الدرجة",
+    "due": "الموعد النهائي",
+    "cloneAssignment": "نسخ الواجب",
+    "viewDetails": "عرض التفاصيل",
+    "clone": "نسخ",
+    "submitWork": "تسليم العمل",
+    "createFirstAssignment": "إنشاء أول واجب",
+    "maxPoints": "الحد الأقصى للنقاط",
+    "pleaseSelectToDelete": "الرجاء تحديد واجبات للحذف",
+    "bulkDeleteSuccess": "تم حذف {{deleted}} من {{total}} واجب",
+    "bulkDeleteFailed": "فشل حذف {{failed}}: {{reasons}}",
+    "pleaseSelectToPublish": "الرجاء تحديد واجبات للنشر",
+    "bulkPublishSuccess": "تم نشر {{published}} من {{total}} واجب",
+    "bulkPublishFailed": "فشل نشر {{failed}}: {{reasons}}",
+    "pleaseSelectToClose": "الرجاء تحديد واجبات للإغلاق",
+    "bulkCloseSuccess": "تم إغلاق {{closed}} من {{total}} واجب",
+    "bulkCloseFailed": "فشل إغلاق {{failed}}: {{reasons}}",
+    "cloneSuccess": "تم نسخ الواجب بنجاح",
+    "backToAssignments": "العودة إلى الواجبات",
+    "loadingAssignment": "جار تحميل الواجب...",
+    "saveAsTemplate": "حفظ كقالب",
+    "takeQuiz": "بدء الاختبار",
+    "releaseResults": "نشر النتائج",
+    "quizSettings": "إعدادات الاختبار",
+    "timeLimit": "الحد الزمني",
+    "noLimit": "بدون حد",
+    "resultsVisibility": "رؤية النتائج",
+    "afterDeadline": "بعد الموعد النهائي",
+    "questions": "الأسئلة",
+    "loadingResults": "جار تحميل النتائج...",
+    "resultsNotAvailable": "النتائج غير متاحة بعد",
+    "teacherNotReleased": "لم يقم المعلم بنشر النتائج بعد.",
+    "quizResults": "نتائج الاختبار",
+    "submittedOn": "تم التسليم في",
+    "timeTaken": "الوقت المستغرق",
+    "timeLimitExceeded": "تجاوز الحد الزمني",
+    "loadingQuiz": "جار تحميل الاختبار...",
+    "points": "نقاط",
+    "mySubmissions": "تسليماتي",
     "addAssignment": "إضافة واجب",
     "editAssignment": "تعديل واجب",
     "assignmentDetails": "تفاصيل الواجب",
@@ -364,6 +434,8 @@
       "homework": "واجب منزلي",
       "quiz": "اختبار قصير",
       "exam": "امتحان",
+      "midterm": "امتحان منتصف الفصل",
+      "final": "امتحان نهائي",
       "project": "مشروع",
       "presentation": "عرض تقديمي",
       "lab": "معمل",

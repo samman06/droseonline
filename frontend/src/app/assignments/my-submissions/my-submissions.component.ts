@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AssignmentService } from '../../services/assignment.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
@@ -9,7 +10,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-my-submissions',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, TranslateModule],
   template: `
     <div class="max-w-7xl mx-auto p-6 space-y-6">
       <!-- Enhanced Header Section -->
@@ -23,7 +24,7 @@ import { ToastService } from '../../services/toast.service';
               </svg>
             </div>
             <div>
-              <h1 class="text-3xl font-bold">My Submissions</h1>
+              <h1 class="text-3xl font-bold">{{ 'assignments.mySubmissions' | translate }}</h1>
               <p class="mt-1 text-purple-100">Track your assignment progress and grades</p>
             </div>
           </div>

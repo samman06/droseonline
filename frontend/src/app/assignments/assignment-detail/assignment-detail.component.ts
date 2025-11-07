@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AssignmentService } from '../../services/assignment.service';
 import { SubmissionService } from '../../services/submission.service';
 import { ToastService } from '../../services/toast.service';
@@ -10,7 +11,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-assignment-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, TranslateModule],
   template: `
     <div class="container mx-auto px-4 py-6 space-y-6">
       <!-- Back Button -->
@@ -18,13 +19,13 @@ import { AuthService } from '../../services/auth.service';
         <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
-        Back to Assignments
+        {{ 'assignments.backToAssignments' | translate }}
       </button>
 
       <!-- Loading State -->
       <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
         <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
-        <p class="mt-4 text-gray-600 font-medium">Loading assignment...</p>
+        <p class="mt-4 text-gray-600 font-medium">{{ 'assignments.loadingAssignment' | translate }}</p>
       </div>
 
       <div *ngIf="!loading && assignment" class="space-y-6">
@@ -40,7 +41,7 @@ import { AuthService } from '../../services/auth.service';
                   </span>
                   <span [class]="getTypeClassWhite(assignment.type)">{{ assignment.type }}</span>
                   <span *ngIf="isOverdue" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse border-2 border-white">
-                    ⏰ OVERDUE
+                    ⏰ {{ 'assignments.overdue' | translate }}
                   </span>
                 </div>
                 <h1 class="text-4xl font-bold mb-3">{{ assignment.title }}</h1>
@@ -54,7 +55,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                   </svg>
-                  Edit Assignment
+                  {{ 'assignments.editAssignment' | translate }}
                 </button>
                 <!-- Save as Template Button -->
                 <button *ngIf="canEdit" 
@@ -63,7 +64,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
                   </svg>
-                  Save as Template
+                  {{ 'assignments.saveAsTemplate' | translate }}
                 </button>
                 <!-- Quiz-specific button for students -->
                 <button *ngIf="isStudent && assignment.type === 'quiz' && canSubmit"
@@ -72,7 +73,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                   </svg>
-                  Take Quiz
+                  {{ 'assignments.takeQuiz' | translate }}
                 </button>
                 <!-- Regular submission button for non-quiz assignments -->
                 <button *ngIf="isStudent && assignment.type !== 'quiz' && canSubmit"
@@ -81,7 +82,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                   </svg>
-                  Submit Work
+                  {{ 'assignments.submitWork' | translate }}
                 </button>
                 <!-- Release Results button for teachers (manual visibility only) -->
                 <button *ngIf="canEdit && assignment.type === 'quiz' && assignment.quizSettings?.resultsVisibility === 'manual' && !assignment.quizSettings?.resultsReleased"
@@ -90,7 +91,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
                   </svg>
-                  Release Results
+                  {{ 'assignments.releaseResults' | translate }}
                 </button>
               </div>
             </div>
@@ -105,7 +106,7 @@ import { AuthService } from '../../services/auth.service';
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500 font-medium">Due Date</p>
+                <p class="text-xs text-gray-500 font-medium">{{ 'assignments.dueDate' | translate }}</p>
                 <p class="font-bold text-sm" [class.text-red-600]="isOverdue">{{ formatDate(assignment.dueDate) }}</p>
               </div>
             </div>
@@ -117,7 +118,7 @@ import { AuthService } from '../../services/auth.service';
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500 font-medium">Max Points</p>
+                <p class="text-xs text-gray-500 font-medium">{{ 'assignments.maxPoints' | translate }}</p>
                 <p class="font-bold text-sm">{{ assignment.maxPoints }} pts</p>
               </div>
             </div>
@@ -128,7 +129,7 @@ import { AuthService } from '../../services/auth.service';
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500 font-medium">Course</p>
+                <p class="text-xs text-gray-500 font-medium">{{ 'courses.course' | translate }}</p>
                 <p class="font-bold text-sm">{{ assignment.course.name }}</p>
               </div>
             </div>
@@ -139,7 +140,7 @@ import { AuthService } from '../../services/auth.service';
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500 font-medium">Teacher</p>
+                <p class="text-xs text-gray-500 font-medium">{{ 'teachers.teacher' | translate }}</p>
                 <p class="font-bold text-sm">{{ assignment.teacher?.firstName }} {{ assignment.teacher?.lastName }}</p>
               </div>
             </div>
@@ -149,11 +150,11 @@ import { AuthService } from '../../services/auth.service';
           <div class="px-6 py-4 bg-white border-t border-gray-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-600">Status:</span>
+                <span class="text-sm font-medium text-gray-600">{{ 'assignments.status' | translate }}:</span>
                 <span [class]="getStatusClass(assignment.status)">{{ assignment.status }}</span>
               </div>
               <div class="text-sm text-gray-500">
-                Last updated: {{ formatDate(assignment.updatedAt) }}
+                {{ 'common.lastUpdated' | translate }}: {{ formatDate(assignment.updatedAt) }}
               </div>
             </div>
           </div>
@@ -164,7 +165,7 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
               </svg>
-              Quiz Settings
+              {{ 'assignments.quizSettings' | translate }}
             </h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div class="flex items-center gap-2">
@@ -172,8 +173,8 @@ import { AuthService } from '../../services/auth.service';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <div>
-                  <p class="text-xs text-gray-600">Time Limit</p>
-                  <p class="text-sm font-semibold text-gray-900">{{ assignment.quizSettings.timeLimit ? assignment.quizSettings.timeLimit + ' min' : 'No limit' }}</p>
+                  <p class="text-xs text-gray-600">{{ 'assignments.timeLimit' | translate }}</p>
+                  <p class="text-sm font-semibold text-gray-900">{{ assignment.quizSettings.timeLimit ? assignment.quizSettings.timeLimit + ' min' : ('assignments.noLimit' | translate) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -182,8 +183,8 @@ import { AuthService } from '../../services/auth.service';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
                 <div>
-                  <p class="text-xs text-gray-600">Results Visibility</p>
-                  <p class="text-sm font-semibold text-gray-900 capitalize">{{ assignment.quizSettings.resultsVisibility?.replace('_', ' ') || 'After deadline' }}</p>
+                  <p class="text-xs text-gray-600">{{ 'assignments.resultsVisibility' | translate }}</p>
+                  <p class="text-sm font-semibold text-gray-900 capitalize">{{ assignment.quizSettings.resultsVisibility?.replace('_', ' ') || ('assignments.afterDeadline' | translate) }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -191,7 +192,7 @@ import { AuthService } from '../../services/auth.service';
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
                 </svg>
                 <div>
-                  <p class="text-xs text-gray-600">Questions</p>
+                  <p class="text-xs text-gray-600">{{ 'assignments.questions' | translate }}</p>
                   <p class="text-sm font-semibold text-gray-900">{{ assignment.questions?.length || 0 }}</p>
                 </div>
               </div>
@@ -865,7 +866,8 @@ export class AssignmentDetailComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {

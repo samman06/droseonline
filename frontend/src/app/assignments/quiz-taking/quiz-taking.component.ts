@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AssignmentService } from '../../services/assignment.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
@@ -9,7 +10,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
 @Component({
   selector: 'app-quiz-taking',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20 py-8 px-4">
       <div class="max-w-4xl mx-auto">
@@ -17,7 +18,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
         <!-- Loading State -->
         <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
           <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
-          <p class="mt-4 text-gray-600 font-medium">Loading quiz...</p>
+          <p class="mt-4 text-gray-600 font-medium">{{ 'assignments.loadingQuiz' | translate }}</p>
         </div>
 
         <!-- Quiz Header with Timer -->
@@ -31,14 +32,14 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
                   </svg>
-                  {{ quiz.questions.length }} Questions
+                  {{ quiz.questions.length }} {{ 'assignments.questions' | translate }}
                 </span>
                 <span class="flex items-center gap-1">
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                     <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                   </svg>
-                  {{ quiz.maxPoints }} Points
+                  {{ quiz.maxPoints }} {{ 'assignments.points' | translate }}
                 </span>
               </div>
             </div>
@@ -232,7 +233,8 @@ export class QuizTakingComponent implements OnInit, OnDestroy {
     private router: Router,
     private assignmentService: AssignmentService,
     private toastService: ToastService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {

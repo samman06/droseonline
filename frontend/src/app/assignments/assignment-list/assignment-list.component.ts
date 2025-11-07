@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AssignmentService, Assignment } from '../../services/assignment.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService, User } from '../../services/auth.service';
@@ -10,7 +11,7 @@ import { PermissionService } from '../../services/permission.service';
 @Component({
   selector: 'app-assignment-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, TranslateModule],
   template: `
     <div class="container mx-auto px-4 py-6 space-y-6">
       <!-- Enhanced Header Section -->
@@ -25,26 +26,26 @@ import { PermissionService } from '../../services/permission.service';
             <div>
               <!-- Role-specific headers -->
               <h1 *ngIf="currentUser?.role === 'student'" class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                My Assignments
+                {{ 'assignments.myAssignments' | translate }}
               </h1>
               <h1 *ngIf="currentUser?.role === 'teacher'" class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                My Teaching Assignments
+                {{ 'assignments.myTeachingAssignments' | translate }}
               </h1>
               <h1 *ngIf="currentUser?.role === 'admin'" class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                All Assignments
+                {{ 'assignments.allAssignments' | translate }}
               </h1>
               
               <!-- Role-specific descriptions -->
-              <p *ngIf="currentUser?.role === 'student'" class="mt-1 text-gray-600">View your assignments and submit work</p>
-              <p *ngIf="currentUser?.role === 'teacher'" class="mt-1 text-gray-600">Manage assignments and grade student submissions</p>
-              <p *ngIf="currentUser?.role === 'admin'" class="mt-1 text-gray-600">Manage all assignments and track student progress</p>
+              <p *ngIf="currentUser?.role === 'student'" class="mt-1 text-gray-600">{{ 'assignments.viewSubmitDesc' | translate }}</p>
+              <p *ngIf="currentUser?.role === 'teacher'" class="mt-1 text-gray-600">{{ 'assignments.manageGradeDesc' | translate }}</p>
+              <p *ngIf="currentUser?.role === 'admin'" class="mt-1 text-gray-600">{{ 'assignments.manageTrackDesc' | translate }}</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                     <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
                   </svg>
-                  {{ assignments.length }} Total
+                  {{ assignments.length }} {{ 'common.total' | translate }}
                 </span>
               </div>
             </div>
@@ -54,7 +55,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
-              Export
+              {{ 'common.export' | translate }}
             </button>
             <button 
               *ngIf="canCreateAssignment"
@@ -63,7 +64,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
               </svg>
-              Create Assignment
+              {{ 'assignments.createAssignment' | translate }}
             </button>
           </div>
         </div>
@@ -74,10 +75,10 @@ import { PermissionService } from '../../services/permission.service';
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
             <div class="text-white font-semibold">
-              {{ selectedAssignments.size }} assignment(s) selected
+              {{ selectedAssignments.size }} {{ 'assignments.assignmentsSelected' | translate }}
             </div>
             <button (click)="selectedAssignments.clear()" class="text-white hover:text-purple-200 text-sm font-medium transition-colors">
-              Clear Selection
+              {{ 'assignments.clearSelection' | translate }}
             </button>
           </div>
           <div class="flex space-x-2">
@@ -88,7 +89,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
               </svg>
-              Publish
+              {{ 'assignments.publish' | translate }}
             </button>
             <button 
               (click)="bulkClose()" 
@@ -97,7 +98,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
-              Close
+              {{ 'assignments.close' | translate }}
             </button>
             <button 
               (click)="bulkDelete()" 
@@ -106,7 +107,7 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
-              Delete
+              {{ 'common.delete' | translate }}
             </button>
           </div>
         </div>
@@ -116,13 +117,13 @@ import { PermissionService } from '../../services/permission.service';
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-4">
-            <h3 class="text-sm font-semibold text-gray-700">Filters & View</h3>
+            <h3 class="text-sm font-semibold text-gray-700">{{ 'assignments.filtersAndView' | translate }}</h3>
             <label *ngIf="canCreateAssignment && assignments.length > 0" class="flex items-center cursor-pointer">
               <input type="checkbox" 
                      [checked]="isAllSelected()"
                      (change)="toggleSelectAll()"
                      class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
-              <span class="ml-2 text-sm text-gray-600">Select All</span>
+              <span class="ml-2 text-sm text-gray-600">{{ 'common.selectAll' | translate }}</span>
             </label>
           </div>
           <div class="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
@@ -149,33 +150,33 @@ import { PermissionService } from '../../services/permission.service';
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'common.search' | translate }}</label>
             <input type="text" [(ngModel)]="filters.search" (input)="onSearchChange()" 
-                   placeholder="🔍 Search assignments..." 
+                   [placeholder]="'assignments.searchPlaceholder' | translate" 
                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'assignments.type' | translate }}</label>
             <select [(ngModel)]="filters.type" (change)="loadAssignments()" 
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-              <option value="">All Types</option>
-              <option value="homework">Homework</option>
-              <option value="quiz">Quiz</option>
-              <option value="midterm">Midterm</option>
-              <option value="final">Final</option>
-              <option value="project">Project</option>
-              <option value="presentation">Presentation</option>
+              <option value="">{{ 'assignments.allTypes' | translate }}</option>
+              <option value="homework">{{ 'assignments.types.homework' | translate }}</option>
+              <option value="quiz">{{ 'assignments.types.quiz' | translate }}</option>
+              <option value="midterm">{{ 'assignments.types.midterm' | translate }}</option>
+              <option value="final">{{ 'assignments.types.final' | translate }}</option>
+              <option value="project">{{ 'assignments.types.project' | translate }}</option>
+              <option value="presentation">{{ 'assignments.types.presentation' | translate }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'assignments.status' | translate }}</label>
             <select [(ngModel)]="filters.status" (change)="loadAssignments()" 
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-              <option value="">All Status</option>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="closed">Closed</option>
-              <option value="graded">Graded</option>
+              <option value="">{{ 'assignments.allStatus' | translate }}</option>
+              <option value="draft">{{ 'assignments.statusDraft' | translate }}</option>
+              <option value="published">{{ 'assignments.statusPublished' | translate }}</option>
+              <option value="closed">{{ 'assignments.statusClosed' | translate }}</option>
+              <option value="graded">{{ 'assignments.statusGraded' | translate }}</option>
             </select>
           </div>
         </div>
@@ -183,20 +184,20 @@ import { PermissionService } from '../../services/permission.service';
         <div *ngIf="filters.search || filters.type || filters.status" class="mt-3 flex items-center justify-between">
           <div class="flex flex-wrap gap-2">
             <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-              Search: {{ filters.search }}
+              {{ 'common.search' | translate }}: {{ filters.search }}
               <button (click)="filters.search = ''; loadAssignments()" class="ml-2 text-purple-600 hover:text-purple-800">×</button>
             </span>
             <span *ngIf="filters.type" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-              Type: {{ filters.type }}
+              {{ 'assignments.type' | translate }}: {{ filters.type }}
               <button (click)="filters.type = ''; loadAssignments()" class="ml-2 text-purple-600 hover:text-purple-800">×</button>
             </span>
             <span *ngIf="filters.status" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-              Status: {{ filters.status }}
+              {{ 'assignments.status' | translate }}: {{ filters.status }}
               <button (click)="filters.status = ''; loadAssignments()" class="ml-2 text-purple-600 hover:text-purple-800">×</button>
             </span>
           </div>
           <button (click)="resetFilters()" class="text-sm text-purple-600 hover:text-purple-800 font-medium">
-            Clear all
+            {{ 'assignments.clearAll' | translate }}
           </button>
         </div>
       </div>
@@ -204,7 +205,7 @@ import { PermissionService } from '../../services/permission.service';
       <!-- Loading State -->
       <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
         <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
-        <p class="mt-4 text-gray-600 font-medium">Loading assignments...</p>
+        <p class="mt-4 text-gray-600 font-medium">{{ 'assignments.loadingAssignments' | translate }}</p>
       </div>
 
       <!-- Grid View -->
@@ -228,7 +229,7 @@ import { PermissionService } from '../../services/permission.service';
                 {{ assignment.type }}
               </span>
               <span *ngIf="isOverdue(assignment)" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse">
-                ⏰ OVERDUE
+                ⏰ {{ 'assignments.overdue' | translate }}
               </span>
             </div>
             <h3 class="text-white font-bold text-lg mt-2 line-clamp-2">{{ assignment.title }}</h3>
@@ -249,11 +250,11 @@ import { PermissionService } from '../../services/permission.service';
             <div class="grid grid-cols-2 gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
               <div class="text-center">
                 <div class="text-2xl font-bold text-purple-600">{{ assignment.stats?.totalSubmissions || 0 }}</div>
-                <div class="text-xs text-gray-500 font-medium">Submissions</div>
+                <div class="text-xs text-gray-500 font-medium">{{ 'assignments.submissions' | translate }}</div>
               </div>
               <div class="text-center">
                 <div class="text-2xl font-bold text-indigo-600">{{ assignment.stats?.averageGrade || 0 }}%</div>
-                <div class="text-xs text-gray-500 font-medium">Avg Grade</div>
+                <div class="text-xs text-gray-500 font-medium">{{ 'assignments.avgGrade' | translate }}</div>
               </div>
             </div>
             
@@ -262,24 +263,24 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
               </svg>
-              <span class="font-medium">Due: {{ formatDate(assignment.dueDate) }}</span>
+              <span class="font-medium">{{ 'assignments.due' | translate }}: {{ formatDate(assignment.dueDate) }}</span>
             </div>
             
             <!-- Action Buttons -->
             <div class="flex gap-2">
               <button [routerLink]="['/dashboard/assignments', assignment._id]"
                       class="flex-1 px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-                View
+                {{ 'common.view' | translate }}
               </button>
               <button *ngIf="canEdit(assignment)" 
                       [routerLink]="['/dashboard/assignments', assignment._id, 'edit']"
                       class="flex-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                Edit
+                {{ 'common.edit' | translate }}
               </button>
               <button *ngIf="canEdit(assignment)" 
                       (click)="cloneAssignment(assignment._id!)"
                       class="px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-                      title="Clone Assignment">
+                      [title]="'assignments.cloneAssignment' | translate">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                 </svg>
@@ -287,7 +288,7 @@ import { PermissionService } from '../../services/permission.service';
               <button *ngIf="isStudent && canSubmit(assignment)"
                       [routerLink]="['/dashboard/assignments', assignment._id, 'submit']"
                       class="flex-1 px-3 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg transition-all shadow-sm">
-                Submit
+                {{ 'common.submit' | translate }}
               </button>
             </div>
           </div>
@@ -314,7 +315,7 @@ import { PermissionService } from '../../services/permission.service';
                   <span [class]="getTypeClass(assignment.type)">{{ assignment.type }}</span>
                   <span [class]="getStatusClass(assignment.status)">{{ assignment.status }}</span>
                   <span *ngIf="isOverdue(assignment)" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200 animate-pulse">
-                    ⏰ OVERDUE
+                    ⏰ {{ 'assignments.overdue' | translate }}
                   </span>
                   <span class="text-sm text-gray-500">{{ assignment.code || 'AS-XXXXX' }}</span>
                 </div>
@@ -330,7 +331,7 @@ import { PermissionService } from '../../services/permission.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="text-xs text-gray-500">Due Date</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.dueDate' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ formatDate(assignment.dueDate) }}</p>
                     </div>
                   </div>
@@ -342,7 +343,7 @@ import { PermissionService } from '../../services/permission.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="text-xs text-gray-500">Max Points</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.maxPoints' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ assignment.maxPoints }}</p>
                     </div>
                   </div>
@@ -354,7 +355,7 @@ import { PermissionService } from '../../services/permission.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="text-xs text-gray-500">Submissions</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.submissions' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ assignment.stats?.totalSubmissions || 0 }}</p>
                     </div>
                   </div>
@@ -365,7 +366,7 @@ import { PermissionService } from '../../services/permission.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="text-xs text-gray-500">Avg Grade</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.avgGrade' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ assignment.stats?.averageGrade || 0 }}%</p>
                     </div>
                   </div>
@@ -375,12 +376,12 @@ import { PermissionService } from '../../services/permission.service';
               <div class="flex flex-col gap-2 ml-6">
                 <button [routerLink]="['/dashboard/assignments', assignment._id]"
                         class="px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors whitespace-nowrap">
-                  View Details
+                  {{ 'assignments.viewDetails' | translate }}
                 </button>
                 <button *ngIf="canEdit(assignment)" 
                         [routerLink]="['/dashboard/assignments', assignment._id, 'edit']"
                         class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  Edit
+                  {{ 'common.edit' | translate }}
                 </button>
                 <button *ngIf="canEdit(assignment)" 
                         (click)="cloneAssignment(assignment._id!)"
@@ -388,12 +389,12 @@ import { PermissionService } from '../../services/permission.service';
                   <svg class="w-4 h-4 inline mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                   </svg>
-                  Clone
+                  {{ 'assignments.clone' | translate }}
                 </button>
                 <button *ngIf="isStudent && canSubmit(assignment)"
                         [routerLink]="['/dashboard/assignments', assignment._id, 'submit']"
                         class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg transition-all shadow-sm">
-                  Submit Work
+                  {{ 'assignments.submitWork' | translate }}
                 </button>
               </div>
             </div>
@@ -409,9 +410,9 @@ import { PermissionService } from '../../services/permission.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">No assignments found</h3>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ 'assignments.noAssignmentsFound' | translate }}</h3>
           <p class="text-gray-600 mb-6">
-            {{ filters.search || filters.type || filters.status ? 'Try adjusting your filters' : 'Get started by creating your first assignment' }}
+            {{ (filters.search || filters.type || filters.status ? 'assignments.tryAdjustingFilters' : 'assignments.getStartedCreating') | translate }}
           </p>
           <button 
             *ngIf="canCreateAssignment"
@@ -420,7 +421,7 @@ import { PermissionService } from '../../services/permission.service';
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Create First Assignment
+            {{ 'assignments.createFirstAssignment' | translate }}
           </button>
         </div>
       </div>
@@ -448,7 +449,8 @@ export class AssignmentListComponent implements OnInit {
     private assignmentService: AssignmentService,
     private toastService: ToastService,
     private authService: AuthService,
-    public permissionService: PermissionService
+    public permissionService: PermissionService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -558,7 +560,7 @@ export class AssignmentListComponent implements OnInit {
 
   exportAssignments(): void {
     if (this.assignments.length === 0) {
-      this.toastService.warning('No assignments to export');
+      this.toastService.warning(this.translate.instant('assignments.noAssignmentsToExport'));
       return;
     }
 
@@ -587,7 +589,7 @@ export class AssignmentListComponent implements OnInit {
     link.click();
     window.URL.revokeObjectURL(url);
 
-    this.toastService.success('Assignments exported successfully');
+    this.toastService.success(this.translate.instant('assignments.exportedSuccessfully'));
   }
 
   formatDate(date: any): string {
@@ -628,7 +630,7 @@ export class AssignmentListComponent implements OnInit {
 
   bulkDelete(): void {
     if (this.selectedAssignments.size === 0) {
-      this.toastService.warning('Please select assignments to delete');
+      this.toastService.warning(this.translate.instant('assignments.pleaseSelectToDelete'));
       return;
     }
 
@@ -640,11 +642,11 @@ export class AssignmentListComponent implements OnInit {
         if (response.success && response.data) {
           const { deleted, failed, totalRequested } = response.data;
           if (deleted.length > 0) {
-            this.toastService.success(`Deleted ${deleted.length} of ${totalRequested} assignment(s)`);
+            this.toastService.success(this.translate.instant('assignments.bulkDeleteSuccess', { deleted: deleted.length, total: totalRequested }));
           }
           if (failed.length > 0) {
             const failedReasons = failed.map((f: any) => `${f.title || f.id}: ${f.reason}`).join(', ');
-            this.toastService.warning(`Failed to delete ${failed.length}: ${failedReasons}`);
+            this.toastService.warning(this.translate.instant('assignments.bulkDeleteFailed', { failed: failed.length, reasons: failedReasons }));
           }
           this.selectedAssignments.clear();
           this.loadAssignments();
@@ -660,7 +662,7 @@ export class AssignmentListComponent implements OnInit {
 
   bulkPublish(): void {
     if (this.selectedAssignments.size === 0) {
-      this.toastService.warning('Please select assignments to publish');
+      this.toastService.warning(this.translate.instant('assignments.pleaseSelectToPublish'));
       return;
     }
 
@@ -672,11 +674,11 @@ export class AssignmentListComponent implements OnInit {
         if (response.success && response.data) {
           const { published, failed, totalRequested } = response.data;
           if (published.length > 0) {
-            this.toastService.success(`Published ${published.length} of ${totalRequested} assignment(s)`);
+            this.toastService.success(this.translate.instant('assignments.bulkPublishSuccess', { published: published.length, total: totalRequested }));
           }
           if (failed.length > 0) {
             const failedReasons = failed.map((f: any) => `${f.title || f.id}: ${f.reason}`).join(', ');
-            this.toastService.warning(`Failed to publish ${failed.length}: ${failedReasons}`);
+            this.toastService.warning(this.translate.instant('assignments.bulkPublishFailed', { failed: failed.length, reasons: failedReasons }));
           }
           this.selectedAssignments.clear();
           this.loadAssignments();
@@ -692,7 +694,7 @@ export class AssignmentListComponent implements OnInit {
 
   bulkClose(): void {
     if (this.selectedAssignments.size === 0) {
-      this.toastService.warning('Please select assignments to close');
+      this.toastService.warning(this.translate.instant('assignments.pleaseSelectToClose'));
       return;
     }
 
@@ -704,11 +706,11 @@ export class AssignmentListComponent implements OnInit {
         if (response.success && response.data) {
           const { closed, failed, totalRequested } = response.data;
           if (closed.length > 0) {
-            this.toastService.success(`Closed ${closed.length} of ${totalRequested} assignment(s)`);
+            this.toastService.success(this.translate.instant('assignments.bulkCloseSuccess', { closed: closed.length, total: totalRequested }));
           }
           if (failed.length > 0) {
             const failedReasons = failed.map((f: any) => `${f.title || f.id}: ${f.reason}`).join(', ');
-            this.toastService.warning(`Failed to close ${failed.length}: ${failedReasons}`);
+            this.toastService.warning(this.translate.instant('assignments.bulkCloseFailed', { failed: failed.length, reasons: failedReasons }));
           }
           this.selectedAssignments.clear();
           this.loadAssignments();
@@ -726,7 +728,7 @@ export class AssignmentListComponent implements OnInit {
     this.assignmentService.cloneAssignment(assignmentId).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Assignment cloned successfully');
+          this.toastService.success(this.translate.instant('assignments.cloneSuccess'));
           this.loadAssignments();
         }
       },

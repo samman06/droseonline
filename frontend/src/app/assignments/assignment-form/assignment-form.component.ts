@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AssignmentService } from '../../services/assignment.service';
 import { GroupService } from '../../services/group.service';
 import { ToastService } from '../../services/toast.service';
@@ -10,7 +11,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-assignment-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
   template: `
     <div class="container mx-auto px-4 py-6 max-w-5xl space-y-6">
       <!-- Enhanced Header -->

@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AssignmentService } from '../../services/assignment.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-quiz-results',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4">
       <div class="max-w-5xl mx-auto">
@@ -15,7 +16,7 @@ import { ToastService } from '../../services/toast.service';
         <!-- Loading State -->
         <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
           <div class="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
-          <p class="mt-4 text-gray-600 font-medium">Loading results...</p>
+          <p class="mt-4 text-gray-600 font-medium">{{ 'assignments.loadingResults' | translate }}</p>
         </div>
 
         <!-- Results Not Available -->
@@ -23,12 +24,12 @@ import { ToastService } from '../../services/toast.service';
           <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Results Not Available Yet</h2>
-          <p class="text-gray-600 mb-6">{{ errorMessage || 'The teacher has not released the results yet.' }}</p>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ 'assignments.resultsNotAvailable' | translate }}</h2>
+          <p class="text-gray-600 mb-6">{{ errorMessage || ('assignments.teacherNotReleased' | translate) }}</p>
           <button 
             (click)="goBack()"
             class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
-            Go Back
+            {{ 'common.back' | translate }}
           </button>
         </div>
 
@@ -39,11 +40,11 @@ import { ToastService } from '../../services/toast.service';
           <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 rounded-2xl shadow-2xl p-8 mb-6 text-white">
             <div class="flex items-center justify-between">
               <div>
-                <h1 class="text-4xl font-bold mb-2">Quiz Results</h1>
-                <p class="text-purple-100">Submitted on {{ results.submission.submittedAt | date:'medium' }}</p>
+                <h1 class="text-4xl font-bold mb-2">{{ 'assignments.quizResults' | translate }}</h1>
+                <p class="text-purple-100">{{ 'assignments.submittedOn' | translate }} {{ results.submission.submittedAt | date:'medium' }}</p>
                 <p *ngIf="results.submission.timeSpent" class="text-purple-100 text-sm mt-1">
-                  Time Taken: {{ formatTime(results.submission.timeSpent) }}
-                  <span *ngIf="results.submission.timeLimitExceeded" class="text-yellow-300 ml-2">⚠ Time Limit Exceeded</span>
+                  {{ 'assignments.timeTaken' | translate }}: {{ formatTime(results.submission.timeSpent) }}
+                  <span *ngIf="results.submission.timeLimitExceeded" class="text-yellow-300 ml-2">⚠ {{ 'assignments.timeLimitExceeded' | translate }}</span>
                 </p>
               </div>
               
@@ -242,7 +243,8 @@ export class QuizResultsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private assignmentService: AssignmentService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
