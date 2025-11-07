@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AttendanceService, Attendance } from '../../services/attendance.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
@@ -9,25 +10,25 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-attendance-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
         
         <!-- Breadcrumb Navigation -->
         <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-6">
-          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">Attendance</a>
+          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">{{ 'attendance.title' | translate }}</a>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-          <span class="text-gray-900 font-medium">Details</span>
+          <span class="text-gray-900 font-medium">{{ 'common.details' | translate }}</span>
         </nav>
 
         <!-- Loading State -->
         <div *ngIf="isLoading" class="flex justify-center items-center py-12">
           <div class="text-center">
             <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600 font-medium">Loading attendance details...</p>
+            <p class="mt-4 text-gray-600 font-medium">{{ 'attendance.loadingDetails' | translate }}</p>
           </div>
         </div>
 
@@ -47,15 +48,15 @@ import { AuthService } from '../../services/auth.service';
                     </span>
                     <span *ngIf="attendance.isCompleted" 
                           class="px-3 py-1 bg-green-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
-                      ✓ Completed
+                      ✓ {{ 'attendance.completed' | translate }}
                     </span>
                     <span *ngIf="!attendance.isCompleted" 
                           class="px-3 py-1 bg-yellow-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
-                      ⏱ Incomplete
+                      ⏱ {{ 'attendance.incomplete' | translate }}
                     </span>
                     <span *ngIf="attendance.isLocked" 
                           class="px-3 py-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
-                      🔒 Locked
+                      🔒 {{ 'attendance.locked' | translate }}
                     </span>
                   </div>
                   <h1 class="text-4xl font-bold text-white mb-2">{{ attendance.group?.name || 'N/A' }}</h1>
@@ -77,7 +78,7 @@ import { AuthService } from '../../services/auth.service';
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                       </svg>
-                      <span>Grade: {{ attendance.group?.gradeLevel || 'N/A' }}</span>
+                      <span>{{ 'attendance.grade' | translate }}: {{ attendance.group?.gradeLevel || 'N/A' }}</span>
                     </div>
                   </div>
                 </div>
@@ -91,7 +92,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
-                    Edit Attendance
+                    {{ 'attendance.editAttendance' | translate }}
                   </button>
                   <button 
                     *ngIf="!attendance.isLocked && canLock"
@@ -101,7 +102,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
                     </svg>
-                    Lock Session
+                    {{ 'attendance.lockSession' | translate }}
                   </button>
                   <button 
                     *ngIf="attendance.isLocked && isAdmin"
@@ -111,7 +112,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
                     </svg>
-                    Unlock Session
+                    {{ 'attendance.unlockSession' | translate }}
                   </button>
                   <button 
                     (click)="exportReport()"
@@ -120,7 +121,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Export
+                    {{ 'common.export' | translate }}
                   </button>
                 </div>
               </div>
@@ -132,7 +133,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-gray-500 text-sm font-medium">Present</p>
+                  <p class="text-gray-500 text-sm font-medium">{{ 'attendance.present' | translate }}</p>
                   <p class="text-3xl font-bold text-green-600 mt-2">{{ attendance.stats?.present || 0 }}</p>
                   <div class="mt-2 flex items-center">
                     <div class="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
@@ -153,7 +154,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-gray-500 text-sm font-medium">Absent</p>
+                  <p class="text-gray-500 text-sm font-medium">{{ 'attendance.absent' | translate }}</p>
                   <p class="text-3xl font-bold text-red-600 mt-2">{{ attendance.stats?.absent || 0 }}</p>
                   <div class="mt-2 flex items-center">
                     <div class="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
@@ -174,7 +175,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-gray-500 text-sm font-medium">Late</p>
+                  <p class="text-gray-500 text-sm font-medium">{{ 'attendance.late' | translate }}</p>
                   <p class="text-3xl font-bold text-yellow-600 mt-2">{{ attendance.stats?.late || 0 }}</p>
                   <div class="mt-2 flex items-center">
                     <div class="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
@@ -195,7 +196,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-gray-500 text-sm font-medium">Excused</p>
+                  <p class="text-gray-500 text-sm font-medium">{{ 'attendance.excused' | translate }}</p>
                   <p class="text-3xl font-bold text-blue-600 mt-2">{{ attendance.stats?.excused || 0 }}</p>
                   <div class="mt-2 flex items-center">
                     <div class="h-2 flex-1 bg-gray-200 rounded-full overflow-hidden">
@@ -216,7 +217,7 @@ import { AuthService } from '../../services/auth.service';
             <div *ngIf="attendance.sessionRevenue && attendance.sessionRevenue > 0" class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
               <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-gray-500 text-sm font-medium">Revenue</p>
+                  <p class="text-gray-500 text-sm font-medium">{{ 'attendance.revenue' | translate }}</p>
                   <p class="text-3xl font-bold text-emerald-600 mt-2">{{ attendance.sessionRevenue }}</p>
                   <p class="text-xs text-gray-500 mt-2">{{ attendance.presentCount || 0 }} × {{ attendance.pricePerSession || 0 }} EGP</p>
                 </div>
@@ -231,7 +232,7 @@ import { AuthService } from '../../services/auth.service';
 
           <!-- Attendance Rate Card -->
           <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Attendance Rate</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">{{ 'attendance.attendanceRate' | translate }}</h2>
             <div class="flex items-center justify-center py-8">
               <div class="relative inline-flex items-center justify-center">
                 <svg class="transform -rotate-90 w-40 h-40">
@@ -255,33 +256,33 @@ import { AuthService } from '../../services/auth.service';
                         }">
                     {{ attendance.stats?.rate || 0 }}%
                   </span>
-                  <span class="text-sm text-gray-600 mt-1">Attendance</span>
+                  <span class="text-sm text-gray-600 mt-1">{{ 'attendance.title' | translate }}</span>
                 </div>
               </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
               <div class="text-center">
                 <p class="text-2xl font-bold text-gray-900">{{ attendance.stats?.total || 0 }}</p>
-                <p class="text-sm text-gray-600">Total Students</p>
+                <p class="text-sm text-gray-600">{{ 'attendance.totalStudents' | translate }}</p>
               </div>
               <div class="text-center">
                 <p class="text-2xl font-bold text-green-600">{{ (attendance.stats?.present || 0) + (attendance.stats?.late || 0) }}</p>
-                <p class="text-sm text-gray-600">Attended</p>
+                <p class="text-sm text-gray-600">{{ 'attendance.attended' | translate }}</p>
               </div>
               <div class="text-center">
                 <p class="text-2xl font-bold text-red-600">{{ attendance.stats?.absent || 0 }}</p>
-                <p class="text-sm text-gray-600">Missed</p>
+                <p class="text-sm text-gray-600">{{ 'attendance.missed' | translate }}</p>
               </div>
               <div class="text-center">
                 <p class="text-2xl font-bold text-purple-600">{{ attendance.stats?.rate || 0 }}%</p>
-                <p class="text-sm text-gray-600">Success Rate</p>
+                <p class="text-sm text-gray-600">{{ 'attendance.successRate' | translate }}</p>
               </div>
             </div>
           </div>
 
           <!-- Session Information Card -->
           <div class="bg-white rounded-xl shadow-lg p-6 mb-8" *ngIf="attendance.sessionNotes">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Session Notes</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">{{ 'attendance.sessionNotes' | translate }}</h2>
             <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <p class="text-gray-700 whitespace-pre-wrap">{{ attendance.sessionNotes }}</p>
             </div>
@@ -290,19 +291,19 @@ import { AuthService } from '../../services/auth.service';
           <!-- Student List Table -->
           <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             <div class="px-6 py-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-b">
-              <h2 class="text-xl font-bold text-gray-900">Student Attendance Records</h2>
-              <p class="text-sm text-gray-600 mt-1">Detailed breakdown of individual student attendance</p>
+              <h2 class="text-xl font-bold text-gray-900">{{ 'attendance.studentAttendanceRecords' | translate }}</h2>
+              <p class="text-sm text-gray-600 mt-1">{{ 'attendance.detailedBreakdown' | translate }}</p>
             </div>
             <div class="overflow-x-auto">
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Student</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Late By</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Notes</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Marked By</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Marked At</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ 'common.student' | translate }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ 'attendance.status' | translate }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ 'attendance.lateBy' | translate }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ 'common.notes' | translate }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ 'attendance.markedBy' | translate }}</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">{{ 'attendance.markedAt' | translate }}</th>
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -351,48 +352,48 @@ import { AuthService } from '../../services/auth.service';
           <!-- Meta Information -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
             <div class="bg-white rounded-xl shadow-lg p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Session Information</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ 'attendance.sessionInformation' | translate }}</h3>
               <dl class="space-y-3">
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Session Date:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'attendance.sessionDate' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ formatDate(attendance.session.date) }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Completed:</dt>
-                  <dd class="text-sm font-medium text-gray-900">{{ attendance.isCompleted ? 'Yes' : 'No' }}</dd>
+                  <dt class="text-sm text-gray-600">{{ 'attendance.completed' | translate }}:</dt>
+                  <dd class="text-sm font-medium text-gray-900">{{ attendance.isCompleted ? ('common.yes' | translate) : ('common.no' | translate) }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Locked:</dt>
-                  <dd class="text-sm font-medium text-gray-900">{{ attendance.isLocked ? 'Yes' : 'No' }}</dd>
+                  <dt class="text-sm text-gray-600">{{ 'attendance.locked' | translate }}:</dt>
+                  <dd class="text-sm font-medium text-gray-900">{{ attendance.isLocked ? ('common.yes' | translate) : ('common.no' | translate) }}</dd>
                 </div>
                 <div *ngIf="attendance.isLocked" class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Locked By:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'attendance.lockedBy' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ attendance.lockedBy?.fullName || 'N/A' }}</dd>
                 </div>
                 <div *ngIf="attendance.isLocked" class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Locked At:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'attendance.lockedAt' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ formatDateTime(attendance.lockedAt) }}</dd>
                 </div>
               </dl>
             </div>
 
             <div class="bg-white rounded-xl shadow-lg p-6">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Record Information</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ 'attendance.recordInformation' | translate }}</h3>
               <dl class="space-y-3">
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Created By:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'common.createdBy' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ attendance.createdBy?.fullName || 'N/A' }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Created At:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'common.createdAt' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ formatDateTime(attendance.createdAt) }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Last Updated:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'common.lastUpdated' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ formatDateTime(attendance.updatedAt) }}</dd>
                 </div>
                 <div class="flex justify-between">
-                  <dt class="text-sm text-gray-600">Total Records:</dt>
+                  <dt class="text-sm text-gray-600">{{ 'attendance.totalRecords' | translate }}:</dt>
                   <dd class="text-sm font-medium text-gray-900">{{ attendance.records.length || 0 }}</dd>
                 </div>
               </dl>
@@ -408,7 +409,7 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
-              Back to Attendance List
+              {{ 'attendance.backToList' | translate }}
             </button>
           </div>
         </div>
@@ -418,13 +419,13 @@ import { AuthService } from '../../services/auth.service';
           <svg class="mx-auto h-12 w-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Attendance Not Found</h2>
-          <p class="text-gray-600 mb-6">The attendance record you're looking for doesn't exist or has been deleted.</p>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ 'attendance.notFound' | translate }}</h2>
+          <p class="text-gray-600 mb-6">{{ 'attendance.notFoundMessage' | translate }}</p>
           <button 
             (click)="goBack()"
             class="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
           >
-            Return to Attendance List
+            {{ 'attendance.returnToList' | translate }}
           </button>
         </div>
       </div>
@@ -444,7 +445,8 @@ export class AttendanceDetailComponent implements OnInit {
     private attendanceService: AttendanceService,
     private toastService: ToastService,
     private confirmationService: ConfirmationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -453,7 +455,7 @@ export class AttendanceDetailComponent implements OnInit {
       this.loadAttendance(id);
     } else {
       this.isLoading = false;
-      this.toastService.error('No attendance ID provided');
+      this.toastService.error(this.translate.instant('attendance.noIdProvided'));
       this.router.navigate(['/attendance']);
     }
 
@@ -473,13 +475,13 @@ export class AttendanceDetailComponent implements OnInit {
         if (response.success && response.data) {
           this.attendance = response.data.attendance;
         } else {
-          this.toastService.error('Failed to load attendance details');
+          this.toastService.error(this.translate.instant('attendance.failedToLoadDetails'));
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading attendance:', error);
-        this.toastService.error('Failed to load attendance details');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadDetails'));
         this.isLoading = false;
       }
     });
@@ -489,23 +491,23 @@ export class AttendanceDetailComponent implements OnInit {
     if (!this.attendance?._id) return;
 
     this.confirmationService.confirm({
-      title: 'Lock this attendance session?',
-      message: 'Once locked, it cannot be edited unless unlocked by an admin.',
-      confirmText: 'Lock',
-      cancelText: 'Cancel',
+      title: this.translate.instant('attendance.lockSessionTitle'),
+      message: this.translate.instant('attendance.lockSessionMessage'),
+      confirmText: this.translate.instant('attendance.lock'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'warning'
     }).then((confirmed) => {
       if (confirmed) {
         this.attendanceService.lockAttendance(this.attendance!._id!).subscribe({
           next: (response) => {
             if (response.success) {
-              this.toastService.success('Attendance session locked successfully');
+              this.toastService.success(this.translate.instant('attendance.sessionLockedSuccessfully'));
               this.loadAttendance(this.attendance!._id!);
             }
           },
           error: (error) => {
             console.error('Error locking attendance:', error);
-            this.toastService.error('Failed to lock attendance session');
+            this.toastService.error(this.translate.instant('attendance.failedToLock'));
           }
         });
       }
@@ -516,23 +518,23 @@ export class AttendanceDetailComponent implements OnInit {
     if (!this.attendance?._id) return;
 
     this.confirmationService.confirm({
-      title: 'Unlock this attendance session?',
-      message: 'This will allow it to be edited again.',
-      confirmText: 'Unlock',
-      cancelText: 'Cancel',
+      title: this.translate.instant('attendance.unlockSessionTitle'),
+      message: this.translate.instant('attendance.unlockSessionMessage'),
+      confirmText: this.translate.instant('attendance.unlock'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'warning'
     }).then((confirmed) => {
       if (confirmed) {
         this.attendanceService.unlockAttendance(this.attendance!._id!).subscribe({
           next: (response) => {
             if (response.success) {
-              this.toastService.success('Attendance session unlocked successfully');
+              this.toastService.success(this.translate.instant('attendance.sessionUnlockedSuccessfully'));
               this.loadAttendance(this.attendance!._id!);
             }
           },
           error: (error) => {
             console.error('Error unlocking attendance:', error);
-            this.toastService.error('Failed to unlock attendance session');
+            this.toastService.error(this.translate.instant('attendance.failedToUnlock'));
           }
         });
       }
@@ -557,11 +559,11 @@ export class AttendanceDetailComponent implements OnInit {
         link.download = `attendance_${this.attendance?.code || 'report'}_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         window.URL.revokeObjectURL(url);
-        this.toastService.success('Attendance report exported successfully');
+        this.toastService.success(this.translate.instant('attendance.reportExported'));
       },
       error: (error) => {
         console.error('Error exporting report:', error);
-        this.toastService.error('Failed to export attendance report');
+        this.toastService.error(this.translate.instant('attendance.failedToExportReport'));
       }
     });
   }

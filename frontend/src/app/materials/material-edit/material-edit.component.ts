@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MaterialService, Material } from '../../services/material.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
@@ -11,7 +12,7 @@ import { GroupService } from '../../services/group.service';
 @Component({
   selector: 'app-material-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-4xl mx-auto">
@@ -29,10 +30,10 @@ import { GroupService } from '../../services/group.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
               </svg>
-              Back
+              {{ 'common.back' | translate }}
             </button>
-            <h1 class="text-4xl font-bold text-gray-900 mb-2">✏️ Edit Material</h1>
-            <p class="text-gray-600">Update material information and files</p>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">✏️ {{ 'materials.editMaterial' | translate }}</h1>
+            <p class="text-gray-600">{{ 'materials.updateMaterialInfo' | translate }}</p>
           </div>
 
           <!-- Edit Form -->
@@ -41,19 +42,19 @@ import { GroupService } from '../../services/group.service';
               
               <!-- Upload Mode Toggle -->
               <div class="mb-6 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <span class="text-sm font-semibold text-gray-700">Material Type:</span>
+                <span class="text-sm font-semibold text-gray-700">{{ 'materials.materialType' | translate }}:</span>
                 <div class="flex gap-2">
                   <button type="button"
                           (click)="switchToFileMode()"
                           [class]="!isLinkMode ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'"
                           class="px-4 py-2 rounded-lg font-medium transition-colors">
-                    📁 Files
+                    📁 {{ 'materials.files' | translate }}
                   </button>
                   <button type="button"
                           (click)="switchToLinkMode()"
                           [class]="isLinkMode ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'"
                           class="px-4 py-2 rounded-lg font-medium transition-colors">
-                    🔗 External Link
+                    🔗 {{ 'materials.externalLink' | translate }}
                   </button>
                 </div>
               </div>
@@ -65,12 +66,12 @@ import { GroupService } from '../../services/group.service';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    Current Files ({{ existingFiles.length }})
+                    {{ 'materials.currentFiles' | translate }} ({{ existingFiles.length }})
                   </h3>
                   <button type="button"
                           (click)="replaceFiles = true"
                           class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    Replace Files
+                    {{ 'materials.replaceFiles' | translate }}
                   </button>
                 </div>
                 <div class="space-y-2 mt-3">
@@ -93,12 +94,12 @@ import { GroupService } from '../../services/group.service';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                     </svg>
-                    Current Link
+                    {{ 'materials.currentLink' | translate }}
                   </h3>
                   <button type="button"
                           (click)="replaceFiles = true"
                           class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    Replace Link
+                    {{ 'materials.replaceLink' | translate }}
                   </button>
                 </div>
                 <p class="text-sm text-blue-600 truncate mt-2">{{ material?.externalUrl }}</p>
@@ -110,29 +111,29 @@ import { GroupService } from '../../services/group.service';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span class="text-sm text-gray-700">
-                  Material Type: <span class="font-semibold text-blue-700">{{ formData.type | titlecase }}</span> (auto-detected)
+                  {{ 'materials.materialType' | translate }}: <span class="font-semibold text-blue-700">{{ formData.type | titlecase }}</span> ({{ 'materials.autoDetected' | translate }})
                 </span>
               </div>
 
               <!-- Title -->
               <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Title *</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'materials.title' | translate }} *</label>
                 <input type="text"
                        [(ngModel)]="formData.title"
                        name="title"
                        required
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                       placeholder="e.g., Chapter 1 - Introduction">
+                       [placeholder]="'materials.titlePlaceholder' | translate">
               </div>
 
               <!-- Description -->
               <div class="mb-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'materials.description' | translate }}</label>
                 <textarea [(ngModel)]="formData.description"
                           name="description"
                           rows="4"
                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                          placeholder="Describe this material..."></textarea>
+                          [placeholder]="'materials.descriptionPlaceholder' | translate"></textarea>
               </div>
 
               <!-- Category -->
@@ -369,7 +370,8 @@ export class MaterialEditComponent implements OnInit {
     private authService: AuthService,
     private toastService: ToastService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -378,7 +380,7 @@ export class MaterialEditComponent implements OnInit {
       this.loadMaterial();
       this.loadCourses();
     } else {
-      this.toastService.error('Invalid material ID');
+      this.toastService.error(this.translate.instant('materials.invalidId'));
       this.goBack();
     }
   }
@@ -395,7 +397,7 @@ export class MaterialEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading material:', error);
-        this.toastService.error('Failed to load material');
+        this.toastService.error(this.translate.instant('materials.failedToLoad'));
         this.loading = false;
         this.goBack();
       }
@@ -452,7 +454,7 @@ export class MaterialEditComponent implements OnInit {
       },
       error: (error: any) => {
         console.error('Error loading courses:', error);
-        this.toastService.error('Failed to load courses');
+        this.toastService.error(this.translate.instant('materials.failedToLoadCourses'));
       }
     });
   }
@@ -475,7 +477,7 @@ export class MaterialEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading groups:', error);
-        this.toastService.error('Failed to load groups');
+        this.toastService.error(this.translate.instant('materials.failedToLoadGroups'));
       }
     });
   }
@@ -704,7 +706,7 @@ export class MaterialEditComponent implements OnInit {
         this.uploadProgress = 100;
         
         setTimeout(() => {
-          this.toastService.success('Material updated successfully!');
+          this.toastService.success(this.translate.instant('materials.updateSuccess'));
           this.router.navigate(['/dashboard/materials', this.materialId]);
         }, 500);
       },

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MaterialService, Material } from '../../services/material.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -11,7 +12,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 @Component({
   selector: 'app-material-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgxExtendedPdfViewerModule],
+  imports: [CommonModule, RouterModule, TranslateModule, NgxExtendedPdfViewerModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-6xl mx-auto">
@@ -30,7 +31,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Materials
+            {{ 'materials.backToMaterials' | translate }}
           </button>
 
           <!-- Header -->
@@ -51,21 +52,21 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
             <!-- Metadata -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
               <div>
-                <p class="text-xs text-gray-500 mb-1">Uploaded By</p>
+                <p class="text-xs text-gray-500 mb-1">{{ 'materials.uploadedBy' | translate }}</p>
                 <p class="text-sm font-medium text-gray-900">
                   {{ material.uploadedBy?.firstName }} {{ material.uploadedBy?.lastName }}
                 </p>
               </div>
               <div *ngIf="material.fileSize">
-                <p class="text-xs text-gray-500 mb-1">File Size</p>
+                <p class="text-xs text-gray-500 mb-1">{{ 'materials.fileSize' | translate }}</p>
                 <p class="text-sm font-medium text-gray-900">{{ material.fileSizeFormatted }}</p>
               </div>
               <div>
-                <p class="text-xs text-gray-500 mb-1">Views</p>
+                <p class="text-xs text-gray-500 mb-1">{{ 'materials.views' | translate }}</p>
                 <p class="text-sm font-medium text-gray-900">{{ material.stats.viewCount }}</p>
               </div>
               <div>
-                <p class="text-xs text-gray-500 mb-1">Downloads</p>
+                <p class="text-xs text-gray-500 mb-1">{{ 'materials.downloads' | translate }}</p>
                 <p class="text-sm font-medium text-gray-900">{{ material.stats.downloadCount }}</p>
               </div>
             </div>
@@ -77,17 +78,17 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Download
+                {{ 'materials.download' | translate }}
               </button>
               <button *ngIf="canEdit()"
                       (click)="editMaterial()"
                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-                Edit
+                {{ 'common.edit' | translate }}
               </button>
               <button *ngIf="canDelete()"
                       (click)="deleteMaterial()"
                       class="px-6 py-3 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium">
-                Delete
+                {{ 'common.delete' | translate }}
               </button>
             </div>
           </div>
@@ -97,7 +98,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
             <!-- File Navigation (if multiple files) -->
             <div *ngIf="hasMultipleFiles()" class="mb-6">
               <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-bold text-gray-900">Files ({{ allFiles.length }})</h2>
+                <h2 class="text-xl font-bold text-gray-900">{{ 'materials.files' | translate }} ({{ allFiles.length }})</h2>
                 <div class="flex items-center gap-2">
                   <button (click)="previousFile()"
                           [disabled]="currentFileIndex === 0"
@@ -148,20 +149,20 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
               </div>
             </div>
 
-            <h2 *ngIf="!hasMultipleFiles()" class="text-xl font-bold text-gray-900 mb-4">Preview</h2>
+            <h2 *ngIf="!hasMultipleFiles()" class="text-xl font-bold text-gray-900 mb-4">{{ 'materials.preview' | translate }}</h2>
             
             <!-- Link Preview -->
             <div *ngIf="material.type === 'link'" class="text-center py-12">
               <svg class="w-16 h-16 mx-auto mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
               </svg>
-              <p class="text-lg font-medium text-gray-900 mb-4">External Link</p>
+              <p class="text-lg font-medium text-gray-900 mb-4">{{ 'materials.externalLink' | translate }}</p>
               <a [href]="getFullUrl(material.externalUrl || material.fileUrl)" target="_blank" rel="noopener noreferrer"
                  class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                 </svg>
-                Open Link
+                {{ 'materials.openLink' | translate }}
               </a>
             </div>
 
@@ -178,7 +179,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
               <video controls 
                      class="w-full h-full rounded-lg">
                 <source [src]="getFullUrl(getCurrentFile().fileUrl)">
-                Your browser does not support the video tag.
+                {{ 'materials.browserNotSupportVideo' | translate }}
               </video>
             </div>
 
@@ -197,8 +198,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
               </svg>
               <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ getCurrentFile().fileName }}</h3>
               <p class="text-gray-600 mb-6 text-center max-w-md">
-                Office documents (Word, Excel, PowerPoint) cannot be previewed directly in the browser.
-                <br>Please download to view the file.
+                {{ 'materials.officeDocNoPreview' | translate }}
               </p>
               <div class="flex gap-3">
                 <a [href]="getFullUrl(getCurrentFile().fileUrl)" 
@@ -207,18 +207,18 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                   </svg>
-                  Download File
+                  {{ 'materials.downloadFile' | translate }}
                 </a>
                 <button (click)="openInNewTab(getCurrentFile().fileUrl)"
                         class="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                   </svg>
-                  Open in New Tab
+                  {{ 'materials.openInNewTab' | translate }}
                 </button>
               </div>
               <p class="text-sm text-gray-500 mt-6">
-                💡 Supported formats: .doc, .docx, .xls, .xlsx, .ppt, .pptx
+                💡 {{ 'materials.supportedFormats' | translate }}
               </p>
             </div>
 
@@ -239,7 +239,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                   </svg>
-                  Copy
+                  {{ 'materials.copy' | translate }}
                 </button>
               </div>
 
@@ -277,7 +277,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
               <!-- File Info Footer -->
               <div *ngIf="!loadingTextContent && !textFileError && textFileContent" 
                    class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-600">
-                <span>{{ getTextWithLineNumbers().length }} lines</span>
+                <span>{{ getTextWithLineNumbers().length }} {{ 'materials.lines' | translate }}</span>
                 <span>{{ (textFileContent.length / 1024).toFixed(2) }} KB</span>
               </div>
             </div>
@@ -286,7 +286,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
             <div *ngIf="isAudio(getCurrentFile().fileName) && getCurrentFile().fileUrl" class="flex justify-center py-8">
               <audio controls class="w-full max-w-2xl">
                 <source [src]="getFullUrl(getCurrentFile().fileUrl)">
-                Your browser does not support the audio element.
+                {{ 'materials.browserNotSupportAudio' | translate }}
               </audio>
             </div>
 
@@ -297,14 +297,14 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                 </svg>
               </div>
-              <p class="text-lg font-medium text-gray-900 mb-2">Preview not available</p>
+              <p class="text-lg font-medium text-gray-900 mb-2">{{ 'materials.previewNotAvailable' | translate }}</p>
               <p class="text-gray-600 mb-4">{{ getFileTypeDescription(material.fileName) }}</p>
               <button (click)="downloadMaterial()"
                       class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Download to View
+                {{ 'materials.downloadToView' | translate }}
               </button>
             </div>
           </div>
@@ -332,7 +332,8 @@ export class MaterialDetailComponent implements OnInit {
     private materialService: MaterialService,
     private toastService: ToastService,
     private authService: AuthService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private translate: TranslateService
   ) {
     this.currentUser = this.authService.currentUser;
   }
@@ -386,7 +387,7 @@ export class MaterialDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading material:', error);
-        this.toastService.error('Failed to load material');
+        this.toastService.error(this.translate.instant('materials.failedToLoad'));
         this.loading = false;
         this.goBack();
       }
@@ -403,7 +404,7 @@ export class MaterialDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading text file:', error);
-        this.textFileError = 'Failed to load file content';
+        this.textFileError = this.translate.instant('materials.failedToLoadFileContent');
         this.loadingTextContent = false;
       }
     });
@@ -576,9 +577,9 @@ export class MaterialDetailComponent implements OnInit {
     if (!this.textFileContent) return;
     
     navigator.clipboard.writeText(this.textFileContent).then(() => {
-      this.toastService.success('Content copied to clipboard');
+      this.toastService.success(this.translate.instant('materials.copiedToClipboard'));
     }).catch(() => {
-      this.toastService.error('Failed to copy content');
+      this.toastService.error(this.translate.instant('materials.failedToCopy'));
     });
   }
 
@@ -592,7 +593,7 @@ export class MaterialDetailComponent implements OnInit {
   downloadMaterial(): void {
     if (this.material) {
       this.materialService.downloadMaterial(this.material);
-      this.toastService.success('Download started');
+      this.toastService.success(this.translate.instant('materials.downloadStarted'));
     }
   }
 
@@ -613,11 +614,11 @@ export class MaterialDetailComponent implements OnInit {
     // Confirmation and deletion logic here
     this.materialService.deleteMaterial(this.material._id).subscribe({
       next: () => {
-        this.toastService.success('Material deleted');
+        this.toastService.success(this.translate.instant('materials.deleteSuccess'));
         this.goBack();
       },
       error: (error: any) => {
-        this.toastService.error('Failed to delete material');
+        this.toastService.error(this.translate.instant('materials.failedToDelete'));
       }
     });
   }

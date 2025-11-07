@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MaterialService, Material, MaterialQueryParams } from '../../services/material.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
@@ -10,7 +11,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
 @Component({
   selector: 'app-material-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
@@ -19,8 +20,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
         <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8 mb-8">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 class="text-4xl font-bold text-white mb-2">📚 Study Materials</h1>
-              <p class="text-blue-100 text-lg">Access course resources and materials</p>
+              <h1 class="text-4xl font-bold text-white mb-2">📚 {{ 'materials.title' | translate }}</h1>
+              <p class="text-blue-100 text-lg">{{ 'materials.accessResources' | translate }}</p>
             </div>
             <button *ngIf="canUpload()"
                     (click)="openUploadModal()"
@@ -28,7 +29,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
               </svg>
-              Upload Materials
+              {{ 'materials.uploadMaterials' | translate }}
             </button>
           </div>
         </div>
@@ -39,61 +40,61 @@ import { ConfirmationService } from '../../services/confirmation.service';
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
             </svg>
-            Filters
+            {{ 'common.filter' | translate }}
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'common.search' | translate }}</label>
               <input 
                 type="text"
                 [(ngModel)]="filters.search"
                 (ngModelChange)="onFilterChange()"
-                placeholder="Search materials..."
+                [placeholder]="'materials.searchPlaceholder' | translate"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'materials.type' | translate }}</label>
               <select 
                 [(ngModel)]="filters.type"
                 (change)="onFilterChange()"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">All Types</option>
-                <option value="file">File</option>
-                <option value="document">Document</option>
-                <option value="link">Link</option>
-                <option value="video">Video</option>
-                <option value="presentation">Presentation</option>
-                <option value="image">Image</option>
+                <option value="">{{ 'materials.allTypes' | translate }}</option>
+                <option value="file">{{ 'materials.types.file' | translate }}</option>
+                <option value="document">{{ 'materials.types.document' | translate }}</option>
+                <option value="link">{{ 'materials.types.link' | translate }}</option>
+                <option value="video">{{ 'materials.types.video' | translate }}</option>
+                <option value="presentation">{{ 'materials.types.presentation' | translate }}</option>
+                <option value="image">{{ 'materials.types.image' | translate }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'materials.category' | translate }}</label>
               <select 
                 [(ngModel)]="filters.category"
                 (change)="onFilterChange()"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">All Categories</option>
-                <option value="lecture_notes">Lecture Notes</option>
-                <option value="reading">Reading</option>
-                <option value="video">Video</option>
-                <option value="practice">Practice</option>
-                <option value="syllabus">Syllabus</option>
-                <option value="exam_material">Exam Material</option>
-                <option value="supplementary">Supplementary</option>
+                <option value="">{{ 'materials.allCategories' | translate }}</option>
+                <option value="lecture_notes">{{ 'materials.categories.lectureNotes' | translate }}</option>
+                <option value="reading">{{ 'materials.categories.reading' | translate }}</option>
+                <option value="video">{{ 'materials.categories.video' | translate }}</option>
+                <option value="practice">{{ 'materials.categories.practice' | translate }}</option>
+                <option value="syllabus">{{ 'materials.categories.syllabus' | translate }}</option>
+                <option value="exam_material">{{ 'materials.categories.examMaterial' | translate }}</option>
+                <option value="supplementary">{{ 'materials.categories.supplementary' | translate }}</option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'materials.sortBy' | translate }}</label>
               <select 
                 [(ngModel)]="filters.sort"
                 (change)="onFilterChange()"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="-uploadDate">Newest First</option>
-                <option value="uploadDate">Oldest First</option>
-                <option value="title">Title (A-Z)</option>
-                <option value="-title">Title (Z-A)</option>
-                <option value="-stats.downloadCount">Most Downloaded</option>
-                <option value="-stats.viewCount">Most Viewed</option>
+                <option value="-uploadDate">{{ 'materials.newestFirst' | translate }}</option>
+                <option value="uploadDate">{{ 'materials.oldestFirst' | translate }}</option>
+                <option value="title">{{ 'materials.titleAZ' | translate }}</option>
+                <option value="-title">{{ 'materials.titleZA' | translate }}</option>
+                <option value="-stats.downloadCount">{{ 'materials.mostDownloaded' | translate }}</option>
+                <option value="-stats.viewCount">{{ 'materials.mostViewed' | translate }}</option>
               </select>
             </div>
           </div>
@@ -113,8 +114,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
-          <h3 class="text-xl font-semibold text-gray-900 mb-2">No Materials Found</h3>
-          <p class="text-gray-500">Try adjusting your filters or search query</p>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ 'materials.noMaterialsFound' | translate }}</h3>
+          <p class="text-gray-500">{{ 'materials.tryAdjustingFilters' | translate }}</p>
         </div>
 
         <!-- Materials Grid -->
@@ -182,7 +183,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
               <div class="flex gap-2">
                 <button (click)="viewMaterial(material)"
                         class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                  View
+                  {{ 'common.view' | translate }}
                 </button>
                 <button (click)="downloadMaterial(material)"
                         class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
@@ -215,15 +216,15 @@ import { ConfirmationService } from '../../services/confirmation.service';
             <button (click)="goToPage(pagination.page - 1)"
                     [disabled]="pagination.page === 1"
                     class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-              Previous
+              {{ 'common.previous' | translate }}
             </button>
             <span class="px-4 py-2 text-gray-700">
-              Page {{ pagination.page }} of {{ pagination.pages }}
+              {{ 'pagination.page' | translate }} {{ pagination.page }} {{ 'pagination.of' | translate }} {{ pagination.pages }}
             </span>
             <button (click)="goToPage(pagination.page + 1)"
                     [disabled]="pagination.page === pagination.pages"
                     class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-              Next
+              {{ 'common.next' | translate }}
             </button>
           </nav>
         </div>
@@ -256,7 +257,8 @@ export class MaterialListComponent implements OnInit {
     private toastService: ToastService,
     private confirmationService: ConfirmationService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -284,7 +286,7 @@ export class MaterialListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading materials:', error);
-        this.toastService.error(error.error?.userMessage || 'Failed to load materials');
+        this.toastService.error(error.error?.userMessage || this.translate.instant('materials.failedToLoad'));
         this.loading = false;
       }
     });
@@ -328,7 +330,7 @@ export class MaterialListComponent implements OnInit {
 
   downloadMaterial(material: Material): void {
     this.materialService.downloadMaterial(material);
-    this.toastService.success('Download started');
+    this.toastService.success(this.translate.instant('materials.downloadStarted'));
   }
 
   editMaterial(material: Material): void {
@@ -337,20 +339,20 @@ export class MaterialListComponent implements OnInit {
 
   deleteMaterial(material: Material): void {
     this.confirmationService.confirm({
-      title: 'Delete Material',
-      message: `Are you sure you want to delete "${material.title}"? This action cannot be undone.`,
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('materials.deleteMaterial'),
+      message: this.translate.instant('materials.deleteConfirmMessage', { title: material.title }),
+      confirmText: this.translate.instant('common.delete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     }).then((confirmed) => {
       if (confirmed) {
         this.materialService.deleteMaterial(material._id).subscribe({
           next: (response) => {
-            this.toastService.success('Material deleted successfully');
+            this.toastService.success(this.translate.instant('materials.deleteSuccess'));
             this.loadMaterials();
           },
           error: (error) => {
-            this.toastService.error(error.error?.userMessage || 'Failed to delete material');
+            this.toastService.error(error.error?.userMessage || this.translate.instant('materials.failedToDelete'));
           }
         });
       }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AttendanceService, Attendance } from '../../services/attendance.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
@@ -10,29 +11,29 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-attendance-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
         
         <!-- Breadcrumb Navigation -->
         <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-6">
-          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">Attendance</a>
+          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">{{ 'attendance.title' | translate }}</a>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-          <a *ngIf="attendance" [routerLink]="['/attendance', attendance._id]" class="hover:text-purple-600 transition-colors">Details</a>
+          <a *ngIf="attendance" [routerLink]="['/attendance', attendance._id]" class="hover:text-purple-600 transition-colors">{{ 'common.details' | translate }}</a>
           <svg *ngIf="attendance" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-          <span class="text-gray-900 font-medium">Edit</span>
+          <span class="text-gray-900 font-medium">{{ 'common.edit' | translate }}</span>
         </nav>
 
         <!-- Loading State -->
         <div *ngIf="isLoading" class="flex justify-center items-center py-12">
           <div class="text-center">
             <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600 font-medium">Loading attendance...</p>
+            <p class="mt-4 text-gray-600 font-medium">{{ 'attendance.loadingAttendance' | translate }}</p>
           </div>
         </div>
 
@@ -62,14 +63,14 @@ import { AuthService } from '../../services/auth.service';
                     </span>
                     <span *ngIf="attendance.isLocked" 
                           class="px-3 py-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
-                      🔒 Locked
+                      🔒 {{ 'attendance.locked' | translate }}
                     </span>
                     <span *ngIf="!attendance.isLocked" 
                           class="px-3 py-1 bg-green-500/90 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
-                      🔓 Unlocked
+                      🔓 {{ 'attendance.unlocked' | translate }}
                     </span>
                   </div>
-                  <h1 class="text-4xl font-bold text-white mb-2">Edit Attendance</h1>
+                  <h1 class="text-4xl font-bold text-white mb-2">{{ 'attendance.editAttendance' | translate }}</h1>
                   <p class="text-purple-100 text-lg mb-4">{{ attendance.group?.name }} - {{ formatDate(attendance.session.date) }}</p>
                   <div class="flex flex-wrap gap-4 text-sm text-purple-100">
                     <div class="flex items-center gap-2">
@@ -91,13 +92,13 @@ import { AuthService } from '../../services/auth.service';
                 <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
                   <div class="text-center">
                     <div class="text-5xl font-bold text-white mb-2">{{ attendanceRate }}%</div>
-                    <div class="text-purple-100 text-sm">Attendance Rate</div>
+                    <div class="text-purple-100 text-sm">{{ 'attendance.attendanceRate' | translate }}</div>
                     <div class="mt-3 flex items-center justify-center gap-2 text-xs text-purple-100">
-                      <span class="px-2 py-1 bg-green-500/30 rounded">{{ getStatusCount('present') }} Present</span>
-                      <span class="px-2 py-1 bg-yellow-500/30 rounded">{{ getStatusCount('late') }} Late</span>
+                      <span class="px-2 py-1 bg-green-500/30 rounded">{{ getStatusCount('present') }} {{ 'attendance.present' | translate }}</span>
+                      <span class="px-2 py-1 bg-yellow-500/30 rounded">{{ getStatusCount('late') }} {{ 'attendance.late' | translate }}</span>
                     </div>
                     <div *ngIf="hasChanges" class="mt-3 text-xs text-yellow-200 font-medium">
-                      ⚠️ {{ changeCount }} change(s) pending
+                      ⚠️ {{ 'attendance.changesPending' | translate:({count: changeCount}) }}
                     </div>
                   </div>
                 </div>
@@ -112,8 +113,8 @@ import { AuthService } from '../../services/auth.service';
                 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
               </svg>
               <div>
-                <p class="text-yellow-800 font-medium">This attendance session is locked</p>
-                <p class="text-yellow-700 text-sm mt-1">Only administrators can edit locked sessions</p>
+                <p class="text-yellow-800 font-medium">{{ 'attendance.sessionLocked' | translate }}</p>
+                <p class="text-yellow-700 text-sm mt-1">{{ 'attendance.onlyAdminsCanEdit' | translate }}</p>
               </div>
             </div>
           </div>
@@ -121,9 +122,9 @@ import { AuthService } from '../../services/auth.service';
           <!-- Quick Actions Bar -->
           <div *ngIf="!attendance.isLocked || isAdmin" class="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-semibold text-gray-900">Quick Actions</h2>
+              <h2 class="text-lg font-semibold text-gray-900">{{ 'attendance.quickActions' | translate }}</h2>
               <div class="text-sm text-gray-600">
-                Students: <span class="font-semibold">{{ students.length }}</span>
+                {{ 'common.students' | translate }}: <span class="font-semibold">{{ students.length }}</span>
               </div>
             </div>
             <div class="flex flex-wrap gap-3">
@@ -134,7 +135,7 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Mark All Present
+                {{ 'attendance.markAllPresent' | translate }}
               </button>
               <button 
                 (click)="markAllAbsent()"
@@ -143,7 +144,7 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                Mark All Absent
+                {{ 'attendance.markAllAbsent' | translate }}
               </button>
               <button 
                 (click)="resetChanges()"
@@ -153,14 +154,14 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
-                Reset Changes
+                {{ 'attendance.resetChanges' | translate }}
               </button>
             </div>
           </div>
 
           <!-- Students Grid -->
           <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Student Attendance Records</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'attendance.studentAttendanceRecords' | translate }}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div *ngFor="let student of students; let i = index" 
                    class="bg-gradient-to-br from-gray-50 to-white border-2 rounded-xl p-4 hover:shadow-lg transition-all duration-200"
@@ -181,14 +182,14 @@ import { AuthService } from '../../services/auth.service';
                   <div class="flex-1 min-w-0">
                     <h3 class="text-sm font-semibold text-gray-900 truncate">{{ student.student?.fullName || 'N/A' }}</h3>
                     <p class="text-xs text-gray-500">
-                      {{ student.changed ? '🔄 Modified' : (student.status ? '✓ Recorded' : 'Not marked') }}
+                      {{ student.changed ? ('🔄 ' + ('attendance.modified' | translate)) : (student.status ? ('✓ ' + ('attendance.recorded' | translate)) : ('attendance.notMarked' | translate)) }}
                     </p>
                   </div>
                 </div>
 
                 <!-- Original Status (if changed) -->
                 <div *ngIf="student.changed && student.originalStatus" class="mb-2 p-2 bg-gray-100 rounded text-xs">
-                  <span class="text-gray-600">Was:</span>
+                  <span class="text-gray-600">{{ 'attendance.was' | translate }}:</span>
                   <span class="font-medium ml-1" 
                         [ngClass]="{
                           'text-green-700': student.originalStatus === 'present',
@@ -214,7 +215,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Present
+                    {{ 'attendance.present' | translate }}
                   </button>
                   <button 
                     (click)="setStatus(i, 'absent')"
@@ -228,7 +229,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
-                    Absent
+                    {{ 'attendance.absent' | translate }}
                   </button>
                   <button 
                     (click)="setStatus(i, 'late')"
@@ -242,7 +243,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    Late
+                    {{ 'attendance.late' | translate }}
                   </button>
                   <button 
                     (click)="setStatus(i, 'excused')"
@@ -256,13 +257,13 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    Excused
+                    {{ 'attendance.excused' | translate }}
                   </button>
                 </div>
 
                 <!-- Late Minutes (if late) -->
                 <div *ngIf="student.status === 'late'" class="mb-2">
-                  <label class="block text-xs font-medium text-gray-700 mb-1">Minutes Late</label>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">{{ 'attendance.minutesLate' | translate }}</label>
                   <input 
                     type="number"
                     [(ngModel)]="student.minutesLate"
@@ -276,13 +277,13 @@ import { AuthService } from '../../services/auth.service';
 
                 <!-- Notes -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-1">Notes</label>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">{{ 'common.notes' | translate }}</label>
                   <textarea 
                     [(ngModel)]="student.notes"
                     (ngModelChange)="trackChange(i)"
                     [disabled]="!!(attendance.isLocked && !isAdmin)"
                     rows="2"
-                    placeholder="Add notes..."
+                    [placeholder]="'attendance.addNotes' | translate"
                     class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:opacity-50"
                   ></textarea>
                 </div>
@@ -292,13 +293,13 @@ import { AuthService } from '../../services/auth.service';
 
           <!-- Session Notes -->
           <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Session Notes</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'attendance.sessionNotes' | translate }}</h2>
             <textarea 
               [(ngModel)]="sessionNotes"
               (ngModelChange)="trackNotesChange()"
               [disabled]="!!(attendance.isLocked && !isAdmin)"
               rows="4"
-              placeholder="Add any notes about this session..."
+              [placeholder]="'attendance.addSessionNotes' | translate"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none disabled:opacity-50"
             ></textarea>
           </div>
@@ -312,7 +313,7 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
-              Cancel
+              {{ 'common.cancel' | translate }}
             </button>
 
             <div class="flex gap-3">
@@ -324,7 +325,7 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"/>
                 </svg>
-                Unlock First
+                {{ 'attendance.unlockFirst' | translate }}
               </button>
               <button 
                 *ngIf="!attendance.isLocked || isAdmin"
@@ -339,7 +340,7 @@ import { AuthService } from '../../services/auth.service';
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {{ isSaving ? 'Saving...' : 'Save Changes (' + changeCount + ')' }}
+                {{ isSaving ? ('common.saving' | translate) : (('attendance.saveChangesCount' | translate) + ' (' + changeCount + ')') }}
               </button>
             </div>
           </div>
@@ -366,7 +367,8 @@ export class AttendanceEditComponent implements OnInit {
     private attendanceService: AttendanceService,
     private toastService: ToastService,
     private confirmationService: ConfirmationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -381,7 +383,7 @@ export class AttendanceEditComponent implements OnInit {
     if (this.attendanceId) {
       this.loadAttendance(this.attendanceId);
     } else {
-      this.error = 'No attendance ID provided';
+      this.error = this.translate.instant('attendance.noIdProvided');
       this.toastService.error(this.error);
     }
   }
@@ -402,7 +404,7 @@ export class AttendanceEditComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading attendance:', error);
-        this.error = error.error?.message || 'Failed to load attendance details';
+        this.error = error.error?.message || this.translate.instant('attendance.failedToLoadDetails');
         this.isLoading = false;
         this.toastService.error(this.error);
       }
@@ -464,7 +466,7 @@ export class AttendanceEditComponent implements OnInit {
       student.minutesLate = 0;
       this.trackChange(index);
     });
-    this.toastService.success('All students marked as present');
+    this.toastService.success(this.translate.instant('attendance.allMarkedPresent'));
   }
 
   markAllAbsent() {
@@ -473,21 +475,21 @@ export class AttendanceEditComponent implements OnInit {
       student.minutesLate = 0;
       this.trackChange(index);
     });
-    this.toastService.success('All students marked as absent');
+    this.toastService.success(this.translate.instant('attendance.allMarkedAbsent'));
   }
 
   resetChanges() {
     this.confirmationService.confirm({
-      title: 'Reset All Changes?',
-      message: 'This will discard all your changes and restore the original attendance data.',
-      confirmText: 'Reset',
-      cancelText: 'Cancel',
+      title: this.translate.instant('attendance.resetAllChanges'),
+      message: this.translate.instant('attendance.resetConfirmMessage'),
+      confirmText: this.translate.instant('common.reset'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'warning'
     }).then((confirmed) => {
       if (confirmed) {
         this.students = JSON.parse(JSON.stringify(this.originalStudents));
         this.sessionNotes = this.originalSessionNotes;
-        this.toastService.info('All changes have been reset');
+        this.toastService.info(this.translate.instant('attendance.changesReset'));
       }
     });
   }
@@ -496,23 +498,23 @@ export class AttendanceEditComponent implements OnInit {
     if (!this.attendance?._id) return;
 
     this.confirmationService.confirm({
-      title: 'Unlock Attendance Session?',
-      message: 'This will allow editing of the attendance record.',
-      confirmText: 'Unlock',
-      cancelText: 'Cancel',
+      title: this.translate.instant('attendance.unlockSessionTitle'),
+      message: this.translate.instant('attendance.unlockSessionMessage'),
+      confirmText: this.translate.instant('attendance.unlock'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'warning'
     }).then((confirmed) => {
       if (confirmed) {
         this.attendanceService.unlockAttendance(this.attendance!._id!).subscribe({
           next: (response) => {
             if (response.success) {
-              this.toastService.success('Attendance session unlocked successfully');
+              this.toastService.success(this.translate.instant('attendance.sessionUnlockedSuccessfully'));
               this.loadAttendance(this.attendance!._id!);
             }
           },
           error: (error) => {
             console.error('Error unlocking attendance:', error);
-            this.toastService.error('Failed to unlock attendance session');
+            this.toastService.error(this.translate.instant('attendance.failedToUnlock'));
           }
         });
       }
@@ -523,15 +525,15 @@ export class AttendanceEditComponent implements OnInit {
     if (!this.attendance || !this.hasChanges) return;
 
     if (this.attendance.isLocked && !this.isAdmin) {
-      this.toastService.error('Cannot edit locked attendance session');
+      this.toastService.error(this.translate.instant('attendance.cannotEditLocked'));
       return;
     }
 
     this.confirmationService.confirm({
-      title: 'Save Changes?',
-      message: `You have ${this.changeCount} change(s). Do you want to save them?`,
-      confirmText: 'Save',
-      cancelText: 'Cancel',
+      title: this.translate.instant('attendance.saveChangesTitle'),
+      message: this.translate.instant('attendance.saveChangesMessage', { count: this.changeCount }),
+      confirmText: this.translate.instant('common.save'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'info'
     }).then((confirmed) => {
       if (confirmed) {
@@ -560,14 +562,14 @@ export class AttendanceEditComponent implements OnInit {
       next: (response) => {
         this.isSaving = false;
         if (response.success) {
-          this.toastService.success('Attendance updated successfully');
+          this.toastService.success(this.translate.instant('attendance.attendanceUpdated'));
           this.router.navigate(['/attendance', this.attendance!._id]);
         }
       },
       error: (error) => {
         this.isSaving = false;
         console.error('Error updating attendance:', error);
-        this.toastService.error(error.error?.message || 'Failed to update attendance');
+        this.toastService.error(error.error?.message || this.translate.instant('attendance.failedToUpdate'));
       }
     });
   }
@@ -615,10 +617,10 @@ export class AttendanceEditComponent implements OnInit {
   goBack() {
     if (this.hasChanges) {
       this.confirmationService.confirm({
-        title: 'Discard Changes?',
-        message: 'You have unsaved changes. Are you sure you want to leave?',
-        confirmText: 'Discard',
-        cancelText: 'Stay',
+        title: this.translate.instant('attendance.discardChanges'),
+        message: this.translate.instant('attendance.unsavedChangesMessage'),
+        confirmText: this.translate.instant('common.discard'),
+        cancelText: this.translate.instant('common.stay'),
         type: 'warning'
       }).then((confirmed) => {
         if (confirmed) {

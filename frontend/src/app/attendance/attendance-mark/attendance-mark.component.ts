@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AttendanceService } from '../../services/attendance.service';
 import { GroupService } from '../../services/group.service';
 import { ToastService } from '../../services/toast.service';
@@ -9,26 +10,26 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-attendance-mark',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
         
         <!-- Breadcrumb Navigation -->
         <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-6">
-          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">Attendance</a>
+          <a routerLink="/attendance" class="hover:text-purple-600 transition-colors">{{ 'attendance.title' | translate }}</a>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-          <span class="text-gray-900 font-medium">Mark Attendance</span>
+          <span class="text-gray-900 font-medium">{{ 'attendance.markAttendance' | translate }}</span>
         </nav>
 
         <!-- Group Selection (if no groupId) -->
         <div *ngIf="!groupId" class="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Select a Group</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ 'attendance.selectGroup' | translate }}</h2>
           <div class="grid grid-cols-1 gap-4">
             <div class="relative">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Choose Group to Mark Attendance</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'attendance.chooseGroupToMark' | translate }}</label>
               
               <!-- Searchable Dropdown -->
               <div class="relative">
@@ -38,7 +39,7 @@ import { ToastService } from '../../services/toast.service';
                     [(ngModel)]="groupSearchTerm"
                     (focus)="showGroupDropdown = true"
                     (input)="filterGroups()"
-                    placeholder="Search groups..."
+                    [placeholder]="'attendance.searchGroups' | translate"
                     class="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                   />
                   <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,7 +296,7 @@ import { ToastService } from '../../services/toast.service';
 
                 <!-- Late Minutes (if late) -->
                 <div *ngIf="student.status === 'late'" class="mb-2">
-                  <label class="block text-xs font-medium text-gray-700 mb-1">Minutes Late</label>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">{{ 'attendance.minutesLate' | translate }}</label>
                   <input 
                     type="number"
                     [(ngModel)]="student.minutesLate"
@@ -307,11 +308,11 @@ import { ToastService } from '../../services/toast.service';
 
                 <!-- Notes -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-1">Notes (optional)</label>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">{{ 'attendance.notesOptional' | translate }}</label>
                   <textarea 
                     [(ngModel)]="student.notes"
                     rows="2"
-                    placeholder="Add notes..."
+                    [placeholder]="'attendance.addNotes' | translate"
                     class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                   ></textarea>
                 </div>
@@ -323,17 +324,17 @@ import { ToastService } from '../../services/toast.service';
               <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
               </svg>
-              <p class="mt-2 text-sm text-gray-500">No students enrolled in this group</p>
+              <p class="mt-2 text-sm text-gray-500">{{ 'attendance.noStudentsEnrolled' | translate }}</p>
             </div>
           </div>
 
           <!-- Session Notes -->
           <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Session Notes</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'attendance.sessionNotes' | translate }}</h2>
             <textarea 
               [(ngModel)]="sessionNotes"
               rows="4"
-              placeholder="Add any notes about this session (optional)..."
+              [placeholder]="'attendance.addSessionNotes' | translate"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
             ></textarea>
           </div>
@@ -347,7 +348,7 @@ import { ToastService } from '../../services/toast.service';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
               </svg>
-              Cancel
+              {{ 'common.cancel' | translate }}
             </button>
 
             <div class="flex gap-3">
@@ -359,7 +360,7 @@ import { ToastService } from '../../services/toast.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
                 </svg>
-                Save as Draft
+                {{ 'attendance.saveAsDraft' | translate }}
               </button>
               <button 
                 (click)="saveAttendance(true)"
@@ -373,7 +374,7 @@ import { ToastService } from '../../services/toast.service';
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {{ isSaving ? 'Saving...' : 'Submit Attendance' }}
+                {{ isSaving ? ('attendance.saving' | translate) : ('attendance.submitAttendance' | translate) }}
               </button>
             </div>
           </div>
@@ -405,7 +406,8 @@ export class AttendanceMarkComponent implements OnInit {
     private router: Router,
     private attendanceService: AttendanceService,
     private groupService: GroupService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   // Close dropdown when clicking outside
@@ -518,7 +520,7 @@ export class AttendanceMarkComponent implements OnInit {
       student.status = 'present';
       student.minutesLate = 0;
     });
-    this.toastService.success('All students marked as present');
+    this.toastService.success(this.translate.instant('attendance.allMarkedPresent'));
   }
 
   markAllAbsent() {
@@ -526,7 +528,7 @@ export class AttendanceMarkComponent implements OnInit {
       student.status = 'absent';
       student.minutesLate = 0;
     });
-    this.toastService.success('All students marked as absent');
+    this.toastService.success(this.translate.instant('attendance.allMarkedAbsent'));
   }
 
   clearAll() {
@@ -535,7 +537,7 @@ export class AttendanceMarkComponent implements OnInit {
       student.minutesLate = 0;
       student.notes = '';
     });
-    this.toastService.info('All attendance cleared');
+    this.toastService.info(this.translate.instant('attendance.allAttendanceCleared'));
   }
 
   getStatusCount(status: string): number {
@@ -564,7 +566,7 @@ export class AttendanceMarkComponent implements OnInit {
     if (!this.group) return;
 
     if (markAsComplete && !this.isValid()) {
-      this.toastService.warning('Please mark attendance for all students before submitting');
+      this.toastService.warning(this.translate.instant('attendance.pleaseMarkAll'));
       return;
     }
 
@@ -592,16 +594,16 @@ export class AttendanceMarkComponent implements OnInit {
       next: (response) => {
         this.isSaving = false;
         if (markAsComplete) {
-          this.toastService.success('Attendance submitted successfully');
+          this.toastService.success(this.translate.instant('attendance.attendanceSubmitted'));
         } else {
-          this.toastService.success('Attendance saved as draft');
+          this.toastService.success(this.translate.instant('attendance.attendanceSavedAsDraft'));
         }
         this.router.navigate(['/attendance']);
       },
       error: (error) => {
         this.isSaving = false;
         console.error('Error saving attendance:', error);
-        this.toastService.error(error.error?.message || 'Failed to save attendance');
+        this.toastService.error(error.error?.message || this.translate.instant('attendance.failedToSave'));
       }
     });
   }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AttendanceService, Attendance } from '../../services/attendance.service';
 import { GroupService } from '../../services/group.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -14,7 +15,7 @@ import { PermissionService } from '../../services/permission.service';
 @Component({
   selector: 'app-attendance-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
@@ -26,10 +27,10 @@ import { PermissionService } from '../../services/permission.service';
           
           <div class="relative z-10">
             <h1 class="text-4xl font-bold text-white mb-2">
-              {{ currentUser?.role === 'student' ? '📋 My Attendance' : '📋 Attendance Management' }}
+              {{ currentUser?.role === 'student' ? ('📋 ' + ('attendance.myAttendance' | translate)) : ('📋 ' + ('attendance.attendanceManagement' | translate)) }}
             </h1>
             <p class="text-purple-100 text-lg">
-              {{ currentUser?.role === 'student' ? 'View your attendance records and schedule' : 'Track and manage student attendance' }}
+              {{ currentUser?.role === 'student' ? ('attendance.viewRecordsSchedule' | translate) : ('attendance.trackManageAttendance' | translate) }}
             </p>
           </div>
         </div>
@@ -84,23 +85,23 @@ import { PermissionService } from '../../services/permission.service';
             <!-- Statistics Cards -->
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <div class="bg-white rounded-xl shadow-lg p-4 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
-                <p class="text-gray-500 text-xs font-medium">Total Sessions</p>
+                <p class="text-gray-500 text-xs font-medium">{{ 'attendance.totalSessions' | translate }}</p>
                 <p class="text-2xl font-bold text-gray-900 mt-1">{{ studentStats.total || 0 }}</p>
               </div>
               <div class="bg-white rounded-xl shadow-lg p-4 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
-                <p class="text-gray-500 text-xs font-medium">Present</p>
+                <p class="text-gray-500 text-xs font-medium">{{ 'attendance.present' | translate }}</p>
                 <p class="text-2xl font-bold text-green-600 mt-1">{{ studentStats.present || 0 }}</p>
               </div>
               <div class="bg-white rounded-xl shadow-lg p-4 border-l-4 border-red-500 hover:shadow-xl transition-shadow">
-                <p class="text-gray-500 text-xs font-medium">Absent</p>
+                <p class="text-gray-500 text-xs font-medium">{{ 'attendance.absent' | translate }}</p>
                 <p class="text-2xl font-bold text-red-600 mt-1">{{ studentStats.absent || 0 }}</p>
               </div>
               <div class="bg-white rounded-xl shadow-lg p-4 border-l-4 border-yellow-500 hover:shadow-xl transition-shadow">
-                <p class="text-gray-500 text-xs font-medium">Late</p>
+                <p class="text-gray-500 text-xs font-medium">{{ 'attendance.late' | translate }}</p>
                 <p class="text-2xl font-bold text-yellow-600 mt-1">{{ studentStats.late || 0 }}</p>
               </div>
               <div class="bg-white rounded-xl shadow-lg p-4 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
-                <p class="text-gray-500 text-xs font-medium">Attendance Rate</p>
+                <p class="text-gray-500 text-xs font-medium">{{ 'attendance.attendanceRate' | translate }}</p>
                 <p class="text-2xl font-bold text-purple-600 mt-1">{{ studentStats.rate || 0 }}%</p>
               </div>
             </div>
@@ -111,36 +112,36 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                 </svg>
-                Filters
+                {{ 'common.filter' | translate }}
               </h3>
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Group</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'groups.group' | translate }}</label>
                   <select 
                     [(ngModel)]="recordsFilters.groupId"
                     (change)="loadStudentRecords()"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   >
-                    <option value="">All Groups</option>
+                    <option value="">{{ 'groups.allGroups' | translate }}</option>
                     <option *ngFor="let group of studentGroups" [value]="group._id">{{ group.name }}</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'attendance.status' | translate }}</label>
                   <select 
                     [(ngModel)]="recordsFilters.status"
                     (change)="loadStudentRecords()"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   >
-                    <option value="">All Status</option>
-                    <option value="present">Present</option>
-                    <option value="absent">Absent</option>
-                    <option value="late">Late</option>
-                    <option value="excused">Excused</option>
+                    <option value="">{{ 'attendance.allStatus' | translate }}</option>
+                    <option value="present">{{ 'attendance.present' | translate }}</option>
+                    <option value="absent">{{ 'attendance.absent' | translate }}</option>
+                    <option value="late">{{ 'attendance.late' | translate }}</option>
+                    <option value="excused">{{ 'attendance.excused' | translate }}</option>
                   </select>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">From Date</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'attendance.fromDate' | translate }}</label>
                   <input 
                     type="date"
                     [(ngModel)]="recordsFilters.dateFrom"
@@ -149,7 +150,7 @@ import { PermissionService } from '../../services/permission.service';
                   >
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-2">To Date</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'attendance.toDate' | translate }}</label>
                   <input 
                     type="date"
                     [(ngModel)]="recordsFilters.dateTo"
@@ -163,8 +164,8 @@ import { PermissionService } from '../../services/permission.service';
             <!-- Records List -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
               <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Attendance Records</h3>
-                <span class="text-sm text-gray-500">{{ studentRecords.length }} record(s)</span>
+                <h3 class="text-lg font-semibold text-gray-900">{{ 'attendance.attendanceRecords' | translate }}</h3>
+                <span class="text-sm text-gray-500">{{ studentRecords.length }} {{ 'attendance.records' | translate }}</span>
               </div>
               
               <div *ngIf="isLoadingRecords" class="p-6">
@@ -177,8 +178,8 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <p class="text-gray-500 text-lg font-medium">No attendance records found</p>
-                <p class="text-gray-400 text-sm mt-2">Try adjusting your filters</p>
+                <p class="text-gray-500 text-lg font-medium">{{ 'attendance.noRecordsFound' | translate }}</p>
+                <p class="text-gray-400 text-sm mt-2">{{ 'attendance.tryAdjustingFilters' | translate }}</p>
               </div>
 
               <div *ngIf="!isLoadingRecords && studentRecords.length > 0" class="divide-y divide-gray-200">
@@ -212,7 +213,7 @@ import { PermissionService } from '../../services/permission.service';
                         {{ record.status | uppercase }}
                       </span>
                       <p *ngIf="record.status === 'late' && record.minutesLate" class="text-sm text-gray-500 mt-2">
-                        {{ record.minutesLate }} min late
+                        {{ record.minutesLate }} {{ 'attendance.minLate' | translate }}
                       </p>
                     </div>
                   </div>
@@ -228,8 +229,8 @@ import { PermissionService } from '../../services/permission.service';
           <div *ngIf="activeTab === 'schedule' && currentUser?.role === 'student'">
             
             <div class="mb-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-              <h2 class="text-2xl font-bold mb-2">📅 Weekly Schedule</h2>
-              <p class="text-indigo-100">Your complete schedule from all enrolled groups</p>
+              <h2 class="text-2xl font-bold mb-2">📅 {{ 'attendance.weeklySchedule' | translate }}</h2>
+              <p class="text-indigo-100">{{ 'attendance.completeScheduleDesc' | translate }}</p>
             </div>
 
             <div *ngIf="isLoadingSchedule" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -247,8 +248,8 @@ import { PermissionService } from '../../services/permission.service';
               <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
-              <h3 class="text-xl font-semibold text-gray-900 mb-2">No Classes Scheduled</h3>
-              <p class="text-gray-500">You don't have any classes scheduled this week.</p>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ 'attendance.noClassesScheduled' | translate }}</h3>
+              <p class="text-gray-500">{{ 'attendance.noClassesThisWeek' | translate }}</p>
             </div>
 
             <!-- Show only days with classes -->
@@ -557,7 +558,7 @@ import { PermissionService } from '../../services/permission.service';
                   </button>
                 </span>
                 <span *ngIf="filters.isCompleted" class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                  Status: {{ filters.isCompleted === 'true' ? 'Completed' : 'Pending' }}
+                  {{ 'attendance.status' | translate }}: {{ filters.isCompleted === 'true' ? ('attendance.completed' | translate) : ('attendance.pending' | translate) }}
                   <button (click)="removeFilter('isCompleted')" class="hover:text-green-900">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -570,7 +571,7 @@ import { PermissionService } from '../../services/permission.service';
             <!-- Attendance List -->
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
               <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Attendance Sessions</h3>
+                <h3 class="text-lg font-semibold text-gray-900">{{ 'attendance.attendanceSessions' | translate }}</h3>
               </div>
               
               <div *ngIf="loading" class="p-6">
@@ -583,14 +584,14 @@ import { PermissionService } from '../../services/permission.service';
                 <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Attendance Records</h3>
-                <p class="text-gray-500 mb-4">No attendance sessions found matching your filters.</p>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ 'attendance.noAttendanceRecords' | translate }}</h3>
+                <p class="text-gray-500 mb-4">{{ 'attendance.noSessionsMatchingFilters' | translate }}</p>
                 <button 
                   *ngIf="canMarkAttendance"
                   (click)="router.navigate(['/dashboard/attendance/mark'])"
                   class="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
                 >
-                  Mark Attendance
+                  {{ 'attendance.markAttendance' | translate }}
                 </button>
               </div>
 
@@ -888,7 +889,7 @@ import { PermissionService } from '../../services/permission.service';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                     </svg>
-                    Mark Attendance
+                    {{ 'attendance.markAttendance' | translate }}
                   </button>
                   <button 
                     *ngIf="session.attendanceStatus !== 'pending'"
@@ -899,7 +900,7 @@ import { PermissionService } from '../../services/permission.service';
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                     </svg>
-                    View Details
+                    {{ 'common.details' | translate }}
                   </button>
                   <button 
                     *ngIf="session.attendanceStatus === 'in_progress'"
@@ -909,7 +910,7 @@ import { PermissionService } from '../../services/permission.service';
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
-                    Edit
+                    {{ 'common.edit' | translate }}
                   </button>
                 </div>
               </div>
@@ -1018,7 +1019,8 @@ export class AttendanceListComponent implements OnInit {
     public router: Router,
     private toastService: ToastService,
     private confirmationService: ConfirmationService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -1102,7 +1104,7 @@ export class AttendanceListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading student records:', error);
-        this.toastService.error('Failed to load attendance records');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadRecords'));
         this.isLoadingRecords = false;
       }
     });
@@ -1131,7 +1133,7 @@ export class AttendanceListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading student schedule:', error);
-        this.toastService.error('Failed to load schedule');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadSchedule'));
         this.isLoadingSchedule = false;
       }
     });
@@ -1162,7 +1164,7 @@ export class AttendanceListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading today sessions:', error);
-        this.toastService.error('Failed to load today\'s sessions');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadTodaySessions'));
         this.isLoadingToday = false;
       }
     });
@@ -1188,7 +1190,7 @@ export class AttendanceListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading attendances:', error);
-        this.toastService.error('Failed to load attendance records');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadRecords'));
         this.loading = false;
       }
     });
@@ -1234,7 +1236,7 @@ export class AttendanceListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading teaching schedule:', error);
-        this.toastService.error('Failed to load teaching schedule');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadTeachingSchedule'));
         this.isLoadingTeachingSchedule = false;
       }
     });
@@ -1251,7 +1253,7 @@ export class AttendanceListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading today teaching sessions:', error);
-        this.toastService.error('Failed to load today\'s sessions');
+        this.toastService.error(this.translate.instant('attendance.failedToLoadTodaySessions'));
         this.isLoadingTeachingToday = false;
       }
     });
@@ -1329,22 +1331,22 @@ export class AttendanceListComponent implements OnInit {
     if (!id) return;
     
     this.confirmationService.confirm({
-      title: 'Delete Attendance Record',
-      message: 'Are you sure you want to delete this attendance record? This action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('attendance.deleteAttendanceRecord'),
+      message: this.translate.instant('attendance.deleteConfirmMessage'),
+      confirmText: this.translate.instant('common.delete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     }).then((confirmed) => {
       if (confirmed) {
         this.attendanceService.deleteAttendance(id).subscribe({
           next: () => {
-            this.toastService.success('Attendance record deleted successfully');
+            this.toastService.success(this.translate.instant('attendance.recordDeletedSuccessfully'));
             this.loadAttendances();
             this.loadStats();
           },
           error: (error) => {
             console.error('Error deleting attendance:', error);
-            this.toastService.error('Failed to delete attendance record');
+            this.toastService.error(this.translate.instant('attendance.failedToDeleteRecord'));
           }
         });
       }
@@ -1367,7 +1369,7 @@ export class AttendanceListComponent implements OnInit {
     };
     
     this.loadAttendances();
-    this.toastService.info(`Showing ${this.pendingCount} pending session(s) for today`);
+    this.toastService.info(this.translate.instant('attendance.showingPendingSessions', { count: this.pendingCount }));
   }
 
   exportData(): void {
@@ -1384,11 +1386,11 @@ export class AttendanceListComponent implements OnInit {
         link.download = `attendance_export_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
         window.URL.revokeObjectURL(url);
-        this.toastService.success('Attendance data exported successfully');
+        this.toastService.success(this.translate.instant('attendance.exportedSuccessfully'));
       },
       error: (error) => {
         console.error('Error exporting data:', error);
-        this.toastService.error('Failed to export attendance data');
+        this.toastService.error(this.translate.instant('attendance.failedToExport'));
       }
     });
   }
