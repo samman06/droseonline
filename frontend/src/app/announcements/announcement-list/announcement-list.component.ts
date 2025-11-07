@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService, Announcement } from '../../services/announcement.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,14 +10,14 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-announcement-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, TranslateModule],
   template: `
     <div class="container mx-auto px-4 py-6">
       <!-- Header -->
       <div class="mb-6 flex justify-between items-center">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Announcements</h1>
-          <p class="text-gray-600 mt-1">View and manage system announcements</p>
+          <h1 class="text-3xl font-bold text-gray-900">{{ 'announcements.title' | translate }}</h1>
+          <p class="text-gray-600 mt-1">{{ 'announcements.viewAndManage' | translate }}</p>
         </div>
         <button 
           *ngIf="canCreateAnnouncement"
@@ -25,7 +26,7 @@ import { AuthService } from '../../services/auth.service';
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
-          Create Announcement
+          {{ 'announcements.createAnnouncement' | translate }}
         </button>
       </div>
 
@@ -33,39 +34,39 @@ import { AuthService } from '../../services/auth.service';
       <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.type' | translate }}</label>
             <select [(ngModel)]="filters.type" (change)="loadAnnouncements()" 
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <option value="">All Types</option>
-              <option value="general">General</option>
-              <option value="academic">Academic</option>
-              <option value="event">Event</option>
-              <option value="emergency">Emergency</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="holiday">Holiday</option>
+              <option value="">{{ 'announcements.allTypes' | translate }}</option>
+              <option value="general">{{ 'announcements.types.general' | translate }}</option>
+              <option value="academic">{{ 'announcements.types.academic' | translate }}</option>
+              <option value="event">{{ 'announcements.types.event' | translate }}</option>
+              <option value="emergency">{{ 'announcements.types.emergency' | translate }}</option>
+              <option value="maintenance">{{ 'announcements.types.maintenance' | translate }}</option>
+              <option value="holiday">{{ 'announcements.types.holiday' | translate }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.priority' | translate }}</label>
             <select [(ngModel)]="filters.priority" (change)="loadAnnouncements()" 
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <option value="">All Priorities</option>
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="normal">Normal</option>
-              <option value="low">Low</option>
+              <option value="">{{ 'announcements.allPriorities' | translate }}</option>
+              <option value="urgent">{{ 'announcements.priorities.urgent' | translate }}</option>
+              <option value="high">{{ 'announcements.priorities.high' | translate }}</option>
+              <option value="normal">{{ 'announcements.priorities.normal' | translate }}</option>
+              <option value="low">{{ 'announcements.priorities.low' | translate }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'common.search' | translate }}</label>
             <input type="text" [(ngModel)]="filters.search" (input)="onSearchChange()" 
-                   placeholder="Search announcements..." 
+                   [placeholder]="'announcements.searchPlaceholder' | translate" 
                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
           <div class="flex items-end">
             <button (click)="resetFilters()" 
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              Reset Filters
+              {{ 'announcements.resetFilters' | translate }}
             </button>
           </div>
         </div>
@@ -88,7 +89,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                   </svg>
-                  Pinned
+                  {{ 'announcements.pinned' | translate }}
                 </span>
                 <span [class]="getPriorityClass(announcement.priority)">
                   {{ announcement.priority }}
@@ -103,7 +104,7 @@ import { AuthService } from '../../services/auth.service';
                 <span>{{ announcement.author?.firstName }} {{ announcement.author?.lastName }}</span>
                 <span>{{ formatDate(announcement.publishAt) }}</span>
                 <span *ngIf="announcement.stats?.views">
-                  {{ announcement.stats?.views }} views
+                  {{ announcement.stats?.views }} {{ 'announcements.views' | translate }}
                 </span>
               </div>
             </div>
@@ -138,7 +139,7 @@ import { AuthService } from '../../services/auth.service';
                 <span>{{ announcement.author?.firstName }} {{ announcement.author?.lastName }}</span>
                 <span>{{ formatDate(announcement.publishAt) }}</span>
                 <span *ngIf="announcement.stats?.views">
-                  {{ announcement.stats?.views }} views
+                  {{ announcement.stats?.views }} {{ 'announcements.views' | translate }}
                 </span>
               </div>
             </div>
@@ -174,15 +175,15 @@ import { AuthService } from '../../services/auth.service';
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No announcements</h3>
-        <p class="mt-1 text-sm text-gray-500">Get started by creating a new announcement.</p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{{ 'announcements.noAnnouncements' | translate }}</h3>
+        <p class="mt-1 text-sm text-gray-500">{{ 'announcements.getStarted' | translate }}</p>
         <div class="mt-6" *ngIf="canCreateAnnouncement">
           <button [routerLink]="['/dashboard/announcements/new']"
                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
             <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            New Announcement
+            {{ 'announcements.newAnnouncement' | translate }}
           </button>
         </div>
       </div>
@@ -193,23 +194,23 @@ import { AuthService } from '../../services/auth.service';
         <div class="flex flex-1 justify-between sm:hidden">
           <button (click)="previousPage()" [disabled]="pagination.page === 1"
                   class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Previous
+            {{ 'common.previous' | translate }}
           </button>
           <button (click)="nextPage()" [disabled]="pagination.page >= pagination.pages"
                   class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Next
+            {{ 'common.next' | translate }}
           </button>
         </div>
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
           <div>
             <p class="text-sm text-gray-700">
-              Showing
+              {{ 'pagination.showing' | translate }}
               <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span>
-              to
+              {{ 'pagination.to' | translate }}
               <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, pagination.total) }}</span>
-              of
+              {{ 'pagination.of' | translate }}
               <span class="font-medium">{{ pagination.total }}</span>
-              results
+              {{ 'pagination.results' | translate }}
             </p>
           </div>
           <div>
@@ -272,7 +273,8 @@ export class AnnouncementListComponent implements OnInit {
   constructor(
     private announcementService: AnnouncementService,
     private toastService: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -336,11 +338,11 @@ export class AnnouncementListComponent implements OnInit {
   }
 
   deleteAnnouncement(announcement: Announcement): void {
-    if (confirm(`Are you sure you want to delete "${announcement.title}"?`)) {
+    if (confirm(this.translate.instant('announcements.deleteConfirm', { title: announcement.title }))) {
       this.announcementService.deleteAnnouncement(announcement._id!).subscribe({
         next: (response) => {
           if (response.success) {
-            this.toastService.showDeleteSuccess('Announcement');
+            this.toastService.showDeleteSuccess(this.translate.instant('announcements.announcement'));
             this.loadAnnouncements();
           }
         },

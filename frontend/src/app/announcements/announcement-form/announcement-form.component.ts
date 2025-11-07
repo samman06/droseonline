@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AnnouncementService } from '../../services/announcement.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,12 +10,12 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-announcement-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
   template: `
     <div class="container mx-auto px-4 py-6 max-w-4xl">
       <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? 'Edit' : 'Create' }} Announcement</h1>
-        <p class="text-gray-600 mt-1">{{ isEditMode ? 'Update announcement details' : 'Post a new announcement' }}</p>
+        <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? ('announcements.edit' | translate) : ('announcements.create' | translate) }} {{ 'announcements.announcement' | translate }}</h1>
+        <p class="text-gray-600 mt-1">{{ isEditMode ? ('announcements.updateDetails' | translate) : ('announcements.postNew' | translate) }}</p>
       </div>
 
       <div *ngIf="loading" class="flex justify-center py-12">
@@ -25,76 +26,76 @@ import { AuthService } from '../../services/auth.service';
         <!-- Title -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Title <span class="text-red-500">*</span>
+            {{ 'announcements.announcementTitle' | translate }} <span class="text-red-500">*</span>
           </label>
           <input 
             type="text" 
             formControlName="title"
             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Enter announcement title">
+            [placeholder]="'announcements.enterTitle' | translate">
           <div *ngIf="announcementForm.get('title')?.invalid && announcementForm.get('title')?.touched" class="text-red-500 text-sm mt-1">
-            Title is required
+            {{ 'announcements.titleRequired' | translate }}
           </div>
         </div>
 
         <!-- Content -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Content <span class="text-red-500">*</span>
+            {{ 'announcements.content' | translate }} <span class="text-red-500">*</span>
           </label>
           <textarea 
             formControlName="content"
             rows="10"
             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Enter announcement content"></textarea>
+            [placeholder]="'announcements.enterContent' | translate"></textarea>
           <div *ngIf="announcementForm.get('content')?.invalid && announcementForm.get('content')?.touched" class="text-red-500 text-sm mt-1">
-            Content is required (minimum 10 characters)
+            {{ 'announcements.contentRequired' | translate }}
           </div>
         </div>
 
         <!-- Type -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Type <span class="text-red-500">*</span>
+            {{ 'announcements.type' | translate }} <span class="text-red-500">*</span>
           </label>
           <select formControlName="type" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <option value="general">General</option>
-            <option value="academic">Academic</option>
-            <option value="event">Event</option>
-            <option value="emergency">Emergency</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="policy">Policy</option>
-            <option value="exam">Exam</option>
-            <option value="assignment">Assignment</option>
+            <option value="general">{{ 'announcements.types.general' | translate }}</option>
+            <option value="academic">{{ 'announcements.types.academic' | translate }}</option>
+            <option value="event">{{ 'announcements.types.event' | translate }}</option>
+            <option value="emergency">{{ 'announcements.types.emergency' | translate }}</option>
+            <option value="maintenance">{{ 'announcements.types.maintenance' | translate }}</option>
+            <option value="policy">{{ 'announcements.types.policy' | translate }}</option>
+            <option value="exam">{{ 'announcements.types.exam' | translate }}</option>
+            <option value="assignment">{{ 'announcements.types.assignment' | translate }}</option>
           </select>
         </div>
 
         <!-- Priority -->
         <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.priority' | translate }}</label>
           <select formControlName="priority" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <option value="low">Low</option>
-            <option value="normal">Normal</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
+            <option value="low">{{ 'announcements.priorities.low' | translate }}</option>
+            <option value="normal">{{ 'announcements.priorities.normal' | translate }}</option>
+            <option value="high">{{ 'announcements.priorities.high' | translate }}</option>
+            <option value="urgent">{{ 'announcements.priorities.urgent' | translate }}</option>
           </select>
         </div>
 
         <!-- Target Audience -->
         <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.targetAudience' | translate }}</label>
           <div class="space-y-2">
             <label class="flex items-center">
               <input type="checkbox" formControlName="targetAudienceAll" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <span class="ml-2 text-sm text-gray-700">All Users</span>
+              <span class="ml-2 text-sm text-gray-700">{{ 'announcements.allUsers' | translate }}</span>
             </label>
             <label class="flex items-center">
               <input type="checkbox" formControlName="targetAudienceStudents" [disabled]="announcementForm.get('targetAudienceAll')?.value" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <span class="ml-2 text-sm text-gray-700">Students</span>
+              <span class="ml-2 text-sm text-gray-700">{{ 'nav.students' | translate }}</span>
             </label>
             <label class="flex items-center">
               <input type="checkbox" formControlName="targetAudienceTeachers" [disabled]="announcementForm.get('targetAudienceAll')?.value" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-              <span class="ml-2 text-sm text-gray-700">Teachers</span>
+              <span class="ml-2 text-sm text-gray-700">{{ 'nav.teachers' | translate }}</span>
             </label>
           </div>
         </div>
@@ -102,14 +103,14 @@ import { AuthService } from '../../services/auth.service';
         <!-- Publish Options -->
         <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Publish Date</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.publishDate' | translate }}</label>
             <input 
               type="datetime-local" 
               formControlName="publishAt"
               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Expire Date (Optional)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.expireDate' | translate }}</label>
             <input 
               type="datetime-local" 
               formControlName="expiresAt"
@@ -121,27 +122,27 @@ import { AuthService } from '../../services/auth.service';
         <div class="mb-6 space-y-2">
           <label class="flex items-center">
             <input type="checkbox" formControlName="isPinned" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <span class="ml-2 text-sm text-gray-700">Pin this announcement</span>
+            <span class="ml-2 text-sm text-gray-700">{{ 'announcements.pinAnnouncement' | translate }}</span>
           </label>
           <label class="flex items-center">
             <input type="checkbox" formControlName="allowComments" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <span class="ml-2 text-sm text-gray-700">Allow comments</span>
+            <span class="ml-2 text-sm text-gray-700">{{ 'announcements.allowComments' | translate }}</span>
           </label>
           <label class="flex items-center">
             <input type="checkbox" formControlName="sendEmail" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <span class="ml-2 text-sm text-gray-700">Send email notification</span>
+            <span class="ml-2 text-sm text-gray-700">{{ 'announcements.sendEmailNotification' | translate }}</span>
           </label>
         </div>
 
         <!-- Tags -->
         <div class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Tags (comma separated)</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'announcements.tags' | translate }}</label>
           <input 
             type="text" 
             formControlName="tags"
             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="e.g., important, deadline, exam">
-          <p class="text-xs text-gray-500 mt-1">Enter tags separated by commas</p>
+            [placeholder]="'announcements.tagsPlaceholder' | translate">
+          <p class="text-xs text-gray-500 mt-1">{{ 'announcements.tagsHelp' | translate }}</p>
         </div>
 
         <!-- Action Buttons -->
@@ -150,7 +151,7 @@ import { AuthService } from '../../services/auth.service';
             type="button" 
             (click)="cancel()"
             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button 
             *ngIf="!isEditMode"
@@ -158,13 +159,13 @@ import { AuthService } from '../../services/auth.service';
             (click)="saveDraft()"
             [disabled]="saving"
             class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50">
-            Save as Draft
+            {{ 'announcements.saveAsDraft' | translate }}
           </button>
           <button 
             type="submit" 
             [disabled]="saving || announcementForm.invalid"
             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
-            {{ saving ? 'Saving...' : (isEditMode ? 'Update' : 'Publish') }}
+            {{ (saving && 'announcements.saving' || (isEditMode && 'common.update' || 'announcements.publish')) | translate }}
           </button>
         </div>
       </form>
@@ -185,7 +186,8 @@ export class AnnouncementFormComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -287,7 +289,9 @@ export class AnnouncementFormComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.toastService.success(
-            this.isEditMode ? 'Announcement updated successfully' : 'Announcement published successfully'
+            this.translate.instant(
+              `announcements.${this.isEditMode ? 'updateSuccess' : 'publishSuccess'}`
+            )
           );
           this.router.navigate(['/dashboard/announcements']);
         }
@@ -310,7 +314,7 @@ export class AnnouncementFormComponent implements OnInit {
     this.announcementService.createAnnouncement(formData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Announcement saved as draft');
+          this.toastService.success(this.translate.instant('announcements.draftSaved'));
           this.router.navigate(['/dashboard/announcements']);
         }
         this.saving = false;
