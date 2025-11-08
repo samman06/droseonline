@@ -923,6 +923,7 @@
     "teachers": "المعلمين",
     "courses": "الدورات",
     "searchPlaceholder": "ابحث عن المعلمين بالاسم...",
+    "searchingFor": "البحث عن \"{{searchTerm}}\"...",
     "refresh": "تحديث",
     "loading": "جاري تحميل المعلمين...",
     "noTeachers": "عذرًا! لا يوجد معلمون حتى الآن",

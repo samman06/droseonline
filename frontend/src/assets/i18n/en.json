@@ -923,6 +923,7 @@
     "teachers": "Teachers",
     "courses": "Courses",
     "searchPlaceholder": "Search teachers by name...",
+    "searchingFor": "Searching for \"{{searchTerm}}\"...",
     "refresh": "Refresh",
     "loading": "Loading teachers...",
     "noTeachers": "Oops! No Teachers Yet",
