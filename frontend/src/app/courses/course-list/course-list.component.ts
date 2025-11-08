@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CourseService, Course } from '../../services/course.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -11,7 +12,7 @@ import { SubjectService } from '../../services/subject.service';
 @Component({
   selector: 'app-course-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Enhanced Header with Gradient -->
@@ -24,14 +25,14 @@ import { SubjectService } from '../../services/subject.service';
               </svg>
             </div>
             <div>
-              <h1 class="text-4xl font-bold mb-2">Course Catalog</h1>
-              <p class="text-blue-100">Explore and manage course offerings</p>
+              <h1 class="text-4xl font-bold mb-2">{{ 'courses.courseCatalog' | translate }}</h1>
+              <p class="text-blue-100">{{ 'courses.exploreManageCourses' | translate }}</p>
               <div class="mt-3 flex items-center space-x-4">
                 <span class="inline-flex items-center px-3 py-1 rounded-lg bg-white bg-opacity-20 backdrop-blur-sm text-sm font-semibold">
                   <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
                   </svg>
-                  {{ pagination.total }} Courses
+                  {{ pagination.total }} {{ 'courses.courses' | translate }}
                 </span>
               </div>
             </div>
@@ -43,7 +44,7 @@ import { SubjectService } from '../../services/subject.service';
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Create New Course
+            {{ 'courses.createNewCourse' | translate }}
           </button>
         </div>
       </div>
@@ -53,7 +54,7 @@ import { SubjectService } from '../../services/subject.service';
         <!-- Teacher View: Search Only -->
         <div *ngIf="currentUser?.role === 'teacher'" class="space-y-4">
           <div class="relative">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Search Your Courses</label>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'courses.searchYourCourses' | translate }}</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +65,7 @@ import { SubjectService } from '../../services/subject.service';
                 type="text" 
                 [(ngModel)]="filters.search" 
                 (input)="onSearchChange()" 
-                placeholder="Search by name or code..." 
+                [placeholder]="'courses.searchPlaceholder' | translate" 
                 class="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
             </div>
           </div>
@@ -75,7 +76,7 @@ import { SubjectService } from '../../services/subject.service';
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Search -->
             <div class="md:col-span-2 relative">
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'common.search' | translate }}</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,19 +87,19 @@ import { SubjectService } from '../../services/subject.service';
                   type="text" 
                   [(ngModel)]="filters.search" 
                   (input)="onSearchChange()" 
-                  placeholder="Search by name or code..." 
+                  [placeholder]="'courses.searchPlaceholder' | translate" 
                   class="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
               </div>
             </div>
 
             <!-- Teacher Filter -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Teacher</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'courses.teacher' | translate }}</label>
               <select 
                 [(ngModel)]="filters.teacherId" 
                 (change)="onFilterChange()"
                 class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
-                <option value="">All Teachers</option>
+                <option value="">{{ 'courses.allTeachers' | translate }}</option>
                 <option *ngFor="let teacher of teachers" [value]="teacher._id">
                   {{ teacher.fullName || teacher.firstName + ' ' + teacher.lastName }}
                 </option>
@@ -107,12 +108,12 @@ import { SubjectService } from '../../services/subject.service';
 
             <!-- Subject Filter -->
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">{{ 'courses.subject' | translate }}</label>
               <select 
                 [(ngModel)]="filters.subjectId" 
                 (change)="onFilterChange()"
                 class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all">
-                <option value="">All Subjects</option>
+                <option value="">{{ 'courses.allSubjects' | translate }}</option>
                 <option *ngFor="let subject of subjects" [value]="subject._id">
                   {{ subject.name }}
                 </option>
@@ -128,7 +129,7 @@ import { SubjectService } from '../../services/subject.service';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
               </svg>
-              Reset Filters
+              {{ 'courses.resetFilters' | translate }}
             </button>
           </div>
         </div>
@@ -162,7 +163,7 @@ import { SubjectService } from '../../services/subject.service';
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
-                {{ course.subject?.name || 'No Subject' }}
+                {{ course.subject?.name || ('courses.noSubject' | translate) }}
               </span>
             </div>
             
@@ -176,7 +177,7 @@ import { SubjectService } from '../../services/subject.service';
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-500 font-medium">Teacher</p>
+                  <p class="text-xs text-gray-500 font-medium">{{ 'courses.teacher' | translate }}</p>
                   <p class="text-sm font-semibold text-gray-900">{{ course.teacher?.fullName || course.teacher?.firstName + ' ' + course.teacher?.lastName }}</p>
                 </div>
               </div>
@@ -189,8 +190,8 @@ import { SubjectService } from '../../services/subject.service';
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-500 font-medium">Enrolled</p>
-                  <p class="text-sm font-semibold text-gray-900">{{ course.studentCount || 0 }} Students</p>
+                  <p class="text-xs text-gray-500 font-medium">{{ 'courses.enrolled' | translate }}</p>
+                  <p class="text-sm font-semibold text-gray-900">{{ course.studentCount || 0 }} {{ 'courses.students' | translate }}</p>
                 </div>
               </div>
             </div>
@@ -204,7 +205,7 @@ import { SubjectService } from '../../services/subject.service';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
-                View
+                {{ 'common.view' | translate }}
               </button>
               <button 
                 *ngIf="canEdit(course)" 
@@ -213,7 +214,7 @@ import { SubjectService } from '../../services/subject.service';
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
-                Edit
+                {{ 'common.edit' | translate }}
               </button>
             </div>
           </div>
@@ -228,8 +229,8 @@ import { SubjectService } from '../../services/subject.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
             </svg>
           </div>
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">No Courses Found</h3>
-          <p class="text-gray-600 mb-6">Start building your course catalog by creating your first course.</p>
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ 'courses.noCoursesFound' | translate }}</h3>
+          <p class="text-gray-600 mb-6">{{ 'courses.startBuildingCatalog' | translate }}</p>
           <button 
             *ngIf="canCreateCourse"
             [routerLink]="['/dashboard/courses/new']"
@@ -237,7 +238,7 @@ import { SubjectService } from '../../services/subject.service';
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Create Your First Course
+            {{ 'courses.createFirstCourse' | translate }}
           </button>
         </div>
       </div>
@@ -309,7 +310,8 @@ export class CourseListComponent implements OnInit {
     private teacherService: TeacherService,
     private subjectService: SubjectService,
     private toastService: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {

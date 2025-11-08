@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CourseService } from '../../services/course.service';
 import { SubjectService } from '../../services/subject.service';
 import { TeacherService } from '../../services/teacher.service';
@@ -11,7 +12,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-course-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Stunning Gradient Header -->
@@ -23,8 +24,8 @@ import { AuthService } from '../../services/auth.service';
             </svg>
           </div>
           <div>
-            <h1 class="text-4xl font-bold mb-2">{{ isEditMode ? 'Edit' : 'Create New' }} Course</h1>
-            <p class="text-blue-100">{{ isEditMode ? 'Update course information and settings' : 'Set up a new course for your students' }}</p>
+            <h1 class="text-4xl font-bold mb-2">{{ isEditMode ? ('courses.edit' | translate) : ('courses.createNew' | translate) }} {{ 'courses.course' | translate }}</h1>
+            <p class="text-blue-100">{{ isEditMode ? ('courses.updateCourseInfo' | translate) : ('courses.setupNewCourse' | translate) }}</p>
           </div>
         </div>
       </div>
@@ -32,7 +33,7 @@ import { AuthService } from '../../services/auth.service';
       <div *ngIf="loading" class="flex justify-center py-12">
         <div class="flex flex-col items-center">
           <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
-          <p class="text-gray-600 mt-4 font-medium">Loading course data...</p>
+          <p class="text-gray-600 mt-4 font-medium">{{ 'courses.loadingCourseData' | translate }}</p>
         </div>
       </div>
 
@@ -44,7 +45,7 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-6 h-6 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <h2 class="text-xl font-bold text-white">Basic Information</h2>
+              <h2 class="text-xl font-bold text-white">{{ 'courses.basicInformation' | translate }}</h2>
             </div>
           </div>
           
@@ -54,19 +55,19 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
-                Course Name <span class="text-red-500 ml-1">*</span>
+                {{ 'courses.courseName' | translate }} <span class="text-red-500 ml-1">*</span>
               </label>
               <input 
                 type="text" 
                 formControlName="name"
                 class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
-                placeholder="e.g., Introduction to Physics">
+                [placeholder]="'courses.courseNamePlaceholder' | translate">
               <div *ngIf="courseForm.get('name')?.invalid && courseForm.get('name')?.touched" 
                    class="flex items-center text-red-600 text-sm mt-2">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
-                Course name is required
+                {{ 'courses.courseNameRequired' | translate }}
               </div>
             </div>
 
@@ -341,7 +342,8 @@ export class CourseFormComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {

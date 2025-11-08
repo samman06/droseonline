@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CourseService } from '../../services/course.service';
 import { MaterialService, Material } from '../../services/material.service';
 import { ToastService } from '../../services/toast.service';
@@ -9,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-course-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslateModule],
   template: `
     <div class="container mx-auto px-4 py-6">
       <div class="mb-6">
@@ -17,7 +18,7 @@ import { AuthService } from '../../services/auth.service';
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-          Back to Courses
+          {{ 'courses.backToCourses' | translate }}
         </button>
       </div>
 
@@ -32,7 +33,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-2">
                 <span [class]="getStatusClass(course.isActive)">
-                  {{ course.isActive ? 'Active' : 'Inactive' }}
+                  {{ course.isActive ? ('courses.active' | translate) : ('courses.inactive' | translate) }}
                 </span>
               </div>
               <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ course.name }}</h1>
@@ -44,32 +45,32 @@ import { AuthService } from '../../services/auth.service';
               <button *ngIf="canEdit" 
                       [routerLink]="['/dashboard/courses', course._id, 'edit']"
                       class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                Edit Course
+                {{ 'courses.editCourse' | translate }}
               </button>
               <button *ngIf="canEdit"
                       (click)="exportRoster()"
                       class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50">
-                Export Roster
+                {{ 'courses.exportRoster' | translate }}
               </button>
             </div>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 mt-4 border-t border-gray-200">
             <div>
-              <span class="text-sm text-gray-500">Teacher:</span>
+              <span class="text-sm text-gray-500">{{ 'courses.teacher' | translate }}:</span>
               <p class="font-medium">{{ course.teacher?.firstName }} {{ course.teacher?.lastName }}</p>
             </div>
             <div>
-              <span class="text-sm text-gray-500">Subject:</span>
-              <p class="font-medium">{{ course.subject?.name || 'N/A' }}</p>
+              <span class="text-sm text-gray-500">{{ 'courses.subject' | translate }}:</span>
+              <p class="font-medium">{{ course.subject?.name || ('common.na' | translate) }}</p>
             </div>
             <div *ngIf="maxStudents">
-              <span class="text-sm text-gray-500">Enrollment:</span>
+              <span class="text-sm text-gray-500">{{ 'courses.enrollment' | translate }}:</span>
               <p class="font-medium">{{ studentCount }} / {{ maxStudents }}</p>
             </div>
             <div>
-              <span class="text-sm text-gray-500">Academic Year:</span>
-              <p class="font-medium">{{ course.academicYear?.name || course.academicYear?.code || 'N/A' }}</p>
+              <span class="text-sm text-gray-500">{{ 'courses.academicYear' | translate }}:</span>
+              <p class="font-medium">{{ course.academicYear?.name || course.academicYear?.code || ('common.na' | translate) }}</p>
             </div>
           </div>
         </div>
@@ -84,7 +85,7 @@ import { AuthService } from '../../services/auth.service';
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm text-gray-600">Students</p>
+                <p class="text-sm text-gray-600">{{ 'courses.students' | translate }}</p>
                 <p class="text-2xl font-bold text-gray-900">{{ studentCount }}</p>
               </div>
             </div>
@@ -98,7 +99,7 @@ import { AuthService } from '../../services/auth.service';
                 </svg>
               </div>
               <div class="ml-4">
-                <p class="text-sm text-gray-600">Assignments</p>
+                <p class="text-sm text-gray-600">{{ 'courses.assignments' | translate }}</p>
                 <p class="text-2xl font-bold text-gray-900">{{ assignments.length }}</p>
               </div>
             </div>
@@ -366,7 +367,8 @@ export class CourseDetailComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
