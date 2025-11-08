@@ -320,6 +320,9 @@ html[dir="rtl"] {
   .space-x-20 > :not([hidden]) ~ :not([hidden]) { --tw-space-x-reverse: 1 !important; }
   .space-x-24 > :not([hidden]) ~ :not([hidden]) { --tw-space-x-reverse: 1 !important; }
 
+  /* Gap Utilities (flexbox/grid gap) - These work automatically in RTL but ensure consistency */
+  /* Note: gap utilities in Tailwind use logical properties, but we ensure they work correctly */
+
   /* Border Left → Border Right */
   .border-l { border-left-width: 0 !important; border-right-width: 1px !important; }
   .border-l-0 { border-left-width: 0 !important; border-right-width: 0 !important; }
@@ -383,6 +386,30 @@ html[dir="rtl"] {
   .scroll-pr-0 { scroll-padding-right: 0 !important; scroll-padding-left: 0 !important; }
   .scroll-pr-4 { scroll-padding-right: 0 !important; scroll-padding-left: 1rem !important; }
   .scroll-pr-8 { scroll-padding-right: 0 !important; scroll-padding-left: 2rem !important; }
+
+  /* Additional common responsive padding variants */
+  .lg\:pr-12 { padding-right: 0 !important; padding-left: 3rem !important; }
+  .lg\:pr-16 { padding-right: 0 !important; padding-left: 4rem !important; }
+  .md\:pr-8 { padding-right: 0 !important; padding-left: 2rem !important; }
+  .md\:pr-12 { padding-right: 0 !important; padding-left: 3rem !important; }
+  .sm\:pr-2 { padding-right: 0 !important; padding-left: 0.5rem !important; }
+  .sm\:pr-6 { padding-right: 0 !important; padding-left: 1.5rem !important; }
+  .sm\:pl-2 { padding-left: 0 !important; padding-right: 0.5rem !important; }
+  .sm\:pl-6 { padding-left: 0 !important; padding-right: 1.5rem !important; }
+  .md\:pl-8 { padding-left: 0 !important; padding-right: 2rem !important; }
+  .md\:pl-12 { padding-left: 0 !important; padding-right: 3rem !important; }
+  .lg\:pl-12 { padding-left: 0 !important; padding-right: 3rem !important; }
+  .lg\:pl-16 { padding-left: 0 !important; padding-right: 4rem !important; }
+
+  /* Additional common responsive margin variants */
+  .sm\:ml-6 { margin-left: 0 !important; margin-right: 1.5rem !important; }
+  .sm\:mr-6 { margin-right: 0 !important; margin-left: 1.5rem !important; }
+  .md\:ml-8 { margin-left: 0 !important; margin-right: 2rem !important; }
+  .md\:mr-8 { margin-right: 0 !important; margin-left: 2rem !important; }
+  .lg\:ml-10 { margin-left: 0 !important; margin-right: 2.5rem !important; }
+  .lg\:mr-10 { margin-right: 0 !important; margin-left: 2.5rem !important; }
+  .lg\:ml-12 { margin-left: 0 !important; margin-right: 3rem !important; }
+  .lg\:mr-12 { margin-right: 0 !important; margin-left: 3rem !important; }
 
   /* Responsive variants - Common breakpoints */
   @media (min-width: 640px) {
