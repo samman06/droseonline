@@ -412,7 +412,7 @@ export class CourseListComponent implements OnInit {
   }
 
   get canCreateCourse(): boolean {
-    return this.currentUser?.role === 'admin';
+    return ['admin', 'teacher', 'assistant'].includes(this.currentUser?.role);
   }
 
   canEdit(course: Course): boolean {

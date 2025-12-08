@@ -198,7 +198,7 @@ export const routes: Routes = [
           {
             path: 'new',
             canActivate: [RoleGuard],
-            data: { roles: ['admin'] },
+            data: { roles: ['admin', 'teacher', 'assistant'] },
             loadComponent: () => import('./courses/course-form/course-form.component').then(m => m.CourseFormComponent)
           },
           {
