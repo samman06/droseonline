@@ -2,13 +2,14 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AccountingService } from '../../services/accounting.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-transaction-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Header -->
@@ -22,15 +23,15 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </button>
               <div>
-              <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? 'Edit Transaction' : 'Add Transaction' }}</h1>
-              <p class="mt-1 text-sm text-gray-500">{{ isEditMode ? 'Update transaction details' : 'Record income or expense transaction' }}</p>
+              <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? ('accounting.transactionForm.editTransaction' | translate) : ('accounting.transactionForm.addTransaction' | translate) }}</h1>
+              <p class="mt-1 text-sm text-gray-500">{{ isEditMode ? ('accounting.transactionForm.updateDetails' | translate) : ('accounting.transactionForm.recordTransaction' | translate) }}</p>
               </div>
             </div>
             <div class="flex space-x-3">
               <button (click)="onCancel()" type="button" 
                       [disabled]="isSubmitting"
                       class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                Cancel
+                {{ 'common.cancel' | translate }}
               </button>
               <button (click)="onSubmit()" type="button"
                       [disabled]="isSubmitting || transactionForm.invalid"
@@ -39,7 +40,7 @@ import { ToastService } from '../../services/toast.service';
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Transaction' : 'Save Transaction') }}
+                {{ isSubmitting ? ('common.saving' | translate) : (isEditMode ? ('accounting.transactionForm.updateTransaction' | translate) : ('accounting.transactionForm.saveTransaction' | translate)) }}
               </button>
             </div>
           </div>
@@ -54,15 +55,15 @@ import { ToastService } from '../../services/toast.service';
             <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            Transaction Information
+            {{ 'accounting.transactionForm.transactionInformation' | translate }}
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div class="bg-white rounded-lg p-3">
-              <span class="text-gray-600 font-medium">Receipt Number:</span>
-              <p class="text-gray-900 font-semibold mt-1">{{ transactionMetadata.receiptNumber || 'Not generated' }}</p>
+              <span class="text-gray-600 font-medium">{{ 'accounting.transactionForm.receiptNumber' | translate }}:</span>
+              <p class="text-gray-900 font-semibold mt-1">{{ transactionMetadata.receiptNumber || ('accounting.transactionForm.notGenerated' | translate) }}</p>
             </div>
             <div class="bg-white rounded-lg p-3">
-              <span class="text-gray-600 font-medium">Status:</span>
+              <span class="text-gray-600 font-medium">{{ 'common.status' | translate }}:</span>
               <p class="mt-1">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                       [class.bg-green-100]="transactionMetadata.status === 'completed'"
@@ -76,12 +77,12 @@ import { ToastService } from '../../services/toast.service';
               </p>
             </div>
             <div class="bg-white rounded-lg p-3">
-              <span class="text-gray-600 font-medium">Created By:</span>
-              <p class="text-gray-900 mt-1">{{ transactionMetadata.createdBy?.fullName || 'System' }}</p>
+              <span class="text-gray-600 font-medium">{{ 'common.createdBy' | translate }}:</span>
+              <p class="text-gray-900 mt-1">{{ transactionMetadata.createdBy?.fullName || ('common.system' | translate) }}</p>
               <p class="text-gray-500 text-xs">{{ transactionMetadata.createdAt | date:'medium' }}</p>
             </div>
             <div *ngIf="transactionMetadata.updatedBy" class="bg-white rounded-lg p-3">
-              <span class="text-gray-600 font-medium">Last Updated By:</span>
+              <span class="text-gray-600 font-medium">{{ 'common.lastUpdatedBy' | translate }}:</span>
               <p class="text-gray-900 mt-1">{{ transactionMetadata.updatedBy?.fullName }}</p>
               <p class="text-gray-500 text-xs">{{ transactionMetadata.updatedAt | date:'medium' }}</p>
             </div>
@@ -91,7 +92,7 @@ import { ToastService } from '../../services/toast.service';
         <form [formGroup]="transactionForm" class="space-y-6">
           <!-- Transaction Type Card -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Transaction Type</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'accounting.transactionForm.transactionType' | translate }}</h2>
             
             <div class="grid grid-cols-2 gap-4">
               <label class="relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all"
@@ -108,8 +109,8 @@ import { ToastService } from '../../services/toast.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="font-semibold text-gray-900">Income</p>
-                      <p class="text-sm text-gray-500">Money received</p>
+                      <p class="font-semibold text-gray-900">{{ 'accounting.transactionForm.income' | translate }}</p>
+                      <p class="text-sm text-gray-500">{{ 'accounting.transactionForm.moneyReceived' | translate }}</p>
                     </div>
                   </div>
                 </div>
@@ -129,40 +130,40 @@ import { ToastService } from '../../services/toast.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="font-semibold text-gray-900">Expense</p>
-                      <p class="text-sm text-gray-500">Money spent</p>
+                      <p class="font-semibold text-gray-900">{{ 'accounting.transactionForm.expense' | translate }}</p>
+                      <p class="text-sm text-gray-500">{{ 'accounting.transactionForm.moneySpent' | translate }}</p>
                     </div>
                   </div>
                 </div>
               </label>
             </div>
             <div *ngIf="transactionForm.get('type')?.invalid && transactionForm.get('type')?.touched" class="mt-2 text-sm text-red-600">
-              Please select a transaction type
+              {{ 'accounting.transactionForm.selectType' | translate }}
             </div>
           </div>
 
           <!-- Transaction Details Card -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Transaction Details</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'accounting.transactionForm.transactionDetails' | translate }}</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Category -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.category' | translate }} *</label>
                 <select formControlName="category" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                  <option value="">Select category</option>
+                  <option value="">{{ 'accounting.transactionForm.selectCategory' | translate }}</option>
                   <option *ngFor="let cat of getAvailableCategories()" [value]="cat.value">
                     {{ cat.label }}
                   </option>
                 </select>
                 <div *ngIf="transactionForm.get('category')?.invalid && transactionForm.get('category')?.touched" class="mt-1 text-sm text-red-600">
-                  Category is required
+                  {{ 'accounting.transactionForm.categoryRequired' | translate }}
                 </div>
               </div>
 
               <!-- Amount -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Amount (EGP) *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.amount' | translate }} (EGP) *</label>
                 <div class="relative">
                   <input type="number" formControlName="amount" step="0.01" min="0" 
                          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
@@ -172,74 +173,74 @@ import { ToastService } from '../../services/toast.service';
                   </div>
                 </div>
                 <div *ngIf="transactionForm.get('amount')?.invalid && transactionForm.get('amount')?.touched" class="mt-1 text-sm text-red-600">
-                  <span *ngIf="transactionForm.get('amount')?.errors?.['required']">Amount is required</span>
-                  <span *ngIf="transactionForm.get('amount')?.errors?.['min']">Amount must be greater than 0</span>
+                  <span *ngIf="transactionForm.get('amount')?.errors?.['required']">{{ 'accounting.transactionForm.amountRequired' | translate }}</span>
+                  <span *ngIf="transactionForm.get('amount')?.errors?.['min']">{{ 'accounting.transactionForm.amountGreaterThanZero' | translate }}</span>
                 </div>
               </div>
 
               <!-- Title -->
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.title' | translate }} *</label>
                 <input type="text" formControlName="title" 
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                       placeholder="e.g., Assistant Salary - November 2025">
+                       [placeholder]="'accounting.transactionForm.titlePlaceholder' | translate">
                 <div *ngIf="transactionForm.get('title')?.invalid && transactionForm.get('title')?.touched" class="mt-1 text-sm text-red-600">
-                  <span *ngIf="transactionForm.get('title')?.errors?.['required']">Title is required</span>
-                  <span *ngIf="transactionForm.get('title')?.errors?.['minlength']">Title must be at least 3 characters</span>
-                  <span *ngIf="transactionForm.get('title')?.errors?.['maxlength']">Title must not exceed 100 characters</span>
+                  <span *ngIf="transactionForm.get('title')?.errors?.['required']">{{ 'accounting.transactionForm.titleRequired' | translate }}</span>
+                  <span *ngIf="transactionForm.get('title')?.errors?.['minlength']">{{ 'accounting.transactionForm.titleMinLength' | translate }}</span>
+                  <span *ngIf="transactionForm.get('title')?.errors?.['maxlength']">{{ 'accounting.transactionForm.titleMaxLength' | translate }}</span>
                 </div>
               </div>
 
               <!-- Description -->
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.description' | translate }} ({{ 'common.optional' | translate }})</label>
                 <textarea formControlName="description" rows="3"
                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none"
-                          placeholder="Add notes or details about this transaction..."></textarea>
+                          [placeholder]="'accounting.transactionForm.descriptionPlaceholder' | translate"></textarea>
               </div>
             </div>
           </div>
 
           <!-- Payment Information Card -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Information</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'accounting.transactionForm.paymentInformation' | translate }}</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Transaction Date -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Transaction Date *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.transactionDate' | translate }} *</label>
                 <input type="date" formControlName="transactionDate" 
                        [max]="today"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                 <div *ngIf="transactionForm.get('transactionDate')?.invalid && transactionForm.get('transactionDate')?.touched" class="mt-1 text-sm text-red-600">
-                  <span *ngIf="transactionForm.get('transactionDate')?.errors?.['required']">Date is required</span>
-                  <span *ngIf="transactionForm.get('transactionDate')?.errors?.['futureDate']">Date cannot be in the future</span>
+                  <span *ngIf="transactionForm.get('transactionDate')?.errors?.['required']">{{ 'accounting.transactionForm.dateRequired' | translate }}</span>
+                  <span *ngIf="transactionForm.get('transactionDate')?.errors?.['futureDate']">{{ 'accounting.transactionForm.dateCannotBeFuture' | translate }}</span>
                 </div>
               </div>
 
               <!-- Payment Method -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.paymentMethod' | translate }} *</label>
                 <select formControlName="paymentMethod" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                  <option value="">Select method</option>
-                  <option value="cash">Cash</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="credit_card">Credit Card</option>
-                  <option value="mobile_wallet">Mobile Wallet</option>
-                  <option value="check">Check</option>
+                  <option value="">{{ 'accounting.transactionForm.selectMethod' | translate }}</option>
+                  <option value="cash">{{ 'accounting.transactionForm.cash' | translate }}</option>
+                  <option value="bank_transfer">{{ 'accounting.transactionForm.bankTransfer' | translate }}</option>
+                  <option value="credit_card">{{ 'accounting.transactionForm.creditCard' | translate }}</option>
+                  <option value="mobile_wallet">{{ 'accounting.transactionForm.mobileWallet' | translate }}</option>
+                  <option value="check">{{ 'accounting.transactionForm.check' | translate }}</option>
                 </select>
                 <div *ngIf="transactionForm.get('paymentMethod')?.invalid && transactionForm.get('paymentMethod')?.touched" class="mt-1 text-sm text-red-600">
-                  Payment method is required
+                  {{ 'accounting.transactionForm.paymentMethodRequired' | translate }}
                 </div>
               </div>
 
               <!-- Receipt/Invoice Number -->
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Receipt/Invoice Number (Optional)</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'accounting.transactionForm.receiptInvoiceNumber' | translate }} ({{ 'common.optional' | translate }})</label>
                 <input type="text" formControlName="receiptNumber" 
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                       placeholder="Leave empty for auto-generation">
-                <p class="mt-1 text-sm text-gray-500">If left empty, a receipt number will be generated automatically</p>
+                       [placeholder]="'accounting.transactionForm.receiptPlaceholder' | translate">
+                <p class="mt-1 text-sm text-gray-500">{{ 'accounting.transactionForm.receiptAutoGenerate' | translate }}</p>
               </div>
             </div>
           </div>
@@ -251,8 +252,8 @@ import { ToastService } from '../../services/toast.service';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <div>
-                <p class="text-sm text-blue-800 font-medium">Transaction Recording</p>
-                <p class="text-sm text-blue-700 mt-1">This will record the transaction in your accounting system. Make sure all details are correct before saving.</p>
+                <p class="text-sm text-blue-800 font-medium">{{ 'accounting.transactionForm.transactionRecording' | translate }}</p>
+                <p class="text-sm text-blue-700 mt-1">{{ 'accounting.transactionForm.recordingMessage' | translate }}</p>
               </div>
             </div>
           </div>
@@ -277,7 +278,8 @@ export class TransactionFormComponent implements OnInit {
     private toastService: ToastService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translate: TranslateService
   ) {
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
@@ -367,7 +369,7 @@ export class TransactionFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading transaction:', error);
-        this.toastService.error('Failed to load transaction');
+        this.toastService.error(this.translate.instant('accounting.transactionForm.failedToLoad'));
         this.router.navigate(['/dashboard/accounting/transactions']);
         this.isSubmitting = false;
         this.isLoadingTransaction = false;
@@ -405,7 +407,7 @@ export class TransactionFormComponent implements OnInit {
       Object.keys(this.transactionForm.controls).forEach(key => {
         this.transactionForm.get(key)?.markAsTouched();
       });
-      this.toastService.error('Please fill in all required fields correctly');
+      this.toastService.error(this.translate.instant('accounting.transactionForm.fillRequired'));
       return;
     }
 
@@ -432,12 +434,12 @@ export class TransactionFormComponent implements OnInit {
       // Update existing transaction
       this.accountingService.updateTransaction(this.transactionId, transactionData).subscribe({
         next: (response) => {
-          this.toastService.success('Transaction updated successfully');
+          this.toastService.success(this.translate.instant('accounting.transactionForm.updateSuccess'));
           this.router.navigate(['/dashboard/accounting/transactions']);
         },
         error: (error) => {
           console.error('Error updating transaction:', error);
-          this.toastService.error(error.error?.message || 'Failed to update transaction');
+          this.toastService.error(error.error?.message || this.translate.instant('accounting.transactionForm.updateFailed'));
           this.isSubmitting = false;
         }
       });
@@ -445,12 +447,12 @@ export class TransactionFormComponent implements OnInit {
       // Create new transaction
       this.accountingService.createTransaction(transactionData).subscribe({
         next: (response) => {
-          this.toastService.success('Transaction created successfully');
+          this.toastService.success(this.translate.instant('accounting.transactionForm.createSuccess'));
           this.router.navigate(['/dashboard/accounting']);
         },
         error: (error) => {
           console.error('Error creating transaction:', error);
-          this.toastService.error(error.error?.message || 'Failed to create transaction');
+          this.toastService.error(error.error?.message || this.translate.instant('accounting.transactionForm.createFailed'));
           this.isSubmitting = false;
         }
       });
@@ -459,7 +461,7 @@ export class TransactionFormComponent implements OnInit {
 
   onCancel(): void {
     if (this.transactionForm.dirty) {
-      if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+      if (confirm(this.translate.instant('accounting.transactionForm.unsavedChanges'))) {
         this.navigateBack();
       }
     } else {
