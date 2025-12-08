@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AccountingService, FinancialSummary } from '../services/accounting.service';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
@@ -8,7 +9,7 @@ import { AuthService } from '../services/auth.service';
 @Component({
   selector: 'app-accounting-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Header -->
@@ -16,8 +17,8 @@ import { AuthService } from '../services/auth.service';
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-3xl font-bold text-gray-900">Financial Management</h1>
-              <p class="mt-1 text-sm text-gray-500">Track income, expenses, and student payments</p>
+              <h1 class="text-3xl font-bold text-gray-900">{{ 'accounting.dashboard.title' | translate }}</h1>
+              <p class="mt-1 text-sm text-gray-500">{{ 'accounting.dashboard.subtitle' | translate }}</p>
             </div>
             <div class="flex gap-3">
               <button routerLink="/dashboard/accounting/transactions/new" 
@@ -25,14 +26,14 @@ import { AuthService } from '../services/auth.service';
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
-                Add Transaction
+                {{ 'accounting.dashboard.addTransaction' | translate }}
               </button>
               <button routerLink="/dashboard/accounting/payments/new"
                       class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                Record Payment
+                {{ 'accounting.dashboard.recordPayment' | translate }}
               </button>
             </div>
           </div>
@@ -43,7 +44,7 @@ import { AuthService } from '../services/auth.service';
         <!-- Period Selector -->
         <div class="mb-6 bg-white rounded-xl shadow-sm p-4">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-medium text-gray-700">Period:</label>
+            <label class="text-sm font-medium text-gray-700">{{ 'accounting.dashboard.period' | translate }}:</label>
             <div class="flex gap-2">
               <button *ngFor="let p of periods" 
                       (click)="selectPeriod(p.value)"
@@ -52,7 +53,7 @@ import { AuthService } from '../services/auth.service';
                       [class.bg-gray-100]="selectedPeriod !== p.value"
                       [class.text-gray-700]="selectedPeriod !== p.value"
                       class="px-4 py-2 rounded-lg font-medium transition-colors text-sm">
-                {{ p.label }}
+                {{ 'accounting.dashboard.periods.' + p.value | translate }}
               </button>
             </div>
           </div>
@@ -75,10 +76,10 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
               </div>
-              <h3 class="text-white/80 text-sm font-medium mb-1">Total Income</h3>
+              <h3 class="text-white/80 text-sm font-medium mb-1">{{ 'accounting.dashboard.totalIncome' | translate }}</h3>
               <p class="text-3xl font-bold">{{ formatCurrency(summary.totalIncome) }}</p>
               <div class="mt-3 flex items-center text-sm">
-                <span class="bg-white/20 px-2 py-1 rounded">This {{ getPeriodLabel() }}</span>
+                <span class="bg-white/20 px-2 py-1 rounded">{{ 'accounting.dashboard.thisPeriod' | translate:{ period: ('accounting.dashboard.periods.' + selectedPeriod | translate) } }}</span>
               </div>
             </div>
 
@@ -91,10 +92,10 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
               </div>
-              <h3 class="text-white/80 text-sm font-medium mb-1">Total Expenses</h3>
+              <h3 class="text-white/80 text-sm font-medium mb-1">{{ 'accounting.dashboard.totalExpenses' | translate }}</h3>
               <p class="text-3xl font-bold">{{ formatCurrency(summary.totalExpenses) }}</p>
               <div class="mt-3 flex items-center text-sm">
-                <span class="bg-white/20 px-2 py-1 rounded">This {{ getPeriodLabel() }}</span>
+                <span class="bg-white/20 px-2 py-1 rounded">{{ 'accounting.dashboard.thisPeriod' | translate:{ period: ('accounting.dashboard.periods.' + selectedPeriod | translate) } }}</span>
               </div>
             </div>
 
@@ -107,10 +108,10 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
               </div>
-              <h3 class="text-white/80 text-sm font-medium mb-1">Net Profit</h3>
+              <h3 class="text-white/80 text-sm font-medium mb-1">{{ 'accounting.dashboard.netProfit' | translate }}</h3>
               <p class="text-3xl font-bold">{{ formatCurrency(summary.netProfit) }}</p>
               <div class="mt-3 flex items-center text-sm">
-                <span class="bg-white/20 px-2 py-1 rounded">Margin: {{ summary.profitMargin }}%</span>
+                <span class="bg-white/20 px-2 py-1 rounded">{{ 'accounting.dashboard.margin' | translate }}: {{ summary.profitMargin }}%</span>
               </div>
             </div>
 
@@ -123,10 +124,10 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
               </div>
-              <h3 class="text-white/80 text-sm font-medium mb-1">Student Payments</h3>
+              <h3 class="text-white/80 text-sm font-medium mb-1">{{ 'accounting.dashboard.studentPayments' | translate }}</h3>
               <p class="text-3xl font-bold">{{ summary.studentPayments.paymentCount }}</p>
               <div class="mt-3 flex items-center text-sm">
-                <span class="bg-white/20 px-2 py-1 rounded">{{ summary.studentPayments.totalStudents }} Students</span>
+                <span class="bg-white/20 px-2 py-1 rounded">{{ summary.studentPayments.totalStudents }} {{ 'accounting.dashboard.students' | translate }}</span>
               </div>
             </div>
           </div>
@@ -136,15 +137,15 @@ import { AuthService } from '../services/auth.service';
                class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg p-6 mb-8">
             <div class="flex items-center justify-between">
               <div>
-                <h2 class="text-white text-xl font-bold mb-2">📊 Attendance-Based Revenue</h2>
-                <p class="text-emerald-100 text-sm">Revenue calculated from marked attendance sessions</p>
+                <h2 class="text-white text-xl font-bold mb-2">{{ 'accounting.dashboard.attendanceRevenue' | translate }}</h2>
+                <p class="text-emerald-100 text-sm">{{ 'accounting.dashboard.attendanceRevenueDesc' | translate }}</p>
                 <div class="mt-4 grid grid-cols-2 gap-4">
                   <div>
-                    <p class="text-white/80 text-sm">Total Revenue</p>
+                    <p class="text-white/80 text-sm">{{ 'accounting.dashboard.totalRevenue' | translate }}</p>
                     <p class="text-3xl font-bold text-white">{{ formatCurrency(summary.attendanceRevenue.total) }}</p>
                   </div>
                   <div>
-                    <p class="text-white/80 text-sm">Sessions Completed</p>
+                    <p class="text-white/80 text-sm">{{ 'accounting.dashboard.sessionsCompleted' | translate }}</p>
                     <p class="text-3xl font-bold text-white">{{ summary.attendanceRevenue.totalSessions }}</p>
                   </div>
                 </div>
@@ -159,7 +160,7 @@ import { AuthService } from '../services/auth.service';
 
           <!-- Quick Actions -->
           <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.dashboard.quickActions' | translate }}</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <a routerLink="/dashboard/accounting/transactions" 
                  class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl hover:shadow-md transition-all group">
@@ -169,8 +170,8 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Transactions</p>
-                  <p class="text-sm text-gray-600">View all transactions</p>
+                  <p class="font-semibold text-gray-900">{{ 'accounting.dashboard.transactions' | translate }}</p>
+                  <p class="text-sm text-gray-600">{{ 'accounting.dashboard.viewAllTransactions' | translate }}</p>
                 </div>
               </a>
 
@@ -182,8 +183,8 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Student Payments</p>
-                  <p class="text-sm text-gray-600">Manage payments</p>
+                  <p class="font-semibold text-gray-900">{{ 'accounting.dashboard.studentPayments' | translate }}</p>
+                  <p class="text-sm text-gray-600">{{ 'accounting.dashboard.managePayments' | translate }}</p>
                 </div>
               </a>
 
@@ -195,8 +196,8 @@ import { AuthService } from '../services/auth.service';
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Reports</p>
-                  <p class="text-sm text-gray-600">Financial reports</p>
+                  <p class="font-semibold text-gray-900">{{ 'accounting.dashboard.reports' | translate }}</p>
+                  <p class="text-sm text-gray-600">{{ 'accounting.dashboard.financialReports' | translate }}</p>
                 </div>
               </a>
             </div>
@@ -207,7 +208,7 @@ import { AuthService } from '../services/auth.service';
             <!-- Revenue by Groups -->
             <div *ngIf="summary.groupRevenue && summary.groupRevenue.length > 0" 
                  class="bg-white rounded-2xl shadow-lg p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-6">💰 Revenue by Group</h2>
+              <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.dashboard.revenueByGroup' | translate }}</h2>
               <div class="space-y-3">
                 <div *ngFor="let group of summary.groupRevenue" 
                      class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 hover:shadow-md transition-all">
@@ -222,15 +223,15 @@ import { AuthService } from '../services/auth.service';
                   </div>
                   <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-200">
                     <div class="text-center">
-                      <p class="text-xs text-gray-600">Sessions</p>
+                      <p class="text-xs text-gray-600">{{ 'accounting.dashboard.sessions' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ group.totalSessions }}</p>
                     </div>
                     <div class="text-center">
-                      <p class="text-xs text-gray-600">Students</p>
+                      <p class="text-xs text-gray-600">{{ 'accounting.dashboard.students' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ group.studentCount }}</p>
                     </div>
                     <div class="text-center">
-                      <p class="text-xs text-gray-600">Avg/Session</p>
+                      <p class="text-xs text-gray-600">{{ 'accounting.dashboard.avgPerSession' | translate }}</p>
                       <p class="text-sm font-semibold text-gray-900">{{ formatCurrency(group.avgRevenuePerSession) }}</p>
                     </div>
                   </div>
@@ -239,7 +240,7 @@ import { AuthService } from '../services/auth.service';
               <div class="mt-4 text-center">
                 <a routerLink="/dashboard/groups" 
                    class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                  View All Groups →
+                  {{ 'accounting.dashboard.viewAllGroups' | translate }} →
                 </a>
               </div>
             </div>
@@ -247,7 +248,7 @@ import { AuthService } from '../services/auth.service';
             <!-- Revenue by Courses -->
             <div *ngIf="summary.courseRevenue && summary.courseRevenue.length > 0" 
                  class="bg-white rounded-2xl shadow-lg p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-6">📚 Revenue by Course</h2>
+              <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.dashboard.revenueByCourse' | translate }}</h2>
               <div class="space-y-3">
                 <div *ngFor="let course of summary.courseRevenue" 
                      class="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:shadow-md transition-all">
@@ -275,7 +276,7 @@ import { AuthService } from '../services/auth.service';
               <div class="mt-4 text-center">
                 <a routerLink="/dashboard/courses" 
                    class="text-sm text-purple-600 hover:text-purple-800 font-medium">
-                  View All Courses →
+                  {{ 'accounting.dashboard.viewAllCourses' | translate }} →
                 </a>
               </div>
             </div>
@@ -285,7 +286,7 @@ import { AuthService } from '../services/auth.service';
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Pending & Overdue Payments -->
             <div class="bg-white rounded-2xl shadow-lg p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-6">💳 Revenue Status</h2>
+              <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.dashboard.revenueStatus' | translate }}</h2>
               <div class="space-y-4">
                 <!-- Total Revenue Earned -->
                 <div class="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border-2 border-emerald-300">
@@ -296,16 +297,16 @@ import { AuthService } from '../services/auth.service';
                       </svg>
                     </div>
                     <div>
-                      <p class="font-bold text-gray-900 text-lg">Total Revenue Earned</p>
+                      <p class="font-bold text-gray-900 text-lg">{{ 'accounting.dashboard.totalRevenueEarned' | translate }}</p>
                       <p class="text-sm text-gray-600">
-                        From {{ summary.studentPayments.totalSessions || 0 }} session(s) • 
-                        {{ summary.studentPayments.totalStudents || 0 }} students enrolled
+                        {{ 'accounting.dashboard.fromSessions' | translate:{ count: summary.studentPayments.totalSessions || 0 } }} • 
+                        {{ 'accounting.dashboard.studentsEnrolled' | translate:{ count: summary.studentPayments.totalStudents || 0 } }}
                       </p>
                     </div>
                   </div>
                   <div class="text-right">
                     <p class="text-3xl font-bold text-emerald-600">{{ formatCurrency(summary.studentPayments.totalRevenue) }}</p>
-                    <p class="text-xs text-emerald-600 font-medium mt-1">✓ Collected via attendance</p>
+                    <p class="text-xs text-emerald-600 font-medium mt-1">✓ {{ 'accounting.dashboard.collectedViaAttendance' | translate }}</p>
                   </div>
                 </div>
 
@@ -318,11 +319,9 @@ import { AuthService } from '../services/auth.service';
                       </svg>
                     </div>
                     <div class="flex-1">
-                      <p class="font-semibold text-gray-900 mb-1">📋 Attendance-Based Payment System</p>
+                      <p class="font-semibold text-gray-900 mb-1">📋 {{ 'accounting.dashboard.attendanceBasedSystem' | translate }}</p>
                       <p class="text-sm text-gray-700 leading-relaxed">
-                        Revenue is automatically calculated when you mark attendance. 
-                        When a student is marked as <span class="font-semibold text-green-600">Present</span>, 
-                        they are charged the session price ({{ summary.attendanceRevenue?.pricePerSession || 'varies' }} EGP/session).
+                        {{ 'accounting.dashboard.attendanceSystemDesc' | translate }}
                       </p>
                     </div>
                   </div>
@@ -336,7 +335,7 @@ import { AuthService } from '../services/auth.service';
                       <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
-                      <p class="text-xs font-medium text-gray-600">Sessions Completed</p>
+                      <p class="text-xs font-medium text-gray-600">{{ 'accounting.dashboard.sessionsCompleted' | translate }}</p>
                     </div>
                     <p class="text-2xl font-bold text-purple-600">{{ summary.studentPayments.totalSessions || 0 }}</p>
                   </div>
@@ -347,7 +346,7 @@ import { AuthService } from '../services/auth.service';
                       <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                       </svg>
-                      <p class="text-xs font-medium text-gray-600">Total Students</p>
+                      <p class="text-xs font-medium text-gray-600">{{ 'accounting.dashboard.totalStudents' | translate }}</p>
                     </div>
                     <p class="text-2xl font-bold text-blue-600">{{ summary.studentPayments.totalStudents || 0 }}</p>
                   </div>
@@ -361,12 +360,12 @@ import { AuthService } from '../services/auth.service';
                       <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                       </svg>
-                      <p class="text-xs font-medium text-gray-700">Last Period Revenue</p>
+                      <p class="text-xs font-medium text-gray-700">{{ 'accounting.dashboard.lastPeriodRevenue' | translate }}</p>
                     </div>
                     <p class="text-sm font-bold text-teal-600">{{ formatCurrency(summary.attendanceRevenue.total) }}</p>
                   </div>
                   <p class="text-xs text-gray-600 mt-1 ml-6">
-                    {{ summary.attendanceRevenue.totalSessions }} session(s) this {{ getPeriodLabel() }}
+                    {{ 'accounting.dashboard.sessionsPeriod' | translate:{ count: summary.attendanceRevenue.totalSessions, period: ('accounting.dashboard.periods.' + selectedPeriod | translate) } }}
                   </p>
                 </div>
               </div>
@@ -377,14 +376,14 @@ import { AuthService } from '../services/auth.service';
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                   </svg>
-                  Mark Attendance to Generate Revenue
+                  {{ 'accounting.dashboard.markAttendanceToGenerateRevenue' | translate }}
                 </a>
               </div>
             </div>
 
             <!-- Category Breakdown -->
             <div class="bg-white rounded-2xl shadow-lg p-6">
-              <h2 class="text-xl font-bold text-gray-900 mb-6">Category Breakdown</h2>
+              <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.dashboard.categoryBreakdown' | translate }}</h2>
               <div class="space-y-3">
                 <div *ngFor="let cat of getCategoryBreakdown()" class="relative">
                   <div class="flex items-center justify-between mb-1">
@@ -407,7 +406,7 @@ import { AuthService } from '../services/auth.service';
               <div class="mt-6 pt-6 border-t">
                 <a routerLink="/dashboard/accounting/reports" 
                    class="inline-flex items-center justify-center w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">
-                  View Full Report
+                  {{ 'accounting.dashboard.viewFullReport' | translate }}
                   <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                   </svg>
@@ -435,7 +434,8 @@ export class AccountingDashboardComponent implements OnInit {
   constructor(
     private accountingService: AccountingService,
     private toastService: ToastService,
-    public authService: AuthService
+    public authService: AuthService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -453,7 +453,7 @@ export class AccountingDashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load financial summary:', error);
-        this.toastService.error('Failed to load financial data');
+        this.toastService.error(this.translate.instant('accounting.dashboard.failedToLoad'));
         this.isLoading = false;
       }
     });
