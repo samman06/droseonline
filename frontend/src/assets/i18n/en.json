@@ -874,7 +874,29 @@
     "description": "Description",
     "paymentMethod": "Payment Method",
     "status": "Status",
-    "noTransactions": "No transactions found"
+    "noTransactions": "No transactions found",
+    "reports": {
+      "financialReports": "Financial Reports",
+      "comprehensiveAnalysis": "Comprehensive financial analysis and insights",
+      "exportReport": "Export Report",
+      "totalIncome": "Total Income",
+      "totalExpenses": "Total Expenses",
+      "netProfit": "Net Profit",
+      "profitMargin": "Profit Margin",
+      "incomeVsExpensesOverview": "Income vs Expenses Overview",
+      "incomeByCategory": "Income by Category",
+      "expensesByCategory": "Expenses by Category",
+      "ofTotalIncome": "of total income",
+      "ofTotalExpenses": "of total expenses",
+      "revenueByGroup": "Revenue by Group",
+      "group": "Group",
+      "course": "Course",
+      "students": "Students",
+      "sessions": "Sessions",
+      "revenue": "Revenue",
+      "failedToLoad": "Failed to load financial report",
+      "exportComingSoon": "Export feature coming soon!"
+    }
   },
   "forms": {
     "required": "This field is required",

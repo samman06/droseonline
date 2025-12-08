@@ -874,7 +874,29 @@
     "description": "الوصف",
     "paymentMethod": "طريقة الدفع",
     "status": "الحالة",
-    "noTransactions": "لم يتم العثور على معاملات"
+    "noTransactions": "لم يتم العثور على معاملات",
+    "reports": {
+      "financialReports": "التقارير المالية",
+      "comprehensiveAnalysis": "تحليل مالي شامل ورؤى",
+      "exportReport": "تصدير التقرير",
+      "totalIncome": "إجمالي الدخل",
+      "totalExpenses": "إجمالي المصروفات",
+      "netProfit": "صافي الربح",
+      "profitMargin": "هامش الربح",
+      "incomeVsExpensesOverview": "نظرة عامة على الدخل مقابل المصروفات",
+      "incomeByCategory": "الدخل حسب الفئة",
+      "expensesByCategory": "المصروفات حسب الفئة",
+      "ofTotalIncome": "من إجمالي الدخل",
+      "ofTotalExpenses": "من إجمالي المصروفات",
+      "revenueByGroup": "الإيرادات حسب المجموعة",
+      "group": "المجموعة",
+      "course": "الدورة",
+      "students": "الطلاب",
+      "sessions": "الجلسات",
+      "revenue": "الإيرادات",
+      "failedToLoad": "فشل تحميل التقرير المالي",
+      "exportComingSoon": "ميزة التصدير قريباً!"
+    }
   },
   "forms": {
     "required": "هذا الحقل مطلوب",

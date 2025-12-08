@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AccountingService, FinancialSummary } from '../../services/accounting.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-accounting-reports',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Header -->
@@ -21,8 +22,8 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </button>
               <div>
-                <h1 class="text-3xl font-bold text-gray-900">Financial Reports</h1>
-                <p class="mt-1 text-sm text-gray-500">Comprehensive financial analysis and insights</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ 'accounting.reports.financialReports' | translate }}</h1>
+                <p class="mt-1 text-sm text-gray-500">{{ 'accounting.reports.comprehensiveAnalysis' | translate }}</p>
               </div>
             </div>
             <button (click)="exportReport()" 
@@ -30,7 +31,7 @@ import { ToastService } from '../../services/toast.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
-              Export Report
+              {{ 'accounting.reports.exportReport' | translate }}
             </button>
           </div>
         </div>
@@ -46,34 +47,34 @@ import { ToastService } from '../../services/toast.service';
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
-            <h3 class="text-white/80 text-sm font-medium mb-2">Total Income</h3>
+            <h3 class="text-white/80 text-sm font-medium mb-2">{{ 'accounting.reports.totalIncome' | translate }}</h3>
             <p class="text-3xl font-bold">{{ formatCurrency(summary.totalIncome) }}</p>
           </div>
           <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg p-6 text-white">
-            <h3 class="text-white/80 text-sm font-medium mb-2">Total Expenses</h3>
+            <h3 class="text-white/80 text-sm font-medium mb-2">{{ 'accounting.reports.totalExpenses' | translate }}</h3>
             <p class="text-3xl font-bold">{{ formatCurrency(summary.totalExpenses) }}</p>
           </div>
           <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
-            <h3 class="text-white/80 text-sm font-medium mb-2">Net Profit</h3>
+            <h3 class="text-white/80 text-sm font-medium mb-2">{{ 'accounting.reports.netProfit' | translate }}</h3>
             <p class="text-3xl font-bold">{{ formatCurrency(summary.netProfit) }}</p>
           </div>
           <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
-            <h3 class="text-white/80 text-sm font-medium mb-2">Profit Margin</h3>
+            <h3 class="text-white/80 text-sm font-medium mb-2">{{ 'accounting.reports.profitMargin' | translate }}</h3>
             <p class="text-3xl font-bold">{{ calculateProfitMargin() }}%</p>
           </div>
         </div>
 
         <!-- Income vs Expenses Chart Placeholder -->
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <h2 class="text-xl font-bold text-gray-900 mb-6">Income vs Expenses Overview</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.reports.incomeVsExpensesOverview' | translate }}</h2>
           <div class="grid grid-cols-2 gap-6">
             <div class="text-center p-8 bg-green-50 rounded-xl border-2 border-green-200">
               <div class="text-6xl font-bold text-green-600">{{ formatCurrency(summary.totalIncome) }}</div>
-              <p class="text-lg font-medium text-gray-700 mt-2">Total Income</p>
+              <p class="text-lg font-medium text-gray-700 mt-2">{{ 'accounting.reports.totalIncome' | translate }}</p>
             </div>
             <div class="text-center p-8 bg-red-50 rounded-xl border-2 border-red-200">
               <div class="text-6xl font-bold text-red-600">{{ formatCurrency(summary.totalExpenses) }}</div>
-              <p class="text-lg font-medium text-gray-700 mt-2">Total Expenses</p>
+              <p class="text-lg font-medium text-gray-700 mt-2">{{ 'accounting.reports.totalExpenses' | translate }}</p>
             </div>
           </div>
         </div>
@@ -82,7 +83,7 @@ import { ToastService } from '../../services/toast.service';
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <!-- Income Breakdown -->
           <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-6">Income by Category</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.reports.incomeByCategory' | translate }}</h2>
             <div class="space-y-4">
               <div *ngFor="let cat of getIncomeBreakdown()" class="border-b border-gray-100 pb-3">
                 <div class="flex items-center justify-between mb-2">
@@ -92,14 +93,14 @@ import { ToastService } from '../../services/toast.service';
                 <div class="w-full bg-gray-200 rounded-full h-2">
                   <div class="bg-green-500 h-2 rounded-full" [style.width.%]="cat.percentage"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">{{ cat.percentage.toFixed(1) }}% of total income</p>
+                <p class="text-xs text-gray-500 mt-1">{{ cat.percentage.toFixed(1) }}% {{ 'accounting.reports.ofTotalIncome' | translate }}</p>
               </div>
             </div>
           </div>
 
           <!-- Expense Breakdown -->
           <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-xl font-bold text-gray-900 mb-6">Expenses by Category</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.reports.expensesByCategory' | translate }}</h2>
             <div class="space-y-4">
               <div *ngFor="let cat of getExpenseBreakdown()" class="border-b border-gray-100 pb-3">
                 <div class="flex items-center justify-between mb-2">
@@ -109,7 +110,7 @@ import { ToastService } from '../../services/toast.service';
                 <div class="w-full bg-gray-200 rounded-full h-2">
                   <div class="bg-red-500 h-2 rounded-full" [style.width.%]="cat.percentage"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">{{ cat.percentage.toFixed(1) }}% of total expenses</p>
+                <p class="text-xs text-gray-500 mt-1">{{ cat.percentage.toFixed(1) }}% {{ 'accounting.reports.ofTotalExpenses' | translate }}</p>
               </div>
             </div>
           </div>
@@ -117,16 +118,16 @@ import { ToastService } from '../../services/toast.service';
 
         <!-- Revenue by Group -->
         <div *ngIf="summary.groupRevenue && summary.groupRevenue.length > 0" class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <h2 class="text-xl font-bold text-gray-900 mb-6">Revenue by Group</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-6">{{ 'accounting.reports.revenueByGroup' | translate }}</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">Group</th>
-                  <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">Course</th>
-                  <th class="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase">Students</th>
-                  <th class="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase">Sessions</th>
-                  <th class="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase">Revenue</th>
+                  <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">{{ 'accounting.reports.group' | translate }}</th>
+                  <th class="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase">{{ 'accounting.reports.course' | translate }}</th>
+                  <th class="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase">{{ 'accounting.reports.students' | translate }}</th>
+                  <th class="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase">{{ 'accounting.reports.sessions' | translate }}</th>
+                  <th class="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase">{{ 'accounting.reports.revenue' | translate }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
@@ -152,7 +153,8 @@ export class ReportsComponent implements OnInit {
 
   constructor(
     private accountingService: AccountingService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -170,7 +172,7 @@ export class ReportsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading financial summary:', error);
-        this.toastService.error('Failed to load financial report');
+        this.toastService.error(this.translate.instant('accounting.reports.failedToLoad'));
         this.isLoading = false;
       }
     });
@@ -220,7 +222,7 @@ export class ReportsComponent implements OnInit {
   }
 
   exportReport(): void {
-    this.toastService.info('Export feature coming soon!');
+    this.toastService.info(this.translate.instant('accounting.reports.exportComingSoon'));
   }
 }
 
