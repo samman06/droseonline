@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { GroupFormComponent } from '../group-form/group-form.component';
 import { GroupService } from '../../services/group.service';
 
 @Component({
   selector: 'app-group-edit',
   standalone: true,
-  imports: [CommonModule, GroupFormComponent],
+  imports: [CommonModule, GroupFormComponent, TranslateModule],
   template: `
     <app-group-form
       [title]="translate.instant('groups.editGroup')"
