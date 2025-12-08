@@ -398,7 +398,13 @@
     "schedule": "Schedule",
     "startDate": "Start Date",
     "endDate": "End Date",
-    "noCourses": "No courses found"
+    "noCourses": "No courses found",
+    "selectTeacher": "Select a teacher",
+    "teacherRequired": "Teacher is required",
+    "selectTeacherFirst": "Select teacher first",
+    "loadingSubjects": "Loading subjects...",
+    "selectSubject": "Select a subject",
+    "selectTeacherToViewSubjects": "Please select a teacher to view available subjects"
   },
   "attendance": {
     "title": "Attendance",

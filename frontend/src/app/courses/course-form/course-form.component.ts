@@ -126,16 +126,17 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
           
-          <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+          <div class="p-6 grid grid-cols-1 gap-6" [ngClass]="isAdmin ? 'md:grid-cols-2' : ''">
+            <!-- Teacher Selector: Only for Admins -->
+            <div *ngIf="isAdmin">
               <label class="flex items-center text-sm font-semibold text-gray-700 mb-2">
                 <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
-                Teacher <span class="text-red-500 ml-1">*</span>
+                {{ 'courses.teacher' | translate }} <span class="text-red-500 ml-1">*</span>
               </label>
               <select formControlName="teacher" (change)="onTeacherChange()" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all">
-                <option value="">Select a teacher first</option>
+                <option value="">{{ 'courses.selectTeacher' | translate }}</option>
                 <option *ngFor="let teacher of teachers" [value]="teacher._id">
                   {{ teacher.firstName }} {{ teacher.lastName }}
                 </option>
@@ -144,7 +145,7 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
-                Teacher is required
+                {{ 'courses.teacherRequired' | translate }}
               </div>
             </div>
 
@@ -161,22 +162,22 @@ import { AuthService } from '../../services/auth.service';
                   [disabled]="!selectedTeacherId || loadingSubjects"
                   class="w-full px-4 py-3 rounded-lg border-2 transition-all"
                   [ngClass]="!selectedTeacherId || loadingSubjects ? 'border-gray-200 bg-gray-100 cursor-not-allowed text-gray-500' : 'border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'">
-                  <option value="">{{ !selectedTeacherId ? 'Select teacher first' : (loadingSubjects ? 'Loading subjects...' : 'Select a subject') }}</option>
+                  <option value="">{{ !selectedTeacherId ? ('courses.selectTeacherFirst' | translate) : (loadingSubjects ? ('courses.loadingSubjects' | translate) : ('courses.selectSubject' | translate)) }}</option>
                   <option *ngFor="let subject of subjects" [value]="subject._id">
                     {{ subject.name }} ({{ subject.code }})
                   </option>
                 </select>
-                <div *ngIf="!selectedTeacherId" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <div *ngIf="!selectedTeacherId && isAdmin" class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                   </svg>
                 </div>
               </div>
-              <p *ngIf="!selectedTeacherId" class="flex items-center text-xs text-amber-600 mt-2">
+              <p *ngIf="!selectedTeacherId && isAdmin" class="flex items-center text-xs text-amber-600 mt-2">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                 </svg>
-                Please select a teacher to view available subjects
+                {{ 'courses.selectTeacherToViewSubjects' | translate }}
               </p>
               <div *ngIf="courseForm.get('subject')?.invalid && courseForm.get('subject')?.touched" class="flex items-center text-red-600 text-sm mt-2">
                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -349,7 +350,20 @@ export class CourseFormComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.currentUser;
     this.initForm();
-    this.loadTeachers();
+    
+    // Only load teachers if admin
+    if (this.isAdmin) {
+      this.loadTeachers();
+    } else {
+      // For teachers/assistants, auto-assign current user or their assigned teacher
+      const teacherId = this.currentUser.role === 'assistant' 
+        ? this.currentUser.assistantInfo?.assignedTeacher 
+        : this.currentUser._id;
+      
+      this.selectedTeacherId = teacherId;
+      this.courseForm.patchValue({ teacher: teacherId });
+      this.loadSubjectsForTeacher(teacherId);
+    }
     
     this.courseId = this.route.snapshot.paramMap.get('id');
     if (this.courseId) {
@@ -399,17 +413,24 @@ export class CourseFormComponent implements OnInit {
   }
 
   initForm(): void {
+    // Teacher is only required for admins
+    const teacherValidators = this.isAdmin ? [Validators.required] : [];
+    
     this.courseForm = this.fb.group({
       name: ['', [Validators.required]],
       code: [{value: '', disabled: true}], // Auto-generated, not required
       description: [''],
       subject: ['', Validators.required],
-      teacher: ['', Validators.required],
+      teacher: ['', teacherValidators],
       creditHours: [3],
       maxStudents: [30],
       startDate: [''],
       endDate: ['']
     });
+  }
+  
+  get isAdmin(): boolean {
+    return this.currentUser?.role === 'admin';
   }
 
   loadTeachers(): void {

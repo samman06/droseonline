@@ -398,7 +398,13 @@
     "schedule": "الجدول",
     "startDate": "تاريخ البداية",
     "endDate": "تاريخ النهاية",
-    "noCourses": "لم يتم العثور على دورات"
+    "noCourses": "لم يتم العثور على دورات",
+    "selectTeacher": "اختر معلمًا",
+    "teacherRequired": "المعلم مطلوب",
+    "selectTeacherFirst": "اختر المعلم أولاً",
+    "loadingSubjects": "جاري تحميل المواد...",
+    "selectSubject": "اختر مادة",
+    "selectTeacherToViewSubjects": "يرجى اختيار معلم لعرض المواد المتاحة"
   },
   "attendance": {
     "title": "الحضور",
