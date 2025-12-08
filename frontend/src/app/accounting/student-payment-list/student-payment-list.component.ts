@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
 import { AccountingService } from '../../services/accounting.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-student-payment-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Header -->
@@ -22,8 +23,8 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </button>
               <div>
-                <h1 class="text-3xl font-bold text-gray-900">Student Payments</h1>
-                <p class="mt-1 text-sm text-gray-500">Track student enrollment and session payments</p>
+                <h1 class="text-3xl font-bold text-gray-900">{{ 'accounting.studentPayments.title' | translate }}</h1>
+                <p class="mt-1 text-sm text-gray-500">{{ 'accounting.studentPayments.subtitle' | translate }}</p>
               </div>
             </div>
           </div>
@@ -41,30 +42,30 @@ import { ToastService } from '../../services/toast.service';
               </svg>
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Attendance-Based Payment System</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ 'accounting.studentPayments.attendanceBasedSystem' | translate }}</h3>
               <p class="text-gray-700 mb-3">
-                In this system, student payments are automatically calculated and recorded when you mark attendance. 
-                Each time a student is marked as <span class="font-semibold text-green-600">Present</span>, 
-                they are automatically charged the session price.
+                {{ 'accounting.studentPayments.systemDescription' | translate }}
+                <span class="font-semibold text-green-600">{{ 'accounting.studentPayments.present' | translate }}</span>, 
+                {{ 'accounting.studentPayments.chargedSessionPrice' | translate }}
               </p>
               <div class="bg-white rounded-lg p-4 border border-blue-200">
-                <h4 class="font-semibold text-gray-900 mb-2">How It Works:</h4>
+                <h4 class="font-semibold text-gray-900 mb-2">{{ 'accounting.studentPayments.howItWorks' | translate }}</h4>
                 <ul class="space-y-2 text-sm text-gray-700">
                   <li class="flex items-start gap-2">
                     <span class="text-blue-600 font-bold">1.</span>
-                    <span>Go to <strong>Attendance</strong> page and mark students present/absent</span>
+                    <span>{{ 'accounting.studentPayments.step1' | translate }}</span>
                   </li>
                   <li class="flex items-start gap-2">
                     <span class="text-blue-600 font-bold">2.</span>
-                    <span>System calculates: <code class="bg-gray-100 px-2 py-1 rounded">Present Students × Session Price = Revenue</code></span>
+                    <span>{{ 'accounting.studentPayments.step2' | translate }}</span>
                   </li>
                   <li class="flex items-start gap-2">
                     <span class="text-blue-600 font-bold">3.</span>
-                    <span>Revenue is automatically recorded as a transaction</span>
+                    <span>{{ 'accounting.studentPayments.step3' | translate }}</span>
                   </li>
                   <li class="flex items-start gap-2">
                     <span class="text-blue-600 font-bold">4.</span>
-                    <span>Group and course totals are updated instantly</span>
+                    <span>{{ 'accounting.studentPayments.step4' | translate }}</span>
                   </li>
                 </ul>
               </div>
@@ -83,12 +84,12 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </div>
               <div>
-                <h3 class="font-bold text-gray-900 text-lg">Mark Attendance</h3>
-                <p class="text-sm text-gray-600">Generate revenue from sessions</p>
+                <h3 class="font-bold text-gray-900 text-lg">{{ 'accounting.studentPayments.markAttendance' | translate }}</h3>
+                <p class="text-sm text-gray-600">{{ 'accounting.studentPayments.generateRevenue' | translate }}</p>
               </div>
             </div>
             <p class="text-sm text-gray-500">
-              Mark students as present to automatically record their session payments
+              {{ 'accounting.studentPayments.markAttendanceDescription' | translate }}
             </p>
           </a>
 
@@ -101,12 +102,12 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </div>
               <div>
-                <h3 class="font-bold text-gray-900 text-lg">View Transactions</h3>
-                <p class="text-sm text-gray-600">All income transactions</p>
+                <h3 class="font-bold text-gray-900 text-lg">{{ 'accounting.studentPayments.viewTransactions' | translate }}</h3>
+                <p class="text-sm text-gray-600">{{ 'accounting.studentPayments.allIncomeTransactions' | translate }}</p>
               </div>
             </div>
             <p class="text-sm text-gray-500">
-              View all student payment transactions recorded from attendance
+              {{ 'accounting.studentPayments.viewTransactionsDescription' | translate }}
             </p>
           </a>
 
@@ -119,12 +120,12 @@ import { ToastService } from '../../services/toast.service';
                 </svg>
               </div>
               <div>
-                <h3 class="font-bold text-gray-900 text-lg">Manage Groups</h3>
-                <p class="text-sm text-gray-600">Group revenue tracking</p>
+                <h3 class="font-bold text-gray-900 text-lg">{{ 'accounting.studentPayments.manageGroups' | translate }}</h3>
+                <p class="text-sm text-gray-600">{{ 'accounting.studentPayments.groupRevenueTracking' | translate }}</p>
               </div>
             </div>
             <p class="text-sm text-gray-500">
-              View groups, pricing, and total revenue per group
+              {{ 'accounting.studentPayments.manageGroupsDescription' | translate }}
             </p>
           </a>
         </div>

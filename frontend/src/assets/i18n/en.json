@@ -1040,6 +1040,28 @@
       "revenue": "Revenue",
       "failedToLoad": "Failed to load financial report",
       "exportComingSoon": "Export feature coming soon!"
+    },
+    "studentPayments": {
+      "title": "Student Payments",
+      "subtitle": "Track student enrollment and session payments",
+      "attendanceBasedSystem": "Attendance-Based Payment System",
+      "systemDescription": "In this system, student payments are automatically calculated and recorded when you mark attendance. Each time a student is marked as",
+      "present": "Present",
+      "chargedSessionPrice": "they are automatically charged the session price.",
+      "howItWorks": "How It Works:",
+      "step1": "Go to Attendance page and mark students present/absent",
+      "step2": "System calculates: Present Students × Session Price = Revenue",
+      "step3": "Revenue is automatically recorded as a transaction",
+      "step4": "Group and course totals are updated instantly",
+      "markAttendance": "Mark Attendance",
+      "generateRevenue": "Generate revenue from sessions",
+      "markAttendanceDescription": "Mark students as present to automatically record their session payments",
+      "viewTransactions": "View Transactions",
+      "allIncomeTransactions": "All income transactions",
+      "viewTransactionsDescription": "View all student payment transactions recorded from attendance",
+      "manageGroups": "Manage Groups",
+      "groupRevenueTracking": "Group revenue tracking",
+      "manageGroupsDescription": "View groups, pricing, and total revenue per group"
     }
   },
   "forms": {
