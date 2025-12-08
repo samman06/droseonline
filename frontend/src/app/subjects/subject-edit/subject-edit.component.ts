@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { SubjectFormComponent } from '../subject-form/subject-form.component';
 import { SubjectService } from '../../services/subject.service';
 
@@ -10,9 +11,9 @@ import { SubjectService } from '../../services/subject.service';
   imports: [CommonModule, SubjectFormComponent],
   template: `
     <app-subject-form
-      [title]="'Edit Subject'"
-      [subtitle]="'Update subject details and grade assignments'"
-      [submitText]="'Update Subject'"
+      [title]="translate.instant('subjects.editSubject')"
+      [subtitle]="translate.instant('subjects.updateSubtitle')"
+      [submitText]="translate.instant('subjects.updateSubject')"
       [initialValue]="subject"
       (save)="onSave($event)"
       (cancel)="onCancel()"
@@ -22,7 +23,12 @@ import { SubjectService } from '../../services/subject.service';
 export class SubjectEditComponent implements OnInit {
   subject: any = {};
 
-  constructor(private subjectService: SubjectService, private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private subjectService: SubjectService, 
+    private route: ActivatedRoute, 
+    private router: Router,
+    public translate: TranslateService
+  ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;

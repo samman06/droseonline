@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SubjectService } from '../../services/subject.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { AuthService } from '../../services/auth.service';
@@ -8,7 +9,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-subject-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   template: `
     <div class="max-w-4xl mx-auto p-6 space-y-6">
       <!-- Back Button -->
@@ -17,35 +18,35 @@ import { AuthService } from '../../services/auth.service';
           <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
-          <span class="text-gray-700 font-medium">Back to Subjects</span>
+          <span class="text-gray-700 font-medium">{{ 'subjects.backToSubjects' | translate }}</span>
         </button>
       </div>
 
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-bold text-gray-900">{{ subject?.name }}</h1>
-          <p class="text-gray-600">Code: {{ subject?.code }}</p>
+          <p class="text-gray-600">{{ 'subjects.code' | translate }}: {{ subject?.code }}</p>
         </div>
         <!-- Only admins can edit/delete subjects -->
         <div *ngIf="isAdmin()" class="space-x-3">
-          <button (click)="edit()" class="btn-edit">Edit</button>
-          <button (click)="delete()" class="btn-danger">Delete</button>
+          <button (click)="edit()" class="btn-edit">{{ 'subjects.edit' | translate }}</button>
+          <button (click)="delete()" class="btn-danger">{{ 'subjects.delete' | translate }}</button>
         </div>
         <div *ngIf="!isAdmin()" class="text-sm text-gray-500 italic">
-          Read-only access
+          {{ 'subjects.readOnlyAccess' | translate }}
         </div>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="px-8 py-6 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Details</h2>
+          <h2 class="text-xl font-semibold text-gray-900">{{ 'subjects.details' | translate }}</h2>
         </div>
         <div class="p-8 space-y-4">
           <!-- No total marks on subject -->
-          <div class="text-gray-700"><span class="font-semibold">Status:</span>
+          <div class="text-gray-700"><span class="font-semibold">{{ 'common.status' | translate }}:</span>
             <span class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [class]="subject?.isActive ? 'bg-gradient-to-r from-green-400 to-green-500 text-white' : 'bg-gradient-to-r from-red-400 to-red-500 text-white'">
               <span class="w-2 h-2 rounded-full mr-2" [class]="subject?.isActive ? 'bg-white animate-pulse' : 'bg-white'"></span>
-              {{ subject?.isActive ? 'Active' : 'Inactive' }}
+              {{ subject?.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
             </span>
           </div>
         </div>
@@ -66,7 +67,8 @@ export class SubjectDetailComponent implements OnInit {
     private route: ActivatedRoute, 
     private router: Router, 
     private confirmation: ConfirmationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {
     this.currentUser = this.authService.currentUser;
   }
@@ -88,10 +90,10 @@ export class SubjectDetailComponent implements OnInit {
 
   async delete(): Promise<void> {
     const confirmed = await this.confirmation.confirm({
-      title: 'Delete Subject',
-      message: `Are you sure you want to delete ${this.subject?.name}? This action cannot be undone.`,
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('subjects.deleteSubject'),
+      message: this.translate.instant('subjects.deleteDetailConfirmMessage', { name: this.subject?.name }),
+      confirmText: this.translate.instant('subjects.yesDelete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     });
     if (!confirmed) return;

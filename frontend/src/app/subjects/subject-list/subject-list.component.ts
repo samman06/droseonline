@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SubjectService } from '../../services/subject.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-subject-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="space-y-6">
       <!-- Header Section with Enhanced Design -->
@@ -23,15 +24,15 @@ import { AuthService } from '../../services/auth.service';
             </div>
             <div>
               <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Subjects Management
+                {{ 'subjects.management' | translate }}
               </h1>
-              <p class="mt-1 text-gray-600">Manage academic subjects, courses, and curriculum</p>
+              <p class="mt-1 text-gray-600">{{ 'subjects.managementSubtitle' | translate }}</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path>
                   </svg>
-                    {{ subjects.length }} Subjects
+                    {{ subjects.length }} {{ 'subjects.subjects' | translate }}
                 </span>
               </div>
             </div>
@@ -45,7 +46,7 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
-              Export Data
+              {{ 'subjects.exportData' | translate }}
             </button>
             <!-- Only admins can create new subjects -->
             <button 
@@ -56,7 +57,7 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
-              Add New Subject
+              {{ 'subjects.addNewSubject' | translate }}
             </button>
           </div>
         </div>
@@ -66,16 +67,16 @@ import { AuthService } from '../../services/auth.service';
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <!-- Filters Header -->
         <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-gray-700">Filters</h3>
+          <h3 class="text-sm font-semibold text-gray-700">{{ 'subjects.filters' | translate }}</h3>
           <button (click)="clearFilters()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
-            Clear Filters
+            {{ 'subjects.clearFilters' | translate }}
           </button>
         </div>
 
         <!-- Active Filter Chips -->
         <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 mb-3">
           <span *ngIf="filters.search" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
-            Search: {{ filters.search }}
+            {{ 'subjects.search' | translate }}: {{ filters.search }}
             <button (click)="removeFilter('search')" class="ml-2 text-indigo-600 hover:text-indigo-800">×</button>
           </span>
         </div>
@@ -87,7 +88,7 @@ import { AuthService } from '../../services/auth.service';
             [(ngModel)]="filters.search" 
             (ngModelChange)="onSearchChange($event)" 
             class="form-input" 
-            placeholder="🔍 Search by name or code..."
+            [placeholder]="'subjects.searchPlaceholder' | translate"
           >
         </div>
       </div>
@@ -95,7 +96,7 @@ import { AuthService } from '../../services/auth.service';
       <!-- Loading State -->
       <div *ngIf="isLoading" class="text-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        <p class="mt-4 text-gray-500">Loading subjects...</p>
+        <p class="mt-4 text-gray-500">{{ 'subjects.loadingSubjects' | translate }}</p>
       </div>
 
       <!-- Empty State -->
@@ -103,17 +104,17 @@ import { AuthService } from '../../services/auth.service';
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">No subjects found</h3>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{{ 'subjects.noSubjects' | translate }}</h3>
         <p class="mt-1 text-sm text-gray-500">
-          <span *ngIf="isAdmin()">Get started by adding a new subject.</span>
-          <span *ngIf="!isAdmin()">No subjects available at this time.</span>
+          <span *ngIf="isAdmin()">{{ 'subjects.getStarted' | translate }}</span>
+          <span *ngIf="!isAdmin()">{{ 'subjects.noSubjectsAvailable' | translate }}</span>
         </p>
         <div *ngIf="isAdmin()" class="mt-6">
           <button (click)="navigateToCreate()" class="btn-primary">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
-            Add Subject
+            {{ 'subjects.addSubject' | translate }}
           </button>
         </div>
       </div>
@@ -146,21 +147,21 @@ import { AuthService } from '../../services/auth.service';
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
-              Edit
+              {{ 'subjects.edit' | translate }}
             </button>
             <button 
               *ngIf="isAdmin()"
               (click)="deleteSubject(subject)" 
               class="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-all duration-200"
-              title="Delete Subject"
+              [title]="'subjects.deleteSubject' | translate"
             >
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
-              Delete
+              {{ 'subjects.delete' | translate }}
             </button>
             <!-- Teachers see read-only view -->
-            <span *ngIf="!isAdmin()" class="text-sm text-gray-500 italic">Read-only access</span>
+            <span *ngIf="!isAdmin()" class="text-sm text-gray-500 italic">{{ 'subjects.readOnlyAccess' | translate }}</span>
           </div>
         </div>
       </div>
@@ -185,7 +186,8 @@ export class SubjectListComponent implements OnInit {
     private subjectService: SubjectService, 
     private router: Router, 
     private confirmation: ConfirmationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {
     this.currentUser = this.authService.currentUser;
   }
@@ -240,10 +242,10 @@ export class SubjectListComponent implements OnInit {
 
   async deleteSubject(s: any): Promise<void> {
     const confirmed = await this.confirmation.confirm({
-      title: 'Delete Subject',
-      message: `Are you sure you want to delete ${s.name}? This cannot be undone.`,
-      confirmText: 'Yes, Delete',
-      cancelText: 'Cancel',
+      title: this.translate.instant('subjects.deleteSubject'),
+      message: this.translate.instant('subjects.deleteConfirmMessage', { name: s.name }),
+      confirmText: this.translate.instant('subjects.yesDelete'),
+      cancelText: this.translate.instant('common.cancel'),
       type: 'danger'
     });
     if (!confirmed) return;
@@ -255,7 +257,11 @@ export class SubjectListComponent implements OnInit {
     if (this.subjects.length === 0) return;
     
     // Create CSV content
-    const headers = ['Subject Code', 'Subject Name', 'Created Date'];
+    const headers = [
+      this.translate.instant('subjects.code'),
+      this.translate.instant('subjects.subjectName'),
+      this.translate.instant('subjects.createdDate')
+    ];
     const csvContent = [
       headers.join(','),
       ...this.subjects.map(subject => [
