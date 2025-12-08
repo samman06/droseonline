@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CalendarService, CalendarEvent } from '../../services/calendar.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-calendar-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-blue-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto">
@@ -18,8 +19,8 @@ import { AuthService } from '../../services/auth.service';
         <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-2xl shadow-2xl p-8 mb-8">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 class="text-4xl font-bold text-white mb-2">📅 My Calendar</h1>
-              <p class="text-purple-100 text-lg">Your schedule at a glance</p>
+              <h1 class="text-4xl font-bold text-white mb-2">📅 {{ 'calendar.myCalendar' | translate }}</h1>
+              <p class="text-purple-100 text-lg">{{ 'calendar.subtitle' | translate }}</p>
             </div>
             <div class="mt-4 md:mt-0 flex gap-2">
               <button (click)="exportCalendar()"
@@ -27,11 +28,11 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Export
+                {{ 'calendar.export' | translate }}
               </button>
               <button (click)="goToToday()"
                       class="px-6 py-2 bg-white text-purple-600 rounded-lg hover:bg-purple-50 transition-all shadow-lg font-semibold">
-                Today
+                {{ 'calendar.today' | translate }}
               </button>
             </div>
           </div>
@@ -65,22 +66,22 @@ import { AuthService } from '../../services/auth.service';
               <select [(ngModel)]="selectedType"
                       (change)="loadCalendar()"
                       class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <option value="">All Types</option>
-                <option value="assignment">Assignments</option>
-                <option value="quiz">Quizzes</option>
-                <option value="session">Sessions</option>
-                <option value="announcement">Announcements</option>
+                <option value="">{{ 'calendar.allTypes' | translate }}</option>
+                <option value="assignment">{{ 'calendar.assignments' | translate }}</option>
+                <option value="quiz">{{ 'calendar.quizzes' | translate }}</option>
+                <option value="session">{{ 'calendar.sessions' | translate }}</option>
+                <option value="announcement">{{ 'calendar.announcements' | translate }}</option>
               </select>
 
               <!-- View Mode -->
               <div class="flex bg-gray-100 rounded-lg p-1">
                 <button (click)="viewMode = 'month'; loadCalendar()"
                         [class]="viewMode === 'month' ? 'px-4 py-2 bg-white rounded-md shadow-sm text-purple-600 font-medium' : 'px-4 py-2 text-gray-600'">
-                  Month
+                  {{ 'calendar.month' | translate }}
                 </button>
                 <button (click)="viewMode = 'list'; loadCalendar()"
                         [class]="viewMode === 'list' ? 'px-4 py-2 bg-white rounded-md shadow-sm text-purple-600 font-medium' : 'px-4 py-2 text-gray-600'">
-                  List
+                  {{ 'calendar.list' | translate }}
                 </button>
               </div>
             </div>
@@ -90,19 +91,19 @@ import { AuthService } from '../../services/auth.service';
           <div *ngIf="stats" class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
               <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span class="text-sm font-medium text-gray-700">{{ stats.assignments }} Assignments</span>
+              <span class="text-sm font-medium text-gray-700">{{ stats.assignments }} {{ 'calendar.assignments' | translate }}</span>
             </div>
             <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
               <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span class="text-sm font-medium text-gray-700">{{ stats.quizzes }} Quizzes</span>
+              <span class="text-sm font-medium text-gray-700">{{ stats.quizzes }} {{ 'calendar.quizzes' | translate }}</span>
             </div>
             <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
               <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span class="text-sm font-medium text-gray-700">{{ stats.sessions }} Sessions</span>
+              <span class="text-sm font-medium text-gray-700">{{ stats.sessions }} {{ 'calendar.sessions' | translate }}</span>
             </div>
             <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
               <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span class="text-sm font-medium text-gray-700">{{ stats.announcements }} Announcements</span>
+              <span class="text-sm font-medium text-gray-700">{{ stats.announcements }} {{ 'calendar.announcements' | translate }}</span>
             </div>
           </div>
         </div>
@@ -110,21 +111,21 @@ import { AuthService } from '../../services/auth.service';
         <!-- Loading State -->
         <div *ngIf="loading" class="bg-white rounded-xl shadow-lg p-12 text-center">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p class="mt-4 text-gray-600">Loading calendar...</p>
+          <p class="mt-4 text-gray-600">{{ 'calendar.loadingCalendar' | translate }}</p>
         </div>
 
         <!-- Month View -->
         <div *ngIf="!loading && viewMode === 'month'" class="bg-white rounded-xl shadow-lg overflow-hidden">
           <!-- Day Headers -->
           <div class="grid grid-cols-7 bg-gray-50 border-b">
-            <div *ngFor="let day of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']"
+            <div *ngFor="let day of getDayNames()"
                  class="p-4 text-center text-sm font-semibold text-gray-700">
               {{ day }}
             </div>
           </div>
 
           <!-- Calendar Grid -->
-          <div class="grid grid-cols-7 divide-x divide-y">
+          <div class="calendar-grid grid grid-cols-7 divide-x divide-y">
             <div *ngFor="let day of calendarDays"
                  class="min-h-[120px] p-2 hover:bg-gray-50 transition-colors"
                  [class.bg-gray-50]="!isSameMonth(day)"
@@ -147,16 +148,16 @@ import { AuthService } from '../../services/auth.service';
               <div class="space-y-1">
                 <div *ngFor="let event of getEventsForDay(day).slice(0, 3)"
                      (click)="viewEventDetails(event)"
-                     class="text-xs p-1.5 rounded cursor-pointer hover:opacity-80 transition-opacity truncate"
+                     class="event-text text-xs p-1.5 rounded cursor-pointer hover:opacity-80 transition-opacity truncate"
                      [style.backgroundColor]="event.color + '20'"
                      [style.borderLeft]="'3px solid ' + event.color">
                   <div class="font-medium truncate">{{ event.title }}</div>
-                  <div class="text-gray-600 truncate">{{ event.allDay ? 'All day' : calendarService.formatTime(event.date) }}</div>
+                  <div class="text-gray-600 truncate">{{ event.allDay ? ('calendar.allDay' | translate) : calendarService.formatTime(event.date) }}</div>
                 </div>
                 <div *ngIf="getEventsForDay(day).length > 3"
                      class="text-xs text-purple-600 font-medium cursor-pointer hover:underline"
                      (click)="showMoreEvents(day)">
-                  +{{ getEventsForDay(day).length - 3 }} more
+                  +{{ getEventsForDay(day).length - 3 }} {{ 'calendar.more' | translate }}
                 </div>
               </div>
             </div>
@@ -170,8 +171,8 @@ import { AuthService } from '../../services/auth.service';
             <svg class="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Events Found</h3>
-            <p class="text-gray-500">There are no events scheduled for this period</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ 'calendar.noEvents' | translate }}</h3>
+            <p class="text-gray-500">{{ 'calendar.noEventsMessage' | translate }}</p>
           </div>
 
           <!-- Events List -->
@@ -221,7 +222,7 @@ import { AuthService } from '../../services/auth.service';
                 <div class="ml-4">
                   <button (click)="viewEventDetails(event)"
                           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
-                    View Details
+                    {{ 'calendar.viewDetails' | translate }}
                   </button>
                 </div>
               </div>
@@ -249,9 +250,9 @@ import { AuthService } from '../../services/auth.service';
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-2xl font-bold text-white">
-                  Events on {{ modalDate | date:'fullDate' }}
+                  {{ 'calendar.eventsOn' | translate }} {{ modalDate | date:'fullDate' }}
                 </h3>
-                <p class="text-purple-100 text-sm mt-1">{{ modalEvents.length }} event(s)</p>
+                <p class="text-purple-100 text-sm mt-1">{{ modalEvents.length }} {{ 'calendar.events' | translate }}</p>
               </div>
               <button (click)="closeModal()" 
                       class="text-white hover:text-gray-200 transition-colors">
@@ -306,7 +307,7 @@ import { AuthService } from '../../services/auth.service';
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    All day
+                    {{ 'calendar.allDay' | translate }}
                   </span>
                 </div>
 
@@ -315,7 +316,7 @@ import { AuthService } from '../../services/auth.service';
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                   </svg>
-                  Click to view details
+                  {{ 'calendar.clickToViewDetails' | translate }}
                 </div>
               </div>
             </div>
@@ -325,14 +326,32 @@ import { AuthService } from '../../services/auth.service';
           <div class="bg-gray-50 px-6 py-4 flex justify-end">
             <button (click)="closeModal()"
                     class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
-              Close
+              {{ 'common.close' | translate }}
             </button>
           </div>
         </div>
       </div>
     </div>
   `,
-  styles: []
+  styles: [`
+    /* RTL Support for Calendar */
+    
+    /* Calendar grid maintains LTR for week layout (Sun-Sat order) */
+    .calendar-grid {
+      direction: ltr;
+    }
+    
+    /* Event text respects RTL */
+    :host-context([dir="rtl"]) .event-text {
+      direction: rtl;
+      text-align: right;
+    }
+    
+    /* Day headers maintain LTR order but text can be RTL */
+    :host-context([dir="rtl"]) .calendar-grid > div {
+      text-align: center;
+    }
+  `]
 })
 export class CalendarViewComponent implements OnInit {
   currentMonth = new Date().getMonth();
@@ -355,7 +374,8 @@ export class CalendarViewComponent implements OnInit {
     public calendarService: CalendarService,
     private toastService: ToastService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -466,7 +486,19 @@ export class CalendarViewComponent implements OnInit {
 
   exportCalendar(): void {
     this.calendarService.exportToICS(this.events, `calendar_${this.currentMonth + 1}_${this.currentYear}.ics`);
-    this.toastService.success('Calendar exported successfully');
+    this.toastService.success(this.translate.instant('calendar.exportedSuccessfully'));
+  }
+
+  getDayNames(): string[] {
+    return [
+      this.translate.instant('calendar.sun'),
+      this.translate.instant('calendar.mon'),
+      this.translate.instant('calendar.tue'),
+      this.translate.instant('calendar.wed'),
+      this.translate.instant('calendar.thu'),
+      this.translate.instant('calendar.fri'),
+      this.translate.instant('calendar.sat')
+    ];
   }
 }
 
