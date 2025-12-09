@@ -19,10 +19,10 @@ import { AuthService } from '../../services/auth.service';
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-          Back to Submissions
+          {{ 'assignments.backToSubmissions' | translate }}
         </button>
-        <h1 class="text-3xl font-bold text-gray-900">Grade Submission</h1>
-        <p class="text-gray-600 mt-1">Review and grade student submission</p>
+        <h1 class="text-3xl font-bold text-gray-900">{{ 'assignments.gradeSubmission' | translate }}</h1>
+        <p class="text-gray-600 mt-1">{{ 'assignments.reviewAndGrade' | translate }}</p>
       </div>
 
       <div *ngIf="loading" class="flex justify-center py-12">
@@ -38,11 +38,11 @@ import { AuthService } from '../../services/auth.service';
             <p class="text-gray-600 mb-4">{{ assignment.description }}</p>
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span class="text-gray-500">Type:</span>
+                <span class="text-gray-500">{{ 'assignments.type' | translate }}:</span>
                 <p class="font-medium capitalize">{{ assignment.type }}</p>
               </div>
               <div>
-                <span class="text-gray-500">Max Points:</span>
+                <span class="text-gray-500">{{ 'assignments.maxPoints' | translate }}:</span>
                 <p class="font-medium">{{ assignment.maxPoints }}</p>
               </div>
             </div>
@@ -52,13 +52,13 @@ import { AuthService } from '../../services/auth.service';
           <div *ngIf="submission" class="bg-white rounded-lg shadow-sm p-6">
             <div class="flex justify-between items-start mb-4">
               <div>
-                <h3 class="text-lg font-semibold text-gray-900">Student Submission</h3>
+                <h3 class="text-lg font-semibold text-gray-900">{{ 'assignments.studentSubmission' | translate }}</h3>
                 <p class="text-sm text-gray-600">
-                  Submitted by: {{ submission.student?.firstName }} {{ submission.student?.lastName }}
+                  {{ 'assignments.submittedBy' | translate }}: {{ submission.student?.firstName }} {{ submission.student?.lastName }}
                 </p>
                 <p class="text-sm text-gray-500">
                   {{ formatDate(submission.submittedAt) }}
-                  <span *ngIf="isLateSubmission" class="ml-2 text-red-600 font-medium">(Late)</span>
+                  <span *ngIf="isLateSubmission" class="ml-2 text-red-600 font-medium">({{ 'assignments.late' | translate }})</span>
                 </p>
               </div>
               <span [class]="getStatusClass(submission.status)">
@@ -68,17 +68,17 @@ import { AuthService } from '../../services/auth.service';
 
             <div class="prose max-w-none">
               <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">Content:</h4>
+                <h4 class="text-sm font-medium text-gray-700 mb-2">{{ 'assignments.content' | translate }}:</h4>
                 <p class="text-gray-900 whitespace-pre-wrap">{{ submission.content }}</p>
               </div>
 
               <div *ngIf="submission.comments" class="bg-blue-50 rounded-lg p-4 mb-4">
-                <h4 class="text-sm font-medium text-blue-700 mb-2">Student Comments:</h4>
+                <h4 class="text-sm font-medium text-blue-700 mb-2">{{ 'assignments.studentComments' | translate }}:</h4>
                 <p class="text-gray-900">{{ submission.comments }}</p>
               </div>
 
               <div *ngIf="submission.files && submission.files.length > 0" class="mb-4">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">Attached Files:</h4>
+                <h4 class="text-sm font-medium text-gray-700 mb-2">{{ 'assignments.attachedFiles' | translate }}:</h4>
                 <div class="space-y-2">
                   <div *ngFor="let file of submission.files" 
                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -89,7 +89,7 @@ import { AuthService } from '../../services/auth.service';
                       <span class="text-sm text-gray-700">{{ file.originalName }}</span>
                     </div>
                     <button (click)="downloadFile(file)" class="text-blue-600 hover:text-blue-800 text-sm">
-                      Download
+                      {{ 'common.download' | translate }}
                     </button>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ import { AuthService } from '../../services/auth.service';
 
           <!-- Previous Feedback (if exists) -->
           <div *ngIf="submission?.feedback" class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-yellow-900 mb-2">Previous Feedback</h3>
+            <h3 class="text-lg font-semibold text-yellow-900 mb-2">{{ 'assignments.previousFeedback' | translate }}</h3>
             <p class="text-yellow-800">{{ submission.feedback }}</p>
           </div>
         </div>
@@ -107,16 +107,16 @@ import { AuthService } from '../../services/auth.service';
         <!-- Sidebar - Grading Form -->
         <div class="lg:col-span-1">
           <form [formGroup]="gradingForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-sm p-6 sticky top-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Grade Assignment</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ 'assignments.gradeAssignment' | translate }}</h3>
 
             <!-- Rubric Grading (if available) -->
             <div *ngIf="assignment?.rubric && assignment.rubric.length > 0" class="mb-6">
-              <h4 class="text-sm font-medium text-gray-700 mb-3">Rubric Scoring</h4>
+              <h4 class="text-sm font-medium text-gray-700 mb-3">{{ 'assignments.rubricScoring' | translate }}</h4>
               <div class="space-y-3">
                 <div *ngFor="let criterion of assignment.rubric" class="p-3 bg-gray-50 rounded-lg">
                   <div class="flex justify-between items-center mb-1">
                     <span class="text-sm font-medium text-gray-700">{{ criterion.name }}</span>
-                    <span class="text-xs text-gray-500">Max: {{ criterion.points }}</span>
+                    <span class="text-xs text-gray-500">{{ 'assignments.max' | translate }}: {{ criterion.points }}</span>
                   </div>
                   <input 
                     type="number" 
@@ -132,7 +132,7 @@ import { AuthService } from '../../services/auth.service';
             <!-- Overall Grade -->
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Grade (Points) <span class="text-red-500">*</span>
+                {{ 'assignments.gradePoints' | translate }} <span class="text-red-500">*</span>
               </label>
               <div class="flex items-center gap-2">
                 <input 
@@ -146,25 +146,25 @@ import { AuthService } from '../../services/auth.service';
                 <span class="text-sm text-gray-600">/ {{ assignment?.maxPoints }}</span>
               </div>
               <div class="mt-1 text-sm text-gray-600">
-                Percentage: {{ getPercentage() }}%
+                {{ 'assignments.percentage' | translate }}: {{ getPercentage() }}%
               </div>
               <div *ngIf="gradingForm.get('grade')?.invalid && gradingForm.get('grade')?.touched" class="text-red-500 text-sm mt-1">
-                Grade must be between 0 and {{ assignment?.maxPoints }}
+                {{ 'assignments.gradeMustBeBetween' | translate: {max: assignment?.maxPoints} }}
               </div>
             </div>
 
             <!-- Feedback -->
             <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Feedback <span class="text-red-500">*</span>
+                {{ 'assignments.feedback' | translate }} <span class="text-red-500">*</span>
               </label>
               <textarea 
                 formControlName="feedback"
                 rows="6"
                 class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Provide feedback to the student..."></textarea>
+                [placeholder]="'assignments.provideFeedback' | translate"></textarea>
               <div *ngIf="gradingForm.get('feedback')?.invalid && gradingForm.get('feedback')?.touched" class="text-red-500 text-sm mt-1">
-                Feedback is required (minimum 10 characters)
+                {{ 'assignments.feedbackRequired' | translate }}
               </div>
             </div>
 
@@ -174,17 +174,17 @@ import { AuthService } from '../../services/auth.service';
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <span>Late Penalty: -{{ assignment.latePenalty }}%</span>
+                <span>{{ 'assignments.latePenaltyAmount' | translate: {penalty: assignment.latePenalty} }}</span>
               </div>
             </div>
 
             <!-- Status -->
             <div class="mb-6">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'assignments.status' | translate }}</label>
               <select formControlName="status" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <option value="graded">Graded</option>
-                <option value="needs_revision">Needs Revision</option>
-                <option value="resubmit">Request Resubmission</option>
+                <option value="graded">{{ 'assignments.statuses.graded' | translate }}</option>
+                <option value="needs_revision">{{ 'assignments.statuses.needsRevision' | translate }}</option>
+                <option value="resubmit">{{ 'assignments.statuses.resubmit' | translate }}</option>
               </select>
             </div>
 
@@ -194,20 +194,20 @@ import { AuthService } from '../../services/auth.service';
                 type="submit" 
                 [disabled]="saving || gradingForm.invalid"
                 class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ saving ? 'Saving...' : 'Submit Grade' }}
+                {{ (saving ? 'common.saving' : 'assignments.submitGrade') | translate }}
               </button>
               <button 
                 type="button" 
                 (click)="saveDraft()"
                 [disabled]="saving"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                Save as Draft
+                {{ 'assignments.saveAsDraft' | translate }}
               </button>
               <button 
                 type="button" 
                 (click)="goBack()"
                 class="w-full px-4 py-2 text-gray-600 hover:text-gray-800">
-                Cancel
+                {{ 'common.cancel' | translate }}
               </button>
             </div>
           </form>
@@ -233,7 +233,8 @@ export class TeacherGradingComponent implements OnInit {
     private toastService: ToastService,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -244,7 +245,7 @@ export class TeacherGradingComponent implements OnInit {
     if (this.submissionId) {
       this.loadSubmission();
     } else {
-      this.toastService.showApiError({ message: 'Invalid submission' });
+      this.toastService.showApiError({ message: this.translate.instant('assignments.invalidSubmission') });
       this.router.navigate(['/dashboard/assignments']);
     }
   }
@@ -326,7 +327,7 @@ export class TeacherGradingComponent implements OnInit {
     this.submissionService.gradeSubmission(this.submissionId, gradeData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Submission graded successfully');
+          this.toastService.success(this.translate.instant('assignments.submissionGraded'));
           this.goBack();
         }
         this.saving = false;
@@ -351,7 +352,7 @@ export class TeacherGradingComponent implements OnInit {
     this.submissionService.updateSubmission(this.submissionId, draftData).subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Draft saved successfully');
+          this.toastService.success(this.translate.instant('assignments.draftSavedSuccess'));
         }
         this.saving = false;
       },

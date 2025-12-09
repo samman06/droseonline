@@ -25,12 +25,12 @@ import { ToastService } from '../../services/toast.service';
             </div>
             <div>
               <h1 class="text-3xl font-bold">{{ 'assignments.mySubmissions' | translate }}</h1>
-              <p class="mt-1 text-purple-100">Track your assignment progress and grades</p>
+              <p class="mt-1 text-purple-100">{{ 'assignments.trackProgress' | translate }}</p>
             </div>
           </div>
           <div class="text-right">
             <div class="text-4xl font-bold">{{ submissions.length }}</div>
-            <div class="text-purple-200 text-sm">Total Submissions</div>
+            <div class="text-purple-200 text-sm">{{ 'assignments.totalSubmissions' | translate }}</div>
           </div>
         </div>
       </div>
@@ -40,7 +40,7 @@ import { ToastService } from '../../services/toast.service';
         <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 p-6 shadow-sm">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-semibold text-green-600 uppercase tracking-wide">Graded</p>
+              <p class="text-sm font-semibold text-green-600 uppercase tracking-wide">{{ 'assignments.graded2' | translate }}</p>
               <p class="text-3xl font-bold text-green-900 mt-2">{{ getGradedCount() }}</p>
             </div>
             <div class="p-3 bg-green-200 rounded-lg">
@@ -54,7 +54,7 @@ import { ToastService } from '../../services/toast.service';
         <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 p-6 shadow-sm">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Pending</p>
+              <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">{{ 'assignments.pending' | translate }}</p>
               <p class="text-3xl font-bold text-blue-900 mt-2">{{ getPendingCount() }}</p>
             </div>
             <div class="p-3 bg-blue-200 rounded-lg">
@@ -68,7 +68,7 @@ import { ToastService } from '../../services/toast.service';
         <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl border-2 border-yellow-200 p-6 shadow-sm">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-semibold text-yellow-600 uppercase tracking-wide">Late</p>
+              <p class="text-sm font-semibold text-yellow-600 uppercase tracking-wide">{{ 'assignments.late' | translate }}</p>
               <p class="text-3xl font-bold text-yellow-900 mt-2">{{ getLateCount() }}</p>
             </div>
             <div class="p-3 bg-yellow-200 rounded-lg">
@@ -82,7 +82,7 @@ import { ToastService } from '../../services/toast.service';
         <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 p-6 shadow-sm">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-semibold text-purple-600 uppercase tracking-wide">Avg Grade</p>
+              <p class="text-sm font-semibold text-purple-600 uppercase tracking-wide">{{ 'assignments.avgGrade' | translate }}</p>
               <p class="text-3xl font-bold text-purple-900 mt-2">{{ getAverageGrade() }}%</p>
             </div>
             <div class="p-3 bg-purple-200 rounded-lg">
@@ -98,49 +98,49 @@ import { ToastService } from '../../services/toast.service';
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'common.search' | translate }}</label>
             <input 
               type="text" 
               [(ngModel)]="filters.search" 
               (input)="applyFilters()"
-              placeholder="🔍 Search assignments..." 
+              [placeholder]="'assignments.searchAssignments' | translate" 
               class="w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'assignments.status' | translate }}</label>
             <select [(ngModel)]="filters.status" (change)="applyFilters()" 
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-              <option value="">All Statuses</option>
-              <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-              <option value="late">Late</option>
-              <option value="graded">Graded</option>
+              <option value="">{{ 'assignments.allStatuses' | translate }}</option>
+              <option value="draft">{{ 'assignments.statuses.draft' | translate }}</option>
+              <option value="submitted">{{ 'assignments.statuses.submitted' | translate }}</option>
+              <option value="late">{{ 'assignments.statuses.late' | translate }}</option>
+              <option value="graded">{{ 'assignments.statuses.graded' | translate }}</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'assignments.sortBy' | translate }}</label>
             <select [(ngModel)]="sortBy" (change)="applyFilters()" 
                     class="w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
-              <option value="dueDate">Due Date</option>
-              <option value="submittedAt">Submission Date</option>
-              <option value="grade">Grade</option>
-              <option value="title">Title</option>
+              <option value="dueDate">{{ 'assignments.dueDate' | translate }}</option>
+              <option value="submittedAt">{{ 'assignments.submissionDate' | translate }}</option>
+              <option value="grade">{{ 'assignments.grade' | translate }}</option>
+              <option value="title">{{ 'assignments.title' | translate }}</option>
             </select>
           </div>
         </div>
 
         <!-- Active Filters -->
         <div *ngIf="hasActiveFilters()" class="mt-4 flex items-center space-x-2">
-          <span class="text-sm text-gray-600 font-medium">Active Filters:</span>
+          <span class="text-sm text-gray-600 font-medium">{{ 'assignments.activeFilters' | translate }}:</span>
           <button *ngIf="filters.status" (click)="filters.status = ''; applyFilters()" 
                   class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200">
-            Status: {{ filters.status }}
+            {{ 'assignments.status' | translate }}: {{ filters.status }}
             <svg class="ml-1 w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
             </svg>
           </button>
           <button (click)="clearFilters()" class="text-sm text-purple-600 hover:text-purple-800 font-medium">
-            Clear All
+            {{ 'assignments.clearAll' | translate }}
           </button>
         </div>
       </div>
@@ -178,7 +178,7 @@ import { ToastService } from '../../services/toast.service';
                     {{ submission.assignment?.type | titlecase }}
                   </span>
                   <span *ngIf="submission.isLate" class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-red-100 text-red-700">
-                    ⏰ Late Submission
+                    ⏰ {{ 'assignments.lateSubmission' | translate }}
                   </span>
                 </div>
 
@@ -189,7 +189,7 @@ import { ToastService } from '../../services/toast.service';
                       <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                     </svg>
                     <div>
-                      <p class="text-xs text-gray-500">Due Date</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.dueDate' | translate }}</p>
                       <p class="text-sm font-medium text-gray-900">{{ submission.assignment?.dueDate | date:'short' }}</p>
                     </div>
                   </div>
@@ -199,7 +199,7 @@ import { ToastService } from '../../services/toast.service';
                       <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
                     <div>
-                      <p class="text-xs text-gray-500">Max Points</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.maxPoints' | translate }}</p>
                       <p class="text-sm font-medium text-gray-900">{{ submission.assignment?.maxPoints }}</p>
                     </div>
                   </div>
@@ -208,7 +208,7 @@ import { ToastService } from '../../services/toast.service';
                       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
                     <div>
-                      <p class="text-xs text-gray-500">Submitted</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.submitted' | translate }}</p>
                       <p class="text-sm font-medium text-gray-900">{{ submission.submittedAt | date:'short' }}</p>
                     </div>
                   </div>
@@ -217,7 +217,7 @@ import { ToastService } from '../../services/toast.service';
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                     <div>
-                      <p class="text-xs text-gray-500">Grade</p>
+                      <p class="text-xs text-gray-500">{{ 'assignments.grade' | translate }}</p>
                       <p class="text-sm font-bold text-gray-900">{{ submission.grade?.pointsEarned }} / {{ submission.assignment?.maxPoints }}</p>
                     </div>
                   </div>
@@ -228,7 +228,7 @@ import { ToastService } from '../../services/toast.service';
               <div class="ml-6">
                 <a [routerLink]="['/dashboard/assignments', submission.assignment?._id]"
                    class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md">
-                  View Details
+                  {{ 'common.viewDetails' | translate }}
                   <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -238,7 +238,7 @@ import { ToastService } from '../../services/toast.service';
 
             <!-- Feedback (if graded) -->
             <div *ngIf="submission.grade?.feedback" class="mt-4 pt-4 border-t border-gray-200">
-              <p class="text-sm font-semibold text-gray-700 mb-2">Teacher Feedback:</p>
+              <p class="text-sm font-semibold text-gray-700 mb-2">{{ 'assignments.teacherFeedback' | translate }}:</p>
               <p class="text-sm text-gray-600 italic">{{ submission.grade.feedback }}</p>
             </div>
           </div>
@@ -253,13 +253,13 @@ import { ToastService } from '../../services/toast.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">No submissions found</h3>
+          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ 'assignments.noSubmissionsFound' | translate }}</h3>
           <p class="text-gray-600 mb-6">
-            {{ hasActiveFilters() ? 'Try adjusting your filters' : 'You haven\'t submitted any assignments yet' }}
+            {{ (hasActiveFilters() ? 'assignments.tryAdjustingFilters' : 'assignments.noSubmissionsYet') | translate }}
           </p>
           <a [routerLink]="['/dashboard/assignments']" 
              class="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md">
-            Browse Assignments
+            {{ 'assignments.browseAssignments' | translate }}
             <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
             </svg>
@@ -286,7 +286,8 @@ export class MySubmissionsComponent implements OnInit {
   constructor(
     private assignmentService: AssignmentService,
     private authService: AuthService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {

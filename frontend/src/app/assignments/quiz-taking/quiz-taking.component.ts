@@ -53,7 +53,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
               }">
                 {{ formatTime(timeRemaining) }}
               </div>
-              <div class="text-sm text-blue-100">Time Remaining</div>
+              <div class="text-sm text-blue-100">{{ 'assignments.timeRemaining' | translate }}</div>
             </div>
           </div>
         </div>
@@ -63,17 +63,17 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <svg class="mx-auto h-16 w-16 text-blue-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
-          <h2 class="text-2xl font-bold text-gray-900 mb-4">Ready to Start?</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ 'assignments.readyToStart' | translate }}</h2>
           <div class="text-left max-w-2xl mx-auto mb-6 space-y-3">
             <p class="text-gray-700" *ngIf="quiz.instructions">{{ quiz.instructions }}</p>
             <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-              <p class="font-semibold text-blue-900 mb-2">Important Instructions:</p>
+              <p class="font-semibold text-blue-900 mb-2">{{ 'assignments.importantInstructions' | translate }}</p>
               <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                <li>This quiz contains {{ quiz.questions.length }} questions</li>
-                <li *ngIf="hasTimeLimit">You have {{ quiz.quizSettings.timeLimit }} minutes to complete</li>
-                <li *ngIf="!hasTimeLimit">No time limit - take your time</li>
-                <li>Answer all questions before submitting</li>
-                <li>You cannot change answers after submission</li>
+                <li>{{ 'assignments.quizContains' | translate: {count: quiz.questions.length} }}</li>
+                <li *ngIf="hasTimeLimit">{{ 'assignments.youHaveMinutes' | translate: {minutes: quiz.quizSettings.timeLimit} }}</li>
+                <li *ngIf="!hasTimeLimit">{{ 'assignments.noTimeLimitTakeTime' | translate }}</li>
+                <li>{{ 'assignments.answerAllQuestions' | translate }}</li>
+                <li>{{ 'assignments.cannotChangeAfter' | translate }}</li>
               </ul>
             </div>
           </div>
@@ -84,7 +84,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            Start Quiz
+            {{ 'assignments.startQuiz' | translate }}
           </button>
         </div>
 
@@ -93,7 +93,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <!-- Progress Bar -->
           <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-medium text-gray-700">Progress</span>
+              <span class="text-sm font-medium text-gray-700">{{ 'assignments.progress' | translate }}</span>
               <span class="text-sm font-medium text-gray-700">{{ getAnsweredCount() }} / {{ quiz.questions.length }}</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-3">
@@ -110,8 +110,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <span class="text-white font-bold text-lg">{{ currentQuestionIndex + 1 }}</span>
                 </div>
                 <div>
-                  <h3 class="text-sm text-gray-600">Question {{ currentQuestionIndex + 1 }} of {{ quiz.questions.length }}</h3>
-                  <p class="text-xs text-gray-500">{{ quiz.questions[currentQuestionIndex].points }} points</p>
+                  <h3 class="text-sm text-gray-600">{{ 'assignments.questionOf' | translate: {current: currentQuestionIndex + 1, total: quiz.questions.length} }}</h3>
+                  <p class="text-xs text-gray-500">{{ quiz.questions[currentQuestionIndex].points }} {{ 'assignments.points' | translate }}</p>
                 </div>
               </div>
             </div>
@@ -155,8 +155,8 @@ import { ConfirmationService } from '../../services/confirmation.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
-                Previous
-              </button>
+                  {{ 'common.previous' | translate }}
+                </button>
               <div *ngIf="currentQuestionIndex === 0" class="w-24"></div>
 
               <div class="flex gap-2">
@@ -177,7 +177,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   *ngIf="currentQuestionIndex < quiz.questions.length - 1"
                   (click)="nextQuestion()"
                   class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2">
-                  Next
+                  {{ 'common.next' | translate }}
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                   </svg>
@@ -190,7 +190,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                   </svg>
-                  Submit Quiz
+                  {{ 'assignments.submitQuiz' | translate }}
                 </button>
               </div>
             </div>

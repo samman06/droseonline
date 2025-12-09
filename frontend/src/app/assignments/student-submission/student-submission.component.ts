@@ -15,8 +15,8 @@ import { AuthService } from '../../services/auth.service';
   template: `
     <div class="container mx-auto px-4 py-6 max-w-4xl">
       <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Submit Assignment</h1>
-        <p class="text-gray-600 mt-1">Submit your work for this assignment</p>
+        <h1 class="text-3xl font-bold text-gray-900">{{ 'assignments.submitAssignment' | translate }}</h1>
+        <p class="text-gray-600 mt-1">{{ 'assignments.submitYourWork' | translate }}</p>
       </div>
 
       <div *ngIf="loading" class="flex justify-center py-12">
@@ -30,15 +30,15 @@ import { AuthService } from '../../services/auth.service';
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
           <div>
-            <span class="text-sm text-gray-500">Due Date:</span>
+            <span class="text-sm text-gray-500">{{ 'assignments.dueDate' | translate }}:</span>
             <p class="font-medium" [class.text-red-600]="isOverdue">{{ formatDate(assignment.dueDate) }}</p>
           </div>
           <div>
-            <span class="text-sm text-gray-500">Max Points:</span>
+            <span class="text-sm text-gray-500">{{ 'assignments.maxPoints' | translate }}:</span>
             <p class="font-medium">{{ assignment.maxPoints }}</p>
           </div>
           <div>
-            <span class="text-sm text-gray-500">Type:</span>
+            <span class="text-sm text-gray-500">{{ 'assignments.type' | translate }}:</span>
             <p class="font-medium capitalize">{{ assignment.type }}</p>
           </div>
         </div>
@@ -48,16 +48,16 @@ import { AuthService } from '../../services/auth.service';
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span class="font-medium">This assignment is overdue!</span>
+            <span class="font-medium">{{ 'assignments.assignmentOverdue' | translate }}</span>
           </div>
         </div>
 
         <div *ngIf="assignment.rubric" class="mt-4 pt-4 border-t border-gray-200">
-          <h3 class="font-semibold text-gray-900 mb-2">Grading Rubric</h3>
+          <h3 class="font-semibold text-gray-900 mb-2">{{ 'assignments.gradingRubric' | translate }}</h3>
           <div class="space-y-2">
             <div *ngFor="let criterion of assignment.rubric" class="flex justify-between items-center p-2 bg-gray-50 rounded">
               <span class="text-sm">{{ criterion.name }}</span>
-              <span class="text-sm font-medium">{{ criterion.points }} points</span>
+              <span class="text-sm font-medium">{{ criterion.points }} {{ 'assignments.points' | translate }}</span>
             </div>
           </div>
         </div>
@@ -65,12 +65,12 @@ import { AuthService } from '../../services/auth.service';
 
       <!-- Existing Submission (if any) -->
       <div *ngIf="existingSubmission" class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
-        <h3 class="font-semibold text-yellow-900 mb-2">Previous Submission</h3>
-        <p class="text-sm text-yellow-800 mb-2">You have already submitted this assignment. You can resubmit to update your work.</p>
+        <h3 class="font-semibold text-yellow-900 mb-2">{{ 'assignments.previousSubmission' | translate }}</h3>
+        <p class="text-sm text-yellow-800 mb-2">{{ 'assignments.alreadySubmitted' | translate }}</p>
         <div class="space-y-1 text-sm">
-          <p><span class="font-medium">Submitted:</span> {{ formatDate(existingSubmission.submittedAt) }}</p>
-          <p *ngIf="existingSubmission.grade"><span class="font-medium">Grade:</span> {{ existingSubmission.grade }}%</p>
-          <p *ngIf="existingSubmission.status"><span class="font-medium">Status:</span> {{ existingSubmission.status }}</p>
+          <p><span class="font-medium">{{ 'assignments.submitted' | translate }}:</span> {{ formatDate(existingSubmission.submittedAt) }}</p>
+          <p *ngIf="existingSubmission.grade"><span class="font-medium">{{ 'assignments.grade' | translate }}:</span> {{ existingSubmission.grade }}%</p>
+          <p *ngIf="existingSubmission.status"><span class="font-medium">{{ 'assignments.status' | translate }}:</span> {{ existingSubmission.status }}</p>
         </div>
       </div>
 
@@ -79,22 +79,22 @@ import { AuthService } from '../../services/auth.service';
         <!-- Submission Text/Content -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Your Answer <span class="text-red-500">*</span>
+            {{ 'assignments.yourAnswer' | translate }} <span class="text-red-500">*</span>
           </label>
           <textarea 
             formControlName="content"
             rows="10"
             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Enter your answer or description of your submission"></textarea>
+            [placeholder]="'assignments.enterAnswer' | translate"></textarea>
           <div *ngIf="submissionForm.get('content')?.invalid && submissionForm.get('content')?.touched" class="text-red-500 text-sm mt-1">
-            Content is required (minimum 10 characters)
+            {{ 'assignments.contentRequired' | translate }}
           </div>
         </div>
 
         <!-- File Upload -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Attach Files (Optional)
+            {{ 'assignments.attachFiles' | translate }} ({{ 'common.optional' | translate }})
           </label>
           <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
             <input 
@@ -108,8 +108,8 @@ import { AuthService } from '../../services/auth.service';
               <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
               </svg>
-              <p class="mt-2 text-sm text-gray-600">Click to upload files</p>
-              <p class="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, TXT, ZIP, JPG, PNG (Max 10MB each)</p>
+              <p class="mt-2 text-sm text-gray-600">{{ 'assignments.clickToUpload' | translate }}</p>
+              <p class="text-xs text-gray-500 mt-1">{{ 'assignments.fileTypes' | translate }}</p>
             </div>
             
             <div *ngIf="selectedFiles.length > 0" class="space-y-2">
@@ -127,7 +127,7 @@ import { AuthService } from '../../services/auth.service';
                 </button>
               </div>
               <button type="button" (click)="fileInput.click()" class="text-sm text-blue-600 hover:text-blue-800">
-                Add more files
+                {{ 'assignments.addMoreFiles' | translate }}
               </button>
             </div>
           </div>
@@ -136,13 +136,13 @@ import { AuthService } from '../../services/auth.service';
         <!-- Comments -->
         <div class="mb-6">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            Comments (Optional)
+            {{ 'assignments.comments' | translate }} ({{ 'common.optional' | translate }})
           </label>
           <textarea 
             formControlName="comments"
             rows="3"
             class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Add any comments or notes for your teacher"></textarea>
+            [placeholder]="'assignments.addComments' | translate"></textarea>
         </div>
 
         <!-- Late Submission Notice -->
@@ -150,7 +150,7 @@ import { AuthService } from '../../services/auth.service';
           <label class="flex items-start">
             <input type="checkbox" formControlName="acknowledgeLate" class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <span class="ml-2 text-sm text-yellow-900">
-              I understand this is a late submission and it may affect my grade.
+              {{ 'assignments.acknowledgeLateSubmission' | translate }}
             </span>
           </label>
         </div>
@@ -161,20 +161,20 @@ import { AuthService } from '../../services/auth.service';
             type="button" 
             (click)="cancel()"
             class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button 
             type="button" 
             (click)="saveDraft()"
             [disabled]="saving"
             class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50">
-            Save as Draft
+            {{ 'assignments.saveAsDraft' | translate }}
           </button>
           <button 
             type="submit" 
             [disabled]="saving || submissionForm.invalid || (isOverdue && !submissionForm.get('acknowledgeLate')?.value)"
             class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ saving ? 'Submitting...' : 'Submit Assignment' }}
+            {{ (saving ? 'assignments.submitting' : 'assignments.submitAssignment') | translate }}
           </button>
         </div>
       </form>
@@ -197,6 +197,7 @@ export class StudentSubmissionComponent implements OnInit {
     private submissionService: SubmissionService,
     private toastService: ToastService,
     private authService: AuthService,
+    private translate: TranslateService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -314,7 +315,7 @@ export class StudentSubmissionComponent implements OnInit {
           if (this.selectedFiles.length > 0 && response.data._id) {
             this.uploadFiles(response.data._id);
           } else {
-            this.toastService.success('Assignment submitted successfully');
+            this.toastService.success(this.translate.instant('assignments.assignmentSubmittedSuccess'));
             this.router.navigate(['/dashboard/assignments']);
           }
         }
@@ -344,7 +345,7 @@ export class StudentSubmissionComponent implements OnInit {
     request.subscribe({
       next: (response) => {
         if (response.success) {
-          this.toastService.success('Draft saved successfully');
+          this.toastService.success(this.translate.instant('assignments.draftSavedSuccess'));
           this.router.navigate(['/dashboard/assignments']);
         }
         this.saving = false;
@@ -365,7 +366,7 @@ export class StudentSubmissionComponent implements OnInit {
         next: () => {
           uploadedCount++;
           if (uploadedCount === totalFiles) {
-            this.toastService.success('Assignment and files submitted successfully');
+            this.toastService.success(this.translate.instant('assignments.assignmentFilesSubmitted'));
             this.router.navigate(['/dashboard/assignments']);
           }
         },
