@@ -37,7 +37,33 @@ import { AuthService } from '../../services/auth.service';
               </div>
             </div>
           </div>
-          <div class="mt-4 lg:mt-0 flex space-x-3">
+          <div class="mt-4 lg:mt-0 flex items-center gap-3">
+            <!-- View Mode Toggle -->
+            <div class="inline-flex rounded-lg bg-gray-100 p-1">
+              <button 
+                (click)="viewMode = 'card'"
+                [class]="viewMode === 'card' 
+                  ? 'px-3 py-2 bg-white text-gray-900 rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+                [title]="'common.cardView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+                </svg>
+              </button>
+              <button 
+                (click)="viewMode = 'table'"
+                [class]="viewMode === 'table' 
+                  ? 'px-3 py-2 bg-white text-gray-900 rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+                [title]="'common.tableView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            
             <button 
               (click)="exportSubjects()" 
               class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
@@ -119,8 +145,77 @@ import { AuthService } from '../../services/auth.service';
         </div>
       </div>
 
-      <!-- Card Layout -->
-      <div *ngIf="!isLoading && subjects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Table View -->
+      <div *ngIf="!isLoading && subjects.length > 0 && viewMode === 'table'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gradient-to-r from-indigo-50 to-purple-50">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'subjects.subjectName' | translate }}
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'subjects.code' | translate }}
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'common.actions' | translate }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let subject of subjects" class="hover:bg-indigo-50 transition-colors">
+                <!-- Subject Name -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                      </svg>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-bold text-gray-900">{{ subject.name }}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Code -->
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                    {{ subject.code }}
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-center gap-2">
+                    <button 
+                      *ngIf="isAdmin()"
+                      (click)="editSubject(subject)"
+                      class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      </svg>
+                      {{ 'subjects.edit' | translate }}
+                    </button>
+                    <button 
+                      *ngIf="isAdmin()"
+                      (click)="deleteSubject(subject)"
+                      class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                      {{ 'subjects.delete' | translate }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card View -->
+      <div *ngIf="!isLoading && subjects.length > 0 && viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div *ngFor="let subject of subjects" class="bg-white rounded-xl shadow-sm border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 overflow-hidden">
           <!-- Card Header with Gradient -->
           <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
@@ -179,6 +274,7 @@ export class SubjectListComponent implements OnInit {
   isLoading = false;
   private searchDebounce: any;
   currentUser: any;
+  viewMode: 'card' | 'table' = 'table';
 
   filters: any = { search: '', limit: 100 };
 
