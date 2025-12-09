@@ -8,6 +8,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
 import { TeacherService } from '../../services/teacher.service';
 import { SubjectService } from '../../services/subject.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Student {
   id: string;
@@ -15,12 +16,18 @@ interface Student {
   lastName: string;
   fullName: string;
   email: string;
+  phoneNumber?: string; // Backend field name
+  parentContact?: {
+    primaryPhone?: string; // Backend field name
+    secondaryPhone?: string;
+  };
   academicInfo: {
     studentId: string;
     currentGrade: string;
     enrollmentDate: Date;
     groups: any[];
   };
+  attendanceRate?: number; // Percentage (0-100) - scoped by role (admin: all groups, teacher: their groups)
   createdAt: Date;
 }
 
@@ -41,9 +48,9 @@ interface Student {
             </div>
             <div>
               <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {{ 'students.studentsManagement' | translate }}
+                {{ (isAdmin ? 'students.studentsManagement' : 'teacherStudents.title') | translate }}
               </h1>
-              <p class="mt-1 text-gray-600">{{ 'students.manageStudentRecords' | translate }}</p>
+              <p class="mt-1 text-gray-600">{{ (isAdmin ? 'students.manageStudentRecords' : 'teacherStudents.subtitle') | translate }}</p>
               <div class="mt-2 flex items-center space-x-4 text-sm">
                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-medium">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -65,7 +72,9 @@ interface Student {
               </svg>
               {{ 'students.exportData' | translate }}
             </button>
+            <!-- Admin-only buttons -->
             <button 
+              *ngIf="isAdmin"
               (click)="importStudents()"
               class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
             >
@@ -75,6 +84,7 @@ interface Student {
               {{ 'students.import' | translate }}
             </button>
             <button 
+              *ngIf="isAdmin"
               (click)="addNewStudent()" 
               class="btn-primary inline-flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
             >
@@ -188,8 +198,8 @@ interface Student {
         </div>
       </div>
 
-      <!-- Bulk Actions -->
-      <div *ngIf="selectedStudents.length > 0" class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-5 shadow-sm">
+      <!-- Bulk Actions (Admin Only) -->
+      <div *ngIf="isAdmin && selectedStudents.length > 0" class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-5 shadow-sm">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="flex items-center justify-center w-10 h-10 bg-indigo-600 rounded-lg">
@@ -236,7 +246,8 @@ interface Student {
             </svg>
             <h3 class="mt-2 text-sm font-medium text-gray-900">{{ 'students.noStudentsFound' | translate }}</h3>
             <p class="mt-1 text-sm text-gray-500">{{ 'students.tryAdjustingFilters' | translate }}</p>
-            <div class="mt-6">
+            <!-- Admin-only: Add Student Button -->
+            <div *ngIf="isAdmin" class="mt-6">
               <button 
                 routerLink="/dashboard/students/new"
                 class="btn-primary"
@@ -254,7 +265,7 @@ interface Student {
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left">
+                  <th class="px-6 py-3 text-left" *ngIf="isAdmin">
                     <input 
                       type="checkbox" 
                       [checked]="allSelected"
@@ -268,9 +279,14 @@ interface Student {
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {{ 'students.gradeLevel' | translate }}
                   </th>
-                  
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {{ 'students.groups' | translate }}
+                  </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {{ 'students.enrolled' | translate }}
+                    {{ 'students.phone' | translate }}
+                  </th>
+                  <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {{ 'students.attendanceRate' | translate }}
                   </th>
                   <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {{ 'students.actions' | translate }}
@@ -279,7 +295,7 @@ interface Student {
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr *ngFor="let student of students; trackBy: trackByStudentId" class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="px-6 py-4 whitespace-nowrap" *ngIf="isAdmin">
                     <input 
                       type="checkbox" 
                       [checked]="isSelected(student.id)"
@@ -287,36 +303,83 @@ interface Student {
                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     >
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <!-- Name Column: Avatar + Name + Email -->
+                  <td class="px-6 py-4">
                     <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <div class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span class="text-sm font-medium text-blue-600">
+                      <div class="flex-shrink-0 h-12 w-12">
+                        <div class="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-md">
+                          <span class="text-base font-bold text-white">
                             {{ student.firstName.charAt(0) }}{{ student.lastName.charAt(0) }}
                           </span>
                         </div>
                       </div>
                       <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">
+                        <div class="text-sm font-semibold text-gray-900">
                           <a 
                             [routerLink]="['/dashboard/students', student.id]"
-                            class="hover:text-blue-600"
+                            class="hover:text-blue-600 transition-colors"
                           >
                             {{ student.fullName }}
                           </a>
                         </div>
-                        <div class="text-sm text-gray-500">{{ student.email }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">{{ student.email }}</div>
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ student.academicInfo.studentId }}</div>
-                    <div class="text-sm text-gray-500">{{ student.academicInfo.currentGrade }}</div>
+                  
+                  <!-- Grade Level Column: Student Code + Grade -->
+                  <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-gray-900">{{ student.academicInfo.studentId }}</div>
+                    <div class="text-xs text-gray-500 mt-0.5">{{ student.academicInfo.currentGrade }}</div>
                   </td>
                   
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ student.academicInfo.enrollmentDate | date:'mediumDate' }}
+                  <!-- Groups Column: Count Badge -->
+                  <td class="px-6 py-4 text-center">
+                    <span 
+                      *ngIf="student.academicInfo.groups && student.academicInfo.groups.length > 0"
+                      class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-bold bg-indigo-100 text-indigo-700 border-2 border-indigo-200"
+                    >
+                      <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                      </svg>
+                      {{ student.academicInfo.groups.length }}
+                    </span>
+                    <span 
+                      *ngIf="!student.academicInfo.groups || student.academicInfo.groups.length === 0"
+                      class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-400"
+                    >
+                      0
+                    </span>
                   </td>
+
+                  <!-- Phone Column -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center text-sm text-gray-900">
+                      <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                      </svg>
+                      <span *ngIf="student.phoneNumber">{{ student.phoneNumber }}</span>
+                      <span *ngIf="!student.phoneNumber && student.parentContact?.primaryPhone" class="text-gray-500">{{ student.parentContact?.primaryPhone }}</span>
+                      <span *ngIf="!student.phoneNumber && !student.parentContact?.primaryPhone" class="text-gray-400 italic text-xs">{{ 'students.noPhone' | translate }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Attendance Rate Column (Role-based scoping) -->
+                  <td class="px-6 py-4 text-center">
+                    <div class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-bold"
+                         [ngClass]="{
+                           'bg-green-100 text-green-700 border-2 border-green-200': (student.attendanceRate || 0) >= 80,
+                           'bg-yellow-100 text-yellow-700 border-2 border-yellow-200': (student.attendanceRate || 0) >= 60 && (student.attendanceRate || 0) < 80,
+                           'bg-red-100 text-red-700 border-2 border-red-200': (student.attendanceRate || 0) < 60
+                         }">
+                      <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ (student.attendanceRate || 0) | number:'1.0-0' }}%
+                    </div>
+                  </td>
+
+                  <!-- Actions Column -->
                   <td class="px-6 py-5 whitespace-nowrap">
                     <div class="relative inline-block text-left">
                       <button 
@@ -348,7 +411,9 @@ interface Student {
                             </svg>
                             {{ 'students.view' | translate }}
                           </button>
+                          <!-- Admin-only actions -->
                           <button
+                            *ngIf="isAdmin"
                             (click)="editStudent(student); closeDropdown()"
                             class="group flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors duration-150"
                           >
@@ -357,8 +422,9 @@ interface Student {
                             </svg>
                             {{ 'students.edit' | translate }}
                           </button>
-                          <div class="border-t border-gray-100"></div>
+                          <div *ngIf="isAdmin" class="border-t border-gray-100"></div>
                           <button
+                            *ngIf="isAdmin"
                             (click)="deleteStudent(student); closeDropdown()"
                             class="group flex w-full items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors duration-150"
                           >
@@ -493,6 +559,7 @@ export class StudentListComponent implements OnInit {
   isLoading = false;
   teachers: any[] = [];
   subjects: any[] = [];
+  currentUser: any = null;
   
   filters = {
     search: '',
@@ -510,6 +577,15 @@ export class StudentListComponent implements OnInit {
   };
 
   Math = Math; // Make Math available in template
+
+  // Role-based access helpers
+  get isAdmin(): boolean {
+    return this.currentUser?.role === 'admin';
+  }
+
+  get isTeacher(): boolean {
+    return this.currentUser?.role === 'teacher' || this.currentUser?.role === 'assistant';
+  }
   openDropdownId: string | null = null;
   dropdownPosition: 'bottom' | 'top' = 'bottom';
   private searchDebounce: any;
@@ -520,10 +596,12 @@ export class StudentListComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private teacherService: TeacherService,
     private subjectService: SubjectService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
+    this.currentUser = this.authService.currentUser;
     this.loadStudents();
     this.loadTeachers();
     this.loadSubjects();
@@ -571,10 +649,11 @@ export class StudentListComponent implements OnInit {
       ...this.filters
     };
 
-    console.log('Loading students with params:', params);
+    console.log('Loading students with params:', params, 'Role:', this.currentUser?.role);
 
+    // Backend automatically filters students based on user role
     this.studentService.getStudents(params).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         console.log('Students API response:', response);
         if (response.success) {
           // Handle the response structure from our backend
@@ -594,7 +673,7 @@ export class StudentListComponent implements OnInit {
         }
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading students:', error);
         this.isLoading = false;
         // You might want to show a toast notification here

@@ -71,7 +71,7 @@ export const routes: Routes = [
         path: 'my-students',
         canActivate: [RoleGuard],
         data: { roles: ['teacher', 'assistant'] },
-        loadComponent: () => import('./students/teacher-students-list/teacher-students-list.component').then(m => m.TeacherStudentsListComponent)
+        loadComponent: () => import('./students/student-list/student-list.component').then(m => m.StudentListComponent)
       },
       {
         path: 'my-assistants',
@@ -99,8 +99,6 @@ export const routes: Routes = [
         children: [
           {
             path: '',
-            canActivate: [RoleGuard],
-            data: { roles: ['admin'] },
             loadComponent: () => import('./students/student-list/student-list.component').then(m => m.StudentListComponent)
           },
           {
