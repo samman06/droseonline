@@ -10,6 +10,38 @@ const { validate, validateQuery, updateProfileSchema, paginationSchema } = requi
 
 const router = express.Router();
 
+// Helper function to calculate student attendance rate based on user role
+async function calculateAttendanceRate(studentId, userRole, teacherId = null) {
+  if (userRole === 'admin') {
+    // Admin: Calculate across ALL groups
+    const stats = await Attendance.getStudentStats(studentId);
+    return stats.rate;
+  } else if (userRole === 'teacher' && teacherId) {
+    // Teacher: Calculate only for their groups
+    const attendances = await Attendance.find({ 
+      teacher: teacherId,
+      'records.student': studentId 
+    });
+    
+    let total = 0;
+    let present = 0;
+    let late = 0;
+    
+    attendances.forEach(attendance => {
+      const record = attendance.records.find(r => r.student.toString() === studentId.toString());
+      if (record) {
+        total++;
+        if (record.status === 'present') present++;
+        else if (record.status === 'late') late++;
+      }
+    });
+    
+    return total > 0 ? Math.round(((present + late) / total) * 100) : 0;
+  }
+  
+  return 0;
+}
+
 // @route   GET /api/students
 // @desc    Get all students (Admin: all, Teacher: only their enrolled students)
 // @access  Private (Admin/Teacher)
@@ -101,12 +133,28 @@ router.get('/', authenticate, authorize('admin', 'teacher'), validateQuery(pagin
       .skip((page - 1) * limit)
       .sort({ firstName: 1, lastName: 1 });
 
+    // Calculate attendance rate for each student (role-scoped)
+    const studentsWithAttendance = await Promise.all(
+      students.map(async (student) => {
+        const attendanceRate = await calculateAttendanceRate(
+          student._id,
+          req.user.role,
+          req.user._id
+        );
+        
+        return {
+          ...student.toObject(),
+          attendanceRate
+        };
+      })
+    );
+
     const total = await User.countDocuments(query);
 
     res.json({
       success: true,
       data: {
-        students,
+        students: studentsWithAttendance,
         pagination: {
           total,
           pages: Math.ceil(total / limit),
