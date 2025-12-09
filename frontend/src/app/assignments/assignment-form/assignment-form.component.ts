@@ -39,8 +39,8 @@ import { AuthService } from '../../services/auth.service';
 
       <form *ngIf="!loading" [formGroup]="assignmentForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <!-- Enhanced Basic Information -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 p-5">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center">
               <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg shadow-md mr-3">
                 <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -133,7 +133,7 @@ import { AuthService } from '../../services/auth.service';
                   </button>
                   
                   <!-- Dropdown Menu -->
-                  <div *ngIf="showGroupsDropdown" class="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                  <div *ngIf="showGroupsDropdown" class="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
                     <div *ngIf="groups.length === 0" class="px-4 py-3 text-sm text-gray-500 text-center">
                       No groups available
                     </div>
@@ -190,8 +190,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Enhanced Dates and Points -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-5">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center">
               <div class="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md mr-3">
                 <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -253,8 +253,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Quiz Settings (only shown when type is 'quiz') -->
-        <div *ngIf="assignmentForm.get('type')?.value === 'quiz'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 p-5">
+        <div *ngIf="assignmentForm.get('type')?.value === 'quiz'" class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center">
               <div class="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg shadow-md mr-3">
                 <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -306,8 +306,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Quiz Questions Builder (only shown when type is 'quiz') -->
-        <div *ngIf="assignmentForm.get('type')?.value === 'quiz'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-5">
+        <div *ngIf="assignmentForm.get('type')?.value === 'quiz'" class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center justify-between">
               <div class="flex items-center">
                 <div class="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md mr-3">
@@ -449,8 +449,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Enhanced Grading Rubric -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200 p-5">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center justify-between">
               <div class="flex items-center">
                 <div class="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg shadow-md mr-3">
@@ -510,8 +510,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Enhanced Submission Settings -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-5">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center">
               <div class="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md mr-3">
                 <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -557,8 +557,8 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Enhanced Instructions -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-          <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-gray-200 p-5">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+          <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-gray-200 p-5 rounded-t-xl">
             <div class="flex items-center">
               <div class="p-2 bg-gradient-to-br from-orange-500 to-yellow-600 rounded-lg shadow-md mr-3">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
