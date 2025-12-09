@@ -748,12 +748,17 @@ export class AssignmentFormComponent implements OnInit {
   }
 
   loadGroups(): void {
-    this.groupService.getGroups({ page: 1, limit: 100 }).subscribe({
+    // Use teacher-specific groups if not admin
+    const groupsCall = this.currentUser?.role === 'admin' 
+      ? this.groupService.getGroups({ page: 1, limit: 100 })
+      : this.groupService.getTeacherGroups({ page: 1, limit: 100 });
+    
+    groupsCall.subscribe({
       next: (response) => {
         if (response.success && response.data) {
           // Handle nested response structure
           this.groups = response.data.groups || response.data || [];
-          console.log('Loaded groups:', this.groups.length);
+          console.log('Loaded groups:', this.groups.length, '(Role:', this.currentUser?.role + ')');
           
           // Check if there's a pre-selected group from localStorage
           const preSelectedGroupData = localStorage.getItem('preSelectedGroup');

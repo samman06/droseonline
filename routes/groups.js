@@ -98,15 +98,19 @@ router.get('/my-groups', authenticate, authorize('student'), validateQuery(pagin
 });
 
 // @route   GET /api/groups/teacher/groups
-// @desc    Get groups taught by current teacher
-// @access  Private (Teacher)
-router.get('/teacher/groups', authenticate, authorize('teacher'), validateQuery(paginationSchema), async (req, res) => {
+// @desc    Get groups taught by current teacher or assistant's assigned teacher
+// @access  Private (Teacher/Assistant)
+router.get('/teacher/groups', authenticate, authorize('teacher', 'assistant'), validateQuery(paginationSchema), async (req, res) => {
   try {
     const { page = 1, limit = 10, search, gradeLevel, subjectId } = req.query;
     
-    // Find courses taught by this teacher
+    // Find courses taught by this teacher or assistant's assigned teacher
     const Course = require('../models/Course');
-    const courseQuery = { teacher: req.user._id, isActive: true };
+    const teacherId = req.user.role === 'assistant' 
+      ? req.user.assistantInfo?.assignedTeacher 
+      : req.user._id;
+    
+    const courseQuery = { teacher: teacherId, isActive: true };
     if (subjectId) {
       courseQuery.subject = subjectId;
     }
