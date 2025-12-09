@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NotificationService, Notification } from '../services/notification.service';
 import { ToastService } from '../services/toast.service';
 
 @Component({
   selector: 'app-notifications-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-5xl mx-auto">
@@ -22,13 +23,13 @@ import { ToastService } from '../services/toast.service';
             <div>
               <h1 class="text-4xl font-bold text-white mb-2 flex items-center gap-3">
                 <span>🔔</span>
-                <span>Notifications</span>
+                <span>{{ 'notifications.title' | translate }}</span>
               </h1>
-              <p class="text-indigo-100 text-lg">Stay updated with all your activities</p>
+              <p class="text-indigo-100 text-lg">{{ 'notifications.stayUpdated' | translate }}</p>
             </div>
             <div class="text-right">
               <p class="text-white text-3xl font-bold">{{ unreadCount }}</p>
-              <p class="text-indigo-200 text-sm">Unread</p>
+              <p class="text-indigo-200 text-sm">{{ 'notifications.unread' | translate }}</p>
             </div>
           </div>
         </div>
@@ -42,15 +43,15 @@ import { ToastService } from '../services/toast.service';
                 [(ngModel)]="filters.type"
                 (change)="applyFilters()"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <option value="">All Types</option>
-                <option value="announcement">📢 Announcements</option>
-                <option value="assignment">📝 Assignments</option>
-                <option value="grade">⭐ Grades</option>
-                <option value="attendance">📋 Attendance</option>
-                <option value="comment">💬 Comments</option>
-                <option value="group">👥 Groups</option>
-                <option value="message">✉️ Messages</option>
-                <option value="system">⚙️ System</option>
+                <option value="">{{ 'notifications.allTypes' | translate }}</option>
+                <option value="announcement">📢 {{ 'notifications.types.announcements' | translate }}</option>
+                <option value="assignment">📝 {{ 'notifications.types.assignments' | translate }}</option>
+                <option value="grade">⭐ {{ 'notifications.types.grades' | translate }}</option>
+                <option value="attendance">📋 {{ 'notifications.types.attendance' | translate }}</option>
+                <option value="comment">💬 {{ 'notifications.types.comments' | translate }}</option>
+                <option value="group">👥 {{ 'notifications.types.groups' | translate }}</option>
+                <option value="message">✉️ {{ 'notifications.types.messages' | translate }}</option>
+                <option value="system">⚙️ {{ 'notifications.types.system' | translate }}</option>
               </select>
 
               <!-- Filter Status -->
@@ -58,8 +59,8 @@ import { ToastService } from '../services/toast.service';
                 [(ngModel)]="filters.unreadOnly"
                 (change)="applyFilters()"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <option [ngValue]="false">All Notifications</option>
-                <option [ngValue]="true">Unread Only</option>
+                <option [ngValue]="false">{{ 'notifications.allNotifications' | translate }}</option>
+                <option [ngValue]="true">{{ 'notifications.unreadOnly' | translate }}</option>
               </select>
             </div>
 
@@ -72,12 +73,12 @@ import { ToastService } from '../services/toast.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                Mark All Read
+                {{ 'notifications.markAllRead' | translate }}
               </button>
               <button 
                 (click)="refresh()"
                 class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                title="Refresh">
+                [title]="'common.refresh' | translate">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -107,8 +108,8 @@ import { ToastService } from '../services/toast.service';
             <svg class="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
             </svg>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">No notifications</h3>
-            <p class="text-gray-500">{{ filters.unreadOnly ? "You're all caught up!" : "You have no notifications yet." }}</p>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">{{ 'notifications.noNotifications' | translate }}</h3>
+            <p class="text-gray-500">{{ (filters.unreadOnly ? 'notifications.allCaughtUp' : 'notifications.noNotificationsYet') | translate }}</p>
           </div>
 
           <!-- Notifications -->
@@ -165,7 +166,7 @@ import { ToastService } from '../services/toast.service';
                     *ngIf="!notification.read"
                     (click)="markAsRead($event, notification)"
                     class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                    title="Mark as read">
+                    [title]="'notifications.markAsRead' | translate">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -173,7 +174,7 @@ import { ToastService } from '../services/toast.service';
                   <button 
                     (click)="deleteNotification($event, notification)"
                     class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete">
+                    [title]="'common.delete' | translate">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
@@ -186,14 +187,14 @@ import { ToastService } from '../services/toast.service';
           <!-- Pagination -->
           <div *ngIf="!loading && totalPages > 1" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <div class="text-sm text-gray-600">
-              Showing {{ ((currentPage - 1) * filters.limit) + 1 }} to {{ Math.min(currentPage * filters.limit, totalNotifications) }} of {{ totalNotifications }} notifications
+              {{ 'notifications.showing' | translate: {from: ((currentPage - 1) * filters.limit) + 1, to: Math.min(currentPage * filters.limit, totalNotifications), total: totalNotifications} }}
             </div>
             <div class="flex gap-2">
               <button 
                 (click)="previousPage()"
                 [disabled]="currentPage === 1"
                 class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Previous
+                {{ 'common.previous' | translate }}
               </button>
               <button 
                 *ngFor="let page of getPageNumbers()"
@@ -207,7 +208,7 @@ import { ToastService } from '../services/toast.service';
                 (click)="nextPage()"
                 [disabled]="currentPage === totalPages"
                 class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Next
+                {{ 'common.next' | translate }}
               </button>
             </div>
           </div>
@@ -239,7 +240,8 @@ export class NotificationsPageComponent implements OnInit {
   constructor(
     public notificationService: NotificationService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -261,7 +263,7 @@ export class NotificationsPageComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading notifications:', error);
-        this.toastService.error('Failed to load notifications');
+        this.toastService.error(this.translate.instant('notifications.failedToLoad'));
         this.loading = false;
       }
     });
@@ -302,11 +304,11 @@ export class NotificationsPageComponent implements OnInit {
     this.notificationService.markAsRead(notification._id).subscribe({
       next: () => {
         notification.read = true;
-        this.toastService.success('Notification marked as read');
+        this.toastService.success(this.translate.instant('notifications.markedAsRead'));
       },
       error: (error) => {
         console.error('Error marking as read:', error);
-        this.toastService.error('Failed to mark as read');
+        this.toastService.error(this.translate.instant('notifications.failedToMarkRead'));
       }
     });
   }
@@ -315,11 +317,11 @@ export class NotificationsPageComponent implements OnInit {
     this.notificationService.markAllAsRead().subscribe({
       next: () => {
         this.notifications.forEach(n => n.read = true);
-        this.toastService.success('All notifications marked as read');
+        this.toastService.success(this.translate.instant('notifications.allMarkedRead'));
       },
       error: (error) => {
         console.error('Error marking all as read:', error);
-        this.toastService.error('Failed to mark all as read');
+        this.toastService.error(this.translate.instant('notifications.failedToMarkAllRead'));
       }
     });
   }
@@ -330,7 +332,7 @@ export class NotificationsPageComponent implements OnInit {
     this.notificationService.deleteNotification(notification._id).subscribe({
       next: () => {
         this.notifications = this.notifications.filter(n => n._id !== notification._id);
-        this.toastService.success('Notification deleted');
+        this.toastService.success(this.translate.instant('notifications.deleted'));
         if (this.notifications.length === 0 && this.currentPage > 1) {
           this.filters.page = this.currentPage - 1;
           this.loadNotifications();
@@ -338,7 +340,7 @@ export class NotificationsPageComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting notification:', error);
-        this.toastService.error('Failed to delete notification');
+        this.toastService.error(this.translate.instant('notifications.failedToDelete'));
       }
     });
   }

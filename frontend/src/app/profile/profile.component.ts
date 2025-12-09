@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, User } from '../services/auth.service';
 import { PermissionService } from '../services/permission.service';
 import { ToastService } from '../services/toast.service';
@@ -11,7 +12,7 @@ import { AvatarService } from '../services/avatar.service';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-5xl mx-auto">
@@ -24,14 +25,14 @@ import { AvatarService } from '../services/avatar.service';
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
-            Back
+            {{ 'common.back' | translate }}
           </button>
           
           <div class="flex items-center justify-between">
             <div>
-              <h1 *ngIf="isOwnProfile" class="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
-              <h1 *ngIf="!isOwnProfile" class="text-4xl font-bold text-gray-900 mb-2">User Profile</h1>
-              <p class="text-gray-600">{{ isEditMode ? 'Edit your information' : 'View and manage your account' }}</p>
+              <h1 *ngIf="isOwnProfile" class="text-4xl font-bold text-gray-900 mb-2">{{ 'profile.myProfile' | translate }}</h1>
+              <h1 *ngIf="!isOwnProfile" class="text-4xl font-bold text-gray-900 mb-2">{{ 'profile.userProfile' | translate }}</h1>
+              <p class="text-gray-600">{{ (isEditMode ? 'profile.editYourInfo' : 'profile.viewManageAccount') | translate }}</p>
             </div>
             
             <div class="flex gap-3">
@@ -42,7 +43,7 @@ import { AvatarService } from '../services/avatar.service';
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
-                Edit Profile
+                {{ 'profile.editProfile' | translate }}
               </button>
             </div>
           </div>
@@ -52,7 +53,7 @@ import { AvatarService } from '../services/avatar.service';
         <div *ngIf="loading" class="flex justify-center items-center py-20">
           <div class="text-center">
             <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
-            <p class="text-gray-600 font-medium">Loading profile...</p>
+            <p class="text-gray-600 font-medium">{{ 'profile.loadingProfile' | translate }}</p>
           </div>
         </div>
 
@@ -161,13 +162,13 @@ import { AvatarService } from '../services/avatar.service';
                     <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
-                    Personal Information
+                    {{ 'profile.personalInformation' | translate }}
                   </h3>
                   
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- First Name -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.firstName' | translate }}</label>
                       <input 
                         type="text"
                         formControlName="firstName"
@@ -175,14 +176,14 @@ import { AvatarService } from '../services/avatar.service';
                         [class.bg-gray-50]="!isEditMode"
                         [class.cursor-not-allowed]="!isEditMode"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        placeholder="Enter first name">
+                        [placeholder]="'profile.enterFirstName' | translate">
                       <p *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched" 
-                         class="mt-1 text-sm text-red-600">First name is required</p>
+                         class="mt-1 text-sm text-red-600">{{ 'profile.firstNameRequired' | translate }}</p>
                     </div>
                     
                     <!-- Last Name -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.lastName' | translate }}</label>
                       <input 
                         type="text"
                         formControlName="lastName"
@@ -190,14 +191,14 @@ import { AvatarService } from '../services/avatar.service';
                         [class.bg-gray-50]="!isEditMode"
                         [class.cursor-not-allowed]="!isEditMode"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        placeholder="Enter last name">
+                        [placeholder]="'profile.enterLastName' | translate">
                       <p *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched" 
-                         class="mt-1 text-sm text-red-600">Last name is required</p>
+                         class="mt-1 text-sm text-red-600">{{ 'profile.lastNameRequired' | translate }}</p>
                     </div>
                     
                     <!-- Email -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.emailAddress' | translate }}</label>
                       <input 
                         type="email"
                         formControlName="email"
@@ -205,14 +206,14 @@ import { AvatarService } from '../services/avatar.service';
                         [class.bg-gray-50]="!isEditMode"
                         [class.cursor-not-allowed]="!isEditMode"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        placeholder="Enter email">
+                        [placeholder]="'profile.enterEmail' | translate">
                       <p *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" 
-                         class="mt-1 text-sm text-red-600">Valid email is required</p>
+                         class="mt-1 text-sm text-red-600">{{ 'profile.emailRequired' | translate }}</p>
                     </div>
                     
                     <!-- Phone -->
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.phoneNumber' | translate }}</label>
                       <input 
                         type="tel"
                         formControlName="phone"
@@ -220,7 +221,7 @@ import { AvatarService } from '../services/avatar.service';
                         [class.bg-gray-50]="!isEditMode"
                         [class.cursor-not-allowed]="!isEditMode"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        placeholder="Enter phone number">
+                        [placeholder]="'profile.enterPhoneNumber' | translate">
                     </div>
                   </div>
                 </div>
@@ -231,12 +232,12 @@ import { AvatarService } from '../services/avatar.service';
                     <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
-                    Academic Information
+                    {{ 'profile.academicInformation' | translate }}
                   </h3>
                   
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Student Code</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.studentCode' | translate }}</label>
                       <input 
                         type="text"
                         [value]="getUserCode()"
@@ -245,18 +246,18 @@ import { AvatarService } from '../services/avatar.service';
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Current Grade</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.currentGrade' | translate }}</label>
                       <input 
                         *ngIf="!isEditMode"
                         type="text"
-                        [value]="profileUser.academicInfo?.currentGrade || 'Not Set'"
+                        [value]="profileUser.academicInfo?.currentGrade || ('profile.notSet' | translate)"
                         readonly
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg cursor-not-allowed">
                       <select 
                         *ngIf="isEditMode"
                         formControlName="currentGrade"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white">
-                        <option value="">Select Grade</option>
+                        <option value="">{{ 'profile.selectGrade' | translate }}</option>
                         <option value="1">Grade 1</option>
                         <option value="2">Grade 2</option>
                         <option value="3">Grade 3</option>
@@ -273,10 +274,10 @@ import { AvatarService } from '../services/avatar.service';
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Enrolled Groups</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.enrolledGroups' | translate }}</label>
                       <input 
                         type="text"
-                        [value]="(profileUser.academicInfo?.groups?.length || 0) + ' groups'"
+                        [value]="(profileUser.academicInfo?.groups?.length || 0) + ' ' + ('profile.groups' | translate)"
                         readonly
                         class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg cursor-not-allowed">
                     </div>
@@ -288,12 +289,12 @@ import { AvatarService } from '../services/avatar.service';
                     <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
-                    Professional Information
+                    {{ 'profile.professionalInformation' | translate }}
                   </h3>
                   
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Teacher Code</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.teacherCode' | translate }}</label>
                       <input 
                         type="text"
                         [value]="getUserCode()"
@@ -302,7 +303,7 @@ import { AvatarService } from '../services/avatar.service';
                     </div>
                     
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.department' | translate }}</label>
                       <input 
                         type="text"
                         formControlName="department"
@@ -310,11 +311,11 @@ import { AvatarService } from '../services/avatar.service';
                         [class.bg-gray-50]="!isEditMode"
                         [class.cursor-not-allowed]="!isEditMode"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        placeholder="Enter department">
+                        [placeholder]="'profile.enterDepartment' | translate">
                     </div>
                     
                     <div class="md:col-span-2">
-                      <label class="block text-sm font-medium text-gray-700 mb-2">Specialization</label>
+                      <label class="block text-sm font-medium text-gray-700 mb-2">{{ 'profile.specialization' | translate }}</label>
                       <input 
                         type="text"
                         formControlName="specialization"
@@ -322,7 +323,7 @@ import { AvatarService } from '../services/avatar.service';
                         [class.bg-gray-50]="!isEditMode"
                         [class.cursor-not-allowed]="!isEditMode"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                        placeholder="Enter specialization">
+                        [placeholder]="'profile.enterSpecialization' | translate">
                     </div>
                   </div>
                 </div>
@@ -333,7 +334,7 @@ import { AvatarService } from '../services/avatar.service';
                     type="button"
                     (click)="cancelEdit()"
                     class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all">
-                    Cancel
+                    {{ 'common.cancel' | translate }}
                   </button>
                   <button 
                     type="submit"
@@ -343,7 +344,7 @@ import { AvatarService } from '../services/avatar.service';
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                     <div *ngIf="saving" class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    {{ saving ? 'Saving...' : 'Save Changes' }}
+                    {{ (saving ? 'common.saving' : 'profile.saveChanges') | translate }}
                   </button>
                 </div>
               </form>
@@ -355,14 +356,14 @@ import { AvatarService } from '../services/avatar.service';
             <!-- Account Status -->
             <div class="bg-white rounded-xl shadow-lg p-6">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-900">Account Status</h3>
+                <h3 class="text-lg font-bold text-gray-900">{{ 'profile.accountStatus' | translate }}</h3>
                 <span [class]="profileUser.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" 
                       class="px-3 py-1 rounded-full text-sm font-medium">
-                  {{ profileUser.isActive ? 'Active' : 'Inactive' }}
+                  {{ (profileUser.isActive ? 'profile.active' : 'profile.inactive') | translate }}
                 </span>
               </div>
               <p class="text-sm text-gray-600">
-                Member since {{ getMemberSinceDate() }}
+                {{ 'profile.memberSince' | translate }} {{ getMemberSinceDate() }}
               </p>
             </div>
 
@@ -372,10 +373,10 @@ import { AvatarService } from '../services/avatar.service';
                 <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <h3 class="text-lg font-bold text-gray-900">Last Login</h3>
+                <h3 class="text-lg font-bold text-gray-900">{{ 'profile.lastLogin' | translate }}</h3>
               </div>
               <p class="text-sm text-gray-600">
-                {{ profileUser.lastLogin ? formatDate(profileUser.lastLogin) : 'Never' }}
+                {{ profileUser.lastLogin ? formatDate(profileUser.lastLogin) : ('profile.never' | translate) }}
               </p>
             </div>
 
@@ -385,7 +386,7 @@ import { AvatarService } from '../services/avatar.service';
                 <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <h3 class="text-lg font-bold text-gray-900">Profile Complete</h3>
+                <h3 class="text-lg font-bold text-gray-900">{{ 'profile.profileComplete' | translate }}</h3>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
                 <div class="bg-indigo-600 h-2 rounded-full transition-all" [style.width.%]="getProfileCompletion()"></div>
@@ -419,7 +420,8 @@ export class ProfileComponent implements OnInit {
     private api: ApiService,
     private route: ActivatedRoute,
     private router: Router,
-    private avatarService: AvatarService
+    private avatarService: AvatarService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit() {
@@ -532,7 +534,7 @@ export class ProfileComponent implements OnInit {
 
   onSubmit() {
     if (!this.profileForm.valid) {
-      this.toastService.error('Please fill in all required fields correctly');
+      this.toastService.error(this.translate.instant('profile.fillRequiredFields'));
       return;
     }
 
@@ -567,7 +569,7 @@ export class ProfileComponent implements OnInit {
     observable.subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.toastService.success('Profile updated successfully');
+          this.toastService.success(this.translate.instant('profile.profileUpdatedSuccess'));
           this.isEditMode = false;
           
           // Update the profileUser with the response data
@@ -591,7 +593,7 @@ export class ProfileComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error updating profile:', error);
-        this.toastService.error(error.error?.message || 'Failed to update profile');
+        this.toastService.error(error.error?.message || this.translate.instant('profile.failedToUpdate'));
         this.saving = false;
       }
     });
@@ -686,11 +688,11 @@ export class ProfileComponent implements OnInit {
         this.profileForm.patchValue({ avatar: base64Image });
         
         console.log('Avatar uploaded successfully');
-        this.toastService.success('Photo uploaded successfully');
+        this.toastService.success(this.translate.instant('profile.photoUploadedSuccess'));
       }
     } catch (error: any) {
       console.error('Avatar upload error:', error);
-      this.error = error.message || 'Failed to upload avatar. Please try a different image.';
+      this.error = error.message || this.translate.instant('profile.failedToUploadAvatar');
       this.toastService.error(this.error);
       this.clearAvatar();
     } finally {

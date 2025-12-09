@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 import { AvatarService } from '../../services/avatar.service';
 
 @Component({
   selector: 'app-student-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslateModule],
   templateUrl: './student-register.component.html',
   styleUrls: ['./student-register.component.scss']
 })
@@ -32,7 +33,8 @@ export class StudentRegisterComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private avatarService: AvatarService
+    private avatarService: AvatarService,
+    private translate: TranslateService
   ) {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
@@ -117,7 +119,7 @@ export class StudentRegisterComponent implements OnInit {
     this.authService.register(registrationData).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
-        this.successMessage = 'Registration successful! Redirecting to dashboard...';
+        this.successMessage = this.translate.instant('auth.registrationSuccess');
         this.isLoading = false;
         
         // Redirect to dashboard after successful registration
@@ -127,7 +129,7 @@ export class StudentRegisterComponent implements OnInit {
       },
       error: (error) => {
         console.error('Registration error:', error);
-        this.errorMessage = error.message || 'Registration failed. Please try again.';
+        this.errorMessage = error.message || this.translate.instant('auth.registrationFailed');
         this.isLoading = false;
       }
     });
@@ -156,7 +158,7 @@ export class StudentRegisterComponent implements OnInit {
       }
     } catch (error: any) {
       console.error('Avatar upload error:', error);
-      this.errorMessage = error.message || 'Failed to upload avatar. Please try a different image.';
+      this.errorMessage = error.message || this.translate.instant('profile.failedToUploadAvatar');
       this.clearAvatar();
     } finally {
       this.uploadingAvatar = false;

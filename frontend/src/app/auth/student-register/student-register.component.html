@@ -12,10 +12,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
           </svg>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 mb-2">Student Registration</h2>
-        <p class="text-gray-600 text-lg">Join Drose Online Learning Platform</p>
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ 'auth.studentRegistration' | translate }}</h2>
+        <p class="text-gray-600 text-lg">{{ 'auth.joinDrose' | translate }}</p>
         <div class="mt-4 text-sm text-gray-500">
-          Create your account to start learning
+          {{ 'auth.createAccountToLearn' | translate }}
         </div>
       </div>
 
@@ -88,11 +88,11 @@
 
         <!-- Upload Instructions -->
         <p class="mt-4 text-sm text-gray-600 text-center">
-          <span *ngIf="!avatarPreview">Click the camera icon to upload your photo</span>
-          <span *ngIf="avatarPreview" class="text-green-600 font-medium">✓ Photo uploaded successfully</span>
+          <span *ngIf="!avatarPreview">{{ 'auth.clickToUploadPhoto' | translate }}</span>
+          <span *ngIf="avatarPreview" class="text-green-600 font-medium">✓ {{ 'auth.photoUploadedSuccess' | translate }}</span>
         </p>
         <p class="text-xs text-gray-500 text-center mt-1">
-          Optional • Max 5MB • JPG, PNG, or WebP
+          {{ 'auth.photoOptional' | translate }}
         </p>
       </div>
 
@@ -104,7 +104,7 @@
           <!-- First Name -->
           <div>
             <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
-              First Name <span class="text-red-500">*</span>
+              {{ 'profile.firstName' | translate }} <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -116,21 +116,21 @@
                 id="firstName"
                 type="text"
                 formControlName="firstName"
-                placeholder="Enter first name"
+                [placeholder]="'profile.enterFirstName' | translate"
                 class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
                 [class.border-red-500]="firstName?.invalid && firstName?.touched"
               />
             </div>
             <div *ngIf="firstName?.invalid && firstName?.touched" class="mt-1 text-sm text-red-600">
-              <div *ngIf="firstName?.errors?.['required']">First name is required</div>
-              <div *ngIf="firstName?.errors?.['minlength']">Must be at least 2 characters</div>
+              <div *ngIf="firstName?.errors?.['required']">{{ 'profile.firstNameRequired' | translate }}</div>
+              <div *ngIf="firstName?.errors?.['minlength']">{{ 'auth.minTwoChars' | translate }}</div>
             </div>
           </div>
 
           <!-- Last Name -->
           <div>
             <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">
-              Last Name <span class="text-red-500">*</span>
+              {{ 'profile.lastName' | translate }} <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -142,14 +142,14 @@
                 id="lastName"
                 type="text"
                 formControlName="lastName"
-                placeholder="Enter last name"
+                [placeholder]="'profile.enterLastName' | translate"
                 class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
                 [class.border-red-500]="lastName?.invalid && lastName?.touched"
               />
             </div>
             <div *ngIf="lastName?.invalid && lastName?.touched" class="mt-1 text-sm text-red-600">
-              <div *ngIf="lastName?.errors?.['required']">Last name is required</div>
-              <div *ngIf="lastName?.errors?.['minlength']">Must be at least 2 characters</div>
+              <div *ngIf="lastName?.errors?.['required']">{{ 'profile.lastNameRequired' | translate }}</div>
+              <div *ngIf="lastName?.errors?.['minlength']">{{ 'auth.minTwoChars' | translate }}</div>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@
         <!-- Email Field -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-            Email Address <span class="text-red-500">*</span>
+            {{ 'profile.emailAddress' | translate }} <span class="text-red-500">*</span>
           </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -169,14 +169,14 @@
               id="email"
               type="email"
               formControlName="email"
-              placeholder="your.email@example.com"
+              [placeholder]="'auth.emailPlaceholder' | translate"
               class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
               [class.border-red-500]="email?.invalid && email?.touched"
             />
           </div>
           <div *ngIf="email?.invalid && email?.touched" class="mt-1 text-sm text-red-600">
-            <div *ngIf="email?.errors?.['required']">Email is required</div>
-            <div *ngIf="email?.errors?.['email']">Please enter a valid email</div>
+            <div *ngIf="email?.errors?.['required']">{{ 'auth.emailRequired' | translate }}</div>
+            <div *ngIf="email?.errors?.['email']">{{ 'forms.emailInvalid' | translate }}</div>
           </div>
         </div>
 
@@ -185,7 +185,7 @@
           <!-- Phone Number -->
           <div>
             <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
+              {{ 'profile.phoneNumber' | translate }}
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -197,20 +197,20 @@
                 id="phoneNumber"
                 type="tel"
                 formControlName="phoneNumber"
-                placeholder="01234567890"
+                [placeholder]="'auth.phonePlaceholder' | translate"
                 class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
                 [class.border-red-500]="phoneNumber?.invalid && phoneNumber?.touched"
               />
             </div>
             <div *ngIf="phoneNumber?.invalid && phoneNumber?.touched" class="mt-1 text-sm text-red-600">
-              <div *ngIf="phoneNumber?.errors?.['pattern']">Invalid phone number format</div>
+              <div *ngIf="phoneNumber?.errors?.['pattern']">{{ 'auth.invalidPhoneFormat' | translate }}</div>
             </div>
           </div>
 
           <!-- Current Grade -->
           <div>
             <label for="currentGrade" class="block text-sm font-medium text-gray-700 mb-2">
-              Current Grade <span class="text-red-500">*</span>
+              {{ 'profile.currentGrade' | translate }} <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -224,14 +224,14 @@
                 class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 appearance-none"
                 [class.border-red-500]="currentGrade?.invalid && currentGrade?.touched"
               >
-                <option value="">Select your grade</option>
-                <optgroup label="Primary School">
+                <option value="">{{ 'profile.selectGrade' | translate }}</option>
+                <optgroup [label]="'auth.primarySchool' | translate">
                   <option *ngFor="let grade of grades.slice(0, 6)" [value]="grade">{{ grade }}</option>
                 </optgroup>
-                <optgroup label="Preparatory School">
+                <optgroup [label]="'auth.preparatorySchool' | translate">
                   <option *ngFor="let grade of grades.slice(6, 9)" [value]="grade">{{ grade }}</option>
                 </optgroup>
-                <optgroup label="Secondary School">
+                <optgroup [label]="'auth.secondarySchool' | translate">
                   <option *ngFor="let grade of grades.slice(9, 12)" [value]="grade">{{ grade }}</option>
                 </optgroup>
               </select>
@@ -242,7 +242,7 @@
               </div>
             </div>
             <div *ngIf="currentGrade?.invalid && currentGrade?.touched" class="mt-1 text-sm text-red-600">
-              <div *ngIf="currentGrade?.errors?.['required']">Please select your grade</div>
+              <div *ngIf="currentGrade?.errors?.['required']">{{ 'auth.selectGradeRequired' | translate }}</div>
             </div>
           </div>
         </div>
@@ -252,7 +252,7 @@
           <!-- Password -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-              Password <span class="text-red-500">*</span>
+              {{ 'auth.password' | translate }} <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -264,7 +264,7 @@
                 id="password"
                 [type]="showPassword ? 'text' : 'password'"
                 formControlName="password"
-                placeholder="Create a password"
+                [placeholder]="'auth.createPassword' | translate"
                 class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
                 [class.border-red-500]="password?.invalid && password?.touched"
               />
@@ -283,15 +283,15 @@
               </button>
             </div>
             <div *ngIf="password?.invalid && password?.touched" class="mt-1 text-sm text-red-600">
-              <div *ngIf="password?.errors?.['required']">Password is required</div>
-              <div *ngIf="password?.errors?.['minlength']">Must be at least 6 characters</div>
+              <div *ngIf="password?.errors?.['required']">{{ 'auth.passwordRequired' | translate }}</div>
+              <div *ngIf="password?.errors?.['minlength']">{{ 'auth.passwordMinLength' | translate }}</div>
             </div>
           </div>
 
           <!-- Confirm Password -->
           <div>
             <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password <span class="text-red-500">*</span>
+              {{ 'auth.confirmPassword' | translate }} <span class="text-red-500">*</span>
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -303,7 +303,7 @@
                 id="confirmPassword"
                 [type]="showConfirmPassword ? 'text' : 'password'"
                 formControlName="confirmPassword"
-                placeholder="Confirm your password"
+                [placeholder]="'auth.confirmPasswordPlaceholder' | translate"
                 class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
                 [class.border-red-500]="confirmPassword?.invalid && confirmPassword?.touched"
               />
@@ -322,8 +322,8 @@
               </button>
             </div>
             <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched" class="mt-1 text-sm text-red-600">
-              <div *ngIf="confirmPassword?.errors?.['required']">Please confirm your password</div>
-              <div *ngIf="confirmPassword?.errors?.['passwordMismatch']">Passwords do not match</div>
+              <div *ngIf="confirmPassword?.errors?.['required']">{{ 'auth.confirmPasswordRequired' | translate }}</div>
+              <div *ngIf="confirmPassword?.errors?.['passwordMismatch']">{{ 'auth.passwordsDoNotMatch' | translate }}</div>
             </div>
           </div>
         </div>
@@ -339,16 +339,16 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span>{{ isLoading ? 'Creating Account...' : 'Create Account' }}</span>
+            <span>{{ (isLoading ? 'auth.creatingAccount' : 'auth.createAccount') | translate }}</span>
           </button>
         </div>
 
         <!-- Login Link -->
         <div class="text-center pt-4 border-t border-gray-200">
           <p class="text-sm text-gray-600">
-            Already have an account?
+            {{ 'auth.alreadyHaveAccount' | translate }}
             <a [routerLink]="['/auth/login']" class="font-medium text-green-600 hover:text-green-700 transition-colors">
-              Sign in here
+              {{ 'auth.signInHere' | translate }}
             </a>
           </p>
         </div>
