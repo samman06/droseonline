@@ -52,6 +52,32 @@ import { PermissionService } from '../../services/permission.service';
             </div>
           </div>
           <div class="mt-4 lg:mt-0 flex space-x-3">
+            <!-- View Toggle -->
+            <div class="inline-flex bg-white rounded-lg border border-gray-300 p-1">
+              <button 
+                (click)="viewMode = 'card'"
+                [class]="viewMode === 'card' 
+                  ? 'px-3 py-2 bg-indigo-600 text-white rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+                [title]="'common.cardView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+              </button>
+              <button 
+                (click)="viewMode = 'table'"
+                [class]="viewMode === 'table' 
+                  ? 'px-3 py-2 bg-indigo-600 text-white rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+                [title]="'common.tableView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            
             <!-- Export button - Only for admin and teachers -->
             <button 
               *ngIf="canExport"
@@ -146,54 +172,77 @@ import { PermissionService } from '../../services/permission.service';
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <!-- Table View -->
+      <div *ngIf="viewMode === 'table'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.name' | translate }}</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.teacher' | translate }}</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.subject' | translate }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.groupName' | translate }}</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.teacherSubject' | translate }}</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.schedule' | translate }}</th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.assignments' | translate }}</th>
-                <th class="px-6 py-3"></th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.students' | translate }}</th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.status' | translate }}</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ 'groups.actions' | translate }}</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200" *ngIf="!isLoading">
-              <tr *ngFor="let g of groups">
-                <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ g.name }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ g.course?.teacher?.fullName || '—' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-600">{{ g.course?.subject?.name || '—' }}</td>
+              <tr *ngFor="let g of groups" class="hover:bg-gray-50 transition-colors">
+                <!-- Group Name + Code -->
                 <td class="px-6 py-4">
-                  <div class="flex flex-wrap gap-1.5">
-                    <span *ngFor="let s of g.schedule" 
-                          class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold shadow-sm transition-all duration-200 hover:shadow-md"
-                          [ngClass]="getDayColorClass(s.day)">
-                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                      </svg>
-                      {{ s.day | titlecase }}: {{ s.startTime }}-{{ s.endTime }}
+                  <div class="text-sm font-semibold text-gray-900">
+                    <a [routerLink]="['/dashboard/groups', g.id || g._id]" class="hover:text-indigo-600 transition-colors">
+                      {{ g.name }}
+                    </a>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-0.5">{{ g.code }}</div>
+                </td>
+
+                <!-- Teacher + Subject -->
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900">{{ g.course?.teacher?.fullName || '—' }}</div>
+                  <div class="text-xs text-gray-500 mt-0.5">{{ g.course?.subject?.name || '—' }}</div>
+                </td>
+
+                <!-- Schedule --> 
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-900">{{ g.gradeLevel }}</div>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    <span *ngFor="let s of g.schedule?.slice(0, 2)" 
+                          class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700">
+                      {{ s.day }}: {{ s.startTime }}
+                    </span>
+                    <span *ngIf="g.schedule?.length > 2" class="text-xs text-gray-500">
+                      +{{ g.schedule.length - 2 }}
                     </span>
                   </div>
                 </td>
+
+                <!-- Students Count -->
                 <td class="px-6 py-4 text-center">
-                  <div class="flex items-center justify-center space-x-2">
-                    <div class="inline-flex items-center px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-100 to-indigo-100 border border-purple-200">
-                      <svg class="w-4 h-4 mr-1.5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
-                      </svg>
-                      <span class="font-bold text-purple-700">{{ g.assignmentCount?.total || 0 }}</span>
-                    </div>
-                    <div *ngIf="g.assignmentCount?.published > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-700 text-xs font-semibold" [title]="'groups.published' | translate">
-                      {{ g.assignmentCount.published }} 📋
-                    </div>
-                    <div *ngIf="g.assignmentCount?.draft > 0" class="inline-flex items-center px-2 py-1 rounded-md bg-yellow-100 text-yellow-700 text-xs font-semibold" [title]="'groups.draft' | translate">
-                      {{ g.assignmentCount.draft }} ✏️
-                    </div>
-                  </div>
+                  <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-bold bg-indigo-100 text-indigo-700 border-2 border-indigo-200">
+                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    {{ g.studentCount || 0 }}/{{ g.capacity || 30 }}
+                  </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+
+                <!-- Status -->
+                <td class="px-6 py-4 text-center">
+                  <span 
+                    *ngIf="(g.studentCount || 0) >= (g.capacity || 30)"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200">
+                    {{ 'groups.full' | translate }}
+                  </span>
+                  <span 
+                    *ngIf="(g.studentCount || 0) < (g.capacity || 30)"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                    {{ 'groups.active' | translate }}
+                  </span>
+                </td>
+                <!-- Actions -->
+                <td class="px-6 py-4 text-right">
                   <div class="relative inline-block text-left">
                     <button (click)="toggleDropdown(g.id || g._id, $event)" class="inline-flex items-center justify-center p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
                       <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
@@ -244,6 +293,161 @@ import { PermissionService } from '../../services/permission.service';
           </table>
         </div>
       </div>
+
+      <!-- Card View - Enhanced Modern Design -->
+      <div *ngIf="viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="col-span-full flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600"></div>
+        </div>
+
+        <!-- Group Cards - Enhanced -->
+        <div *ngFor="let g of groups" 
+             class="group bg-white rounded-2xl shadow-lg border-2 border-gray-200 hover:border-indigo-400 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer"
+             (click)="viewGroup(g)">
+          
+          <!-- Gradient Header with Status -->
+          <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-5 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
+            
+            <div class="relative">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold text-white mb-1 group-hover:scale-105 transition-transform">
+                    {{ g.name }}
+                  </h3>
+                  <p class="text-indigo-100 text-sm font-medium">{{ g.code }}</p>
+                </div>
+                <!-- Status Badge -->
+                <span 
+                  *ngIf="(g.studentCount || 0) >= (g.capacity || 30)"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full bg-red-500 text-white shadow-lg animate-pulse">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ 'groups.full' | translate }}
+                </span>
+                <span 
+                  *ngIf="(g.studentCount || 0) < (g.capacity || 30)"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full bg-green-500 text-white shadow-lg">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ 'groups.active' | translate }}
+                </span>
+              </div>
+              <div class="text-indigo-100 text-sm">{{ g.gradeLevel }}</div>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <!-- Teacher & Subject -->
+            <div class="space-y-2 mb-4">
+              <div class="flex items-center text-sm">
+                <div class="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                  </svg>
+                </div>
+                <span class="font-medium text-gray-900">{{ g.course?.teacher?.fullName || '—' }}</span>
+              </div>
+              <div class="flex items-center text-sm">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                  </svg>
+                </div>
+                <span class="font-medium text-gray-900">{{ g.course?.subject?.name || '—' }}</span>
+              </div>
+            </div>
+
+            <!-- Stats Box -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 mb-4 border border-indigo-200">
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <div class="text-2xl font-bold text-indigo-600">{{ g.studentCount || 0 }}</div>
+                  <div class="text-xs text-gray-600 mt-1">{{ 'groups.studentsEnrolled' | translate }}</div>
+                  <div class="text-xs text-gray-400">/ {{ g.capacity || 30 }}</div>
+                </div>
+                <div>
+                  <div class="text-2xl font-bold text-purple-600">{{ g.assignmentCount?.total || 0 }}</div>
+                  <div class="text-xs text-gray-600 mt-1">{{ 'groups.assignments' | translate }}</div>
+                  <div class="text-xs text-green-600" *ngIf="g.assignmentCount?.published > 0">
+                    {{ g.assignmentCount.published }} {{ 'groups.published' | translate }}
+                  </div>
+                </div>
+                <div>
+                  <div class="text-2xl font-bold text-pink-600">{{ g.schedule?.length || 0 }}</div>
+                  <div class="text-xs text-gray-600 mt-1">{{ 'groups.sessions' | translate }}</div>
+                  <div class="text-xs text-gray-400">{{ 'groups.perWeek' | translate }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Schedule Badges -->
+            <div class="mb-4">
+              <div class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">{{ 'groups.schedule' | translate }}</div>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let s of g.schedule" 
+                      class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm border-2"
+                      [ngClass]="getDayColorClass(s.day)">
+                  <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ s.day | titlecase }}: {{ s.startTime }}
+                </span>
+                <span *ngIf="!g.schedule || g.schedule.length === 0" class="text-xs text-gray-400 italic">
+                  {{ 'groups.noSchedule' | translate }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons - Enhanced with Icons -->
+            <div class="flex gap-2">
+              <button 
+                (click)="viewGroup(g); $event.stopPropagation()"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-semibold">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                {{ 'groups.view' | translate }}
+              </button>
+              <button 
+                *ngIf="canEdit(g)"
+                (click)="editGroup(g); $event.stopPropagation()"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-semibold">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                {{ 'groups.edit' | translate }}
+              </button>
+              <button 
+                *ngIf="canDelete(g)"
+                (click)="deleteGroup(g); $event.stopPropagation()"
+                class="px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State - Enhanced -->
+        <div *ngIf="!isLoading && groups.length === 0" class="col-span-full">
+          <div class="text-center py-16 bg-gradient-to-br from-gray-50 to-indigo-50 rounded-2xl border-2 border-dashed border-indigo-300">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-4">
+              <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">{{ 'groups.noGroupsFound' | translate }}</h3>
+            <p class="mt-2 text-sm text-gray-600">{{ 'groups.tryAdjustingFilters' | translate }}</p>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -259,6 +463,7 @@ export class GroupListComponent implements OnInit {
   openDropdownId: string | null = null;
   dropdownPosition: 'top' | 'bottom' = 'bottom';
   private searchDebounce: any;
+  viewMode: 'card' | 'table' = 'table'; // Default to table view
 
   // Role-based properties
   currentUser: User | null = null;
