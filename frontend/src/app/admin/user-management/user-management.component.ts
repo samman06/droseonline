@@ -1,94 +1,95 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, User, RegisterRequest } from '../../services/auth.service';
 import { PasswordUtils } from '../../utils/password.util';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, TranslateModule],
   template: `
     <div class="p-6">
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">User Management</h1>
-        <p class="text-gray-600">Create and manage system users with secure password hashing</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ 'admin.userManagement' | translate }}</h1>
+        <p class="text-gray-600">{{ 'admin.userManagementDesc' | translate }}</p>
       </div>
 
       <!-- Create User Form -->
       <div class="bg-white rounded-lg shadow mb-6">
         <div class="p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Create New User</h2>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">{{ 'admin.createNewUser' | translate }}</h2>
           
           <form [formGroup]="createUserForm" (ngSubmit)="onCreateUser()" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'profile.firstName' | translate }}</label>
                 <input
                   type="text"
                   formControlName="firstName"
                   class="form-input"
-                  placeholder="Enter first name"
+                  [placeholder]="'profile.enterFirstName' | translate"
                 />
                 <div *ngIf="createUserForm.get('firstName')?.invalid && createUserForm.get('firstName')?.touched" 
                      class="mt-1 text-sm text-red-600">
-                  First name is required
+                  {{ 'profile.firstNameRequired' | translate }}
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'profile.lastName' | translate }}</label>
                 <input
                   type="text"
                   formControlName="lastName"
                   class="form-input"
-                  placeholder="Enter last name"
+                  [placeholder]="'profile.enterLastName' | translate"
                 />
                 <div *ngIf="createUserForm.get('lastName')?.invalid && createUserForm.get('lastName')?.touched" 
                      class="mt-1 text-sm text-red-600">
-                  Last name is required
+                  {{ 'profile.lastNameRequired' | translate }}
                 </div>
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'auth.email' | translate }}</label>
               <input
                 type="email"
                 formControlName="email"
                 class="form-input"
-                placeholder="Enter email address"
+                [placeholder]="'auth.emailPlaceholder' | translate"
               />
               <div *ngIf="createUserForm.get('email')?.invalid && createUserForm.get('email')?.touched" 
                    class="mt-1 text-sm text-red-600">
-                <span *ngIf="createUserForm.get('email')?.errors?.['required']">Email is required</span>
-                <span *ngIf="createUserForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+                <span *ngIf="createUserForm.get('email')?.errors?.['required']">{{ 'auth.emailRequired' | translate }}</span>
+                <span *ngIf="createUserForm.get('email')?.errors?.['email']">{{ 'forms.emailInvalid' | translate }}</span>
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'auth.role' | translate }}</label>
               <select formControlName="role" class="form-input">
-                <option value="">Select Role</option>
-                <option value="admin">Administrator</option>
-                <option value="teacher">Teacher</option>
-                <option value="student">Student</option>
+                <option value="">{{ 'admin.selectRole' | translate }}</option>
+                <option value="admin">{{ 'admin.administrator' | translate }}</option>
+                <option value="teacher">{{ 'common.teacher' | translate }}</option>
+                <option value="student">{{ 'common.student' | translate }}</option>
               </select>
               <div *ngIf="createUserForm.get('role')?.invalid && createUserForm.get('role')?.touched" 
                    class="mt-1 text-sm text-red-600">
-                Role is required
+                {{ 'admin.roleRequired' | translate }}
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'auth.password' | translate }}</label>
               <div class="space-y-2">
                 <div class="relative">
                   <input
                     [type]="showPassword ? 'text' : 'password'"
                     formControlName="password"
                     class="form-input pr-10"
-                    placeholder="Enter password"
+                    [placeholder]="'auth.enterPassword' | translate"
                     (input)="checkPasswordStrength()"
                   />
                   <button
@@ -133,13 +134,13 @@ import { PasswordUtils } from '../../utils/password.util';
                   (click)="generateRandomPassword()"
                   class="text-sm text-blue-600 hover:text-blue-500"
                 >
-                  Generate Random Password
+                  {{ 'admin.generateRandomPassword' | translate }}
                 </button>
               </div>
               
               <div *ngIf="createUserForm.get('password')?.invalid && createUserForm.get('password')?.touched" 
                    class="mt-1 text-sm text-red-600">
-                Password must be at least 6 characters long
+                {{ 'auth.passwordMinLength' | translate }}
               </div>
             </div>
 
@@ -149,7 +150,7 @@ import { PasswordUtils } from '../../utils/password.util';
                 (click)="resetForm()"
                 class="btn-secondary"
               >
-                Reset
+                {{ 'admin.reset' | translate }}
               </button>
               <button
                 type="submit"
@@ -160,7 +161,7 @@ import { PasswordUtils } from '../../utils/password.util';
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {{ isLoading ? 'Creating...' : 'Create User' }}
+                {{ (isLoading ? 'admin.creating' : 'admin.createUser') | translate }}
               </button>
             </div>
           </form>
@@ -260,7 +261,8 @@ export class UserManagementComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {
     this.createUserForm = this.fb.group({
       firstName: ['', [Validators.required]],
@@ -292,12 +294,12 @@ export class UserManagementComponent implements OnInit {
             this.successMessage = `User ${userData.firstName} ${userData.lastName} created successfully!`;
             this.resetForm();
           } else {
-            this.errorMessage = response.message || 'Failed to create user';
+            this.errorMessage = response.message || this.translate.instant('admin.failedToCreateUser');
           }
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage = error.error?.message || 'Failed to create user. Please try again.';
+          this.errorMessage = error.error?.message || this.translate.instant('admin.failedToCreateUserTryAgain');
         }
       });
     }

@@ -1928,5 +1928,19 @@
     "failedToMarkAllRead": "Failed to mark all as read",
     "deleted": "Notification deleted",
     "failedToDelete": "Failed to delete notification"
+  },
+  "admin": {
+    "userManagement": "User Management",
+    "userManagementDesc": "Create and manage system users with secure password hashing",
+    "createNewUser": "Create New User",
+    "selectRole": "Select Role",
+    "administrator": "Administrator",
+    "roleRequired": "Role is required",
+    "generateRandomPassword": "Generate Random Password",
+    "reset": "Reset",
+    "creating": "Creating...",
+    "createUser": "Create User",
+    "failedToCreateUser": "Failed to create user",
+    "failedToCreateUserTryAgain": "Failed to create user. Please try again."
   }
 }

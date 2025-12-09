@@ -1927,5 +1927,19 @@
     "failedToMarkAllRead": "فشل تحديد جميع الإشعارات كمقروءة",
     "deleted": "تم حذف الإشعار",
     "failedToDelete": "فشل حذف الإشعار"
+  },
+  "admin": {
+    "userManagement": "إدارة المستخدمين",
+    "userManagementDesc": "إنشاء وإدارة مستخدمي النظام مع تشفير آمن لكلمات المرور",
+    "createNewUser": "إنشاء مستخدم جديد",
+    "selectRole": "اختر الدور",
+    "administrator": "مدير النظام",
+    "roleRequired": "الدور مطلوب",
+    "generateRandomPassword": "توليد كلمة مرور عشوائية",
+    "reset": "إعادة تعيين",
+    "creating": "جاري الإنشاء...",
+    "createUser": "إنشاء مستخدم",
+    "failedToCreateUser": "فشل إنشاء المستخدم",
+    "failedToCreateUserTryAgain": "فشل إنشاء المستخدم. يرجى المحاولة مرة أخرى."
   }
 }
