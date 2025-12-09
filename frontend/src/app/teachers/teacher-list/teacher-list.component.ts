@@ -62,7 +62,33 @@ interface Teacher {
               </div>
             </div>
           </div>
-          <div class="mt-4 lg:mt-0 flex space-x-3">
+          <div class="mt-4 lg:mt-0 flex items-center gap-3">
+            <!-- View Mode Toggle -->
+            <div class="inline-flex rounded-lg bg-gray-100 p-1">
+              <button 
+                (click)="viewMode = 'card'"
+                [class]="viewMode === 'card' 
+                  ? 'px-3 py-2 bg-white text-gray-900 rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+                [title]="'common.cardView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+                </svg>
+              </button>
+              <button 
+                (click)="viewMode = 'table'"
+                [class]="viewMode === 'table' 
+                  ? 'px-3 py-2 bg-white text-gray-900 rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+                [title]="'common.tableView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            
             <button (click)="exportTeachers()" class="btn-secondary inline-flex items-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -182,8 +208,8 @@ interface Teacher {
         </div>
       </div>
 
-      <!-- Enhanced Teachers Table -->
-      <div *ngIf="!isLoading && teachers.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <!-- Table View -->
+      <div *ngIf="!isLoading && teachers.length > 0 && viewMode === 'table'" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
@@ -421,6 +447,132 @@ interface Teacher {
           </div>
         </div>
       </div>
+
+      <!-- Card View -->
+      <div *ngIf="!isLoading && teachers.length > 0 && viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let teacher of teachers" 
+             class="group bg-white rounded-2xl shadow-lg border-2 border-gray-200 hover:border-purple-400 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer">
+          
+          <!-- Gradient Header -->
+          <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-500 p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
+            
+            <!-- Checkbox for selection -->
+            <input 
+              type="checkbox" 
+              [checked]="isSelected(teacher.id)" 
+              (change)="toggleSelection(teacher.id)"
+              (click)="$event.stopPropagation()"
+              class="absolute top-4 left-4 w-5 h-5 text-purple-600 bg-white border-gray-300 rounded focus:ring-purple-500 cursor-pointer z-10">
+            
+            <div class="relative">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex-1">
+                  <h3 class="text-2xl font-bold text-white group-hover:scale-105 transition-transform">
+                    {{ teacher.fullName || teacher.firstName + ' ' + teacher.lastName }}
+                  </h3>
+                  <p class="text-purple-100 text-sm mt-1">{{ teacher.academicInfo.employeeId || 'N/A' }}</p>
+                </div>
+                <!-- Active Status Badge -->
+                <span 
+                  *ngIf="teacher.isActive"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full bg-green-500 text-white shadow-lg">
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ 'teachers.active' | translate }}
+                </span>
+                <span 
+                  *ngIf="!teacher.isActive"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full bg-gray-500 text-white shadow-lg">
+                  {{ 'teachers.inactive' | translate }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <!-- Email & Contact -->
+            <div class="mb-4">
+              <div class="flex items-center text-sm mb-2">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                  </svg>
+                </div>
+                <span class="text-gray-700 truncate">{{ teacher.email }}</span>
+              </div>
+            </div>
+
+            <!-- Stats Box -->
+            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4 mb-4 border border-purple-200">
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <div class="text-2xl font-bold text-purple-600">{{ teacher.stats?.subjectsCount || teacher.academicInfo.subjects.length || 0 }}</div>
+                  <div class="text-xs text-gray-600 mt-1">{{ 'teachers.subjects' | translate }}</div>
+                </div>
+                <div>
+                  <div class="text-2xl font-bold text-indigo-600">{{ teacher.stats?.groupsCount || teacher.academicInfo.groups.length || 0 }}</div>
+                  <div class="text-xs text-gray-600 mt-1">{{ 'teachers.groups' | translate }}</div>
+                </div>
+                <div>
+                  <div class="text-2xl font-bold text-blue-600">{{ teacher.stats?.coursesCount || 0 }}</div>
+                  <div class="text-xs text-gray-600 mt-1">{{ 'teachers.courses' | translate }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subjects Pills (Show max 3) -->
+            <div class="mb-4">
+              <div class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">{{ 'teachers.subjects' | translate }}</div>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let subject of (teacher.academicInfo?.subjects || []).slice(0, 3)" 
+                      class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                  {{ subject.name }}
+                </span>
+                <span *ngIf="(teacher.academicInfo?.subjects?.length || 0) > 3" 
+                      class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600">
+                  +{{ (teacher.academicInfo.subjects.length || 0) - 3 }} {{ 'teachers.more' | translate }}
+                </span>
+                <span *ngIf="!teacher.academicInfo?.subjects || teacher.academicInfo.subjects.length === 0" 
+                      class="text-xs text-gray-400 italic">
+                  {{ 'teachers.noSubjects' | translate }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+              <button 
+                (click)="viewTeacher(teacher); $event.stopPropagation()"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-semibold">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                {{ 'teachers.view' | translate }}
+              </button>
+              <button 
+                (click)="editTeacher(teacher); $event.stopPropagation()"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-sm font-semibold">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                {{ 'teachers.edit' | translate }}
+              </button>
+              <button 
+                (click)="deleteTeacher(teacher); $event.stopPropagation()"
+                class="px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -471,6 +623,7 @@ export class TeacherListComponent implements OnInit {
   dropdownPosition: 'top' | 'bottom' = 'bottom';
   subjects: any[] = [];
   private searchDebounce: any;
+  viewMode: 'card' | 'table' = 'table';
   
   filters = {
     search: '',
