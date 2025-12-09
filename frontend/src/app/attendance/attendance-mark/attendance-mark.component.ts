@@ -6,6 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AttendanceService } from '../../services/attendance.service';
 import { GroupService } from '../../services/group.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-attendance-mark',
@@ -392,6 +393,7 @@ export class AttendanceMarkComponent implements OnInit {
   isLoading = false;
   isSaving = false;
   error: string = '';
+  currentUser: any;
 
   // For group selection
   selectedGroupId: string = '';
@@ -407,7 +409,8 @@ export class AttendanceMarkComponent implements OnInit {
     private attendanceService: AttendanceService,
     private groupService: GroupService,
     private toastService: ToastService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private authService: AuthService
   ) {}
 
   // Close dropdown when clicking outside
@@ -420,6 +423,7 @@ export class AttendanceMarkComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.currentUser = this.authService.currentUser;
     this.groupId = this.route.snapshot.paramMap.get('groupId');
     
     if (this.groupId) {
@@ -430,7 +434,12 @@ export class AttendanceMarkComponent implements OnInit {
   }
 
   loadAllGroups() {
-    this.groupService.getGroups({ page: 1, limit: 100 }).subscribe({
+    // Use teacher-specific groups if not admin
+    const groupsCall = this.currentUser?.role === 'admin' 
+      ? this.groupService.getGroups({ page: 1, limit: 100 })
+      : this.groupService.getTeacherGroups({ page: 1, limit: 100 });
+    
+    groupsCall.subscribe({
       next: (response: any) => {
         this.allGroups = response.success ? response.data.groups : response.groups || [];
         this.filteredGroups = [...this.allGroups];

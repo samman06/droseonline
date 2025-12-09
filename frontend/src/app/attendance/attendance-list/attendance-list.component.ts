@@ -1176,7 +1176,12 @@ export class AttendanceListComponent implements OnInit {
 
   loadAttendances(): void {
     this.loading = true;
-    this.attendanceService.getAttendances(this.filters).subscribe({
+    // Use teacher-specific endpoint if not admin
+    const attendanceCall = this.currentUser?.role === 'admin' 
+      ? this.attendanceService.getAttendances(this.filters)
+      : this.attendanceService.getCurrentTeacherAttendance(this.filters);
+    
+    attendanceCall.subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.attendances = response.data.attendances || [];
@@ -1215,7 +1220,12 @@ export class AttendanceListComponent implements OnInit {
   }
 
   loadGroups(): void {
-    this.groupService.getGroups({ limit: 100 }).subscribe({
+    // Use teacher-specific groups if not admin
+    const groupsCall = this.currentUser?.role === 'admin' 
+      ? this.groupService.getGroups({ limit: 100 })
+      : this.groupService.getTeacherGroups({ limit: 100 });
+    
+    groupsCall.subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.groups = response.data.groups || [];
