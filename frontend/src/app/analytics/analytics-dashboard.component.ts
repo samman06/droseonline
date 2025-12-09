@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AnalyticsService, TeacherOverview } from '../services/analytics.service';
 import { ToastService } from '../services/toast.service';
 import { AuthService } from '../services/auth.service';
@@ -11,7 +12,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 py-8 px-4 sm:px-6 lg:px-8">
       <div class="max-w-7xl mx-auto space-y-6">
@@ -20,11 +21,11 @@ Chart.register(...registerables);
         <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-4xl font-bold text-white mb-2">📊 Analytics Dashboard</h1>
-              <p class="text-blue-100 text-lg">Performance insights and metrics</p>
+              <h1 class="text-4xl font-bold text-white mb-2">📊 {{ 'analytics.title' | translate }}</h1>
+              <p class="text-blue-100 text-lg">{{ 'analytics.subtitle' | translate }}</p>
             </div>
             <div class="text-white text-right">
-              <p class="text-sm opacity-80">Teacher</p>
+              <p class="text-sm opacity-80">{{ 'analytics.teacher' | translate }}</p>
               <p class="text-xl font-semibold">{{ currentUser?.fullName }}</p>
             </div>
           </div>
@@ -41,7 +42,7 @@ Chart.register(...registerables);
           <div class="bg-white rounded-xl shadow-lg border-l-4 border-blue-500 p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 font-medium">Total Students</p>
+                <p class="text-sm text-gray-600 font-medium">{{ 'analytics.totalStudents' | translate }}</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ overview.totalStudents }}</p>
               </div>
               <div class="p-3 bg-blue-100 rounded-full">
@@ -56,7 +57,7 @@ Chart.register(...registerables);
           <div class="bg-white rounded-xl shadow-lg border-l-4 border-green-500 p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 font-medium">Average Grade</p>
+                <p class="text-sm text-gray-600 font-medium">{{ 'analytics.averageGrade' | translate }}</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ overview.averageGrade }}%</p>
               </div>
               <div class="p-3 bg-green-100 rounded-full">
@@ -71,7 +72,7 @@ Chart.register(...registerables);
           <div class="bg-white rounded-xl shadow-lg border-l-4 border-purple-500 p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 font-medium">Attendance Rate</p>
+                <p class="text-sm text-gray-600 font-medium">{{ 'analytics.attendanceRate' | translate }}</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ overview.averageAttendanceRate }}%</p>
               </div>
               <div class="p-3 bg-purple-100 rounded-full">
@@ -86,7 +87,7 @@ Chart.register(...registerables);
           <div class="bg-white rounded-xl shadow-lg border-l-4 border-orange-500 p-6 hover:shadow-xl transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 font-medium">Pending Grading</p>
+                <p class="text-sm text-gray-600 font-medium">{{ 'analytics.pendingGrading' | translate }}</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2">{{ overview.pendingGrading }}</p>
               </div>
               <div class="p-3 bg-orange-100 rounded-full">
@@ -101,54 +102,54 @@ Chart.register(...registerables);
         <!-- Stats Grid -->
         <div *ngIf="!isLoading && overview" class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">📚 Course Overview</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📚 {{ 'analytics.courseOverview' | translate }}</h3>
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Total Courses</span>
+                <span class="text-gray-600">{{ 'analytics.totalCourses' | translate }}</span>
                 <span class="text-xl font-bold text-blue-600">{{ overview.totalCourses }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Total Groups</span>
+                <span class="text-gray-600">{{ 'analytics.totalGroups' | translate }}</span>
                 <span class="text-xl font-bold text-blue-600">{{ overview.totalGroups }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Total Assignments</span>
+                <span class="text-gray-600">{{ 'analytics.totalAssignments' | translate }}</span>
                 <span class="text-xl font-bold text-blue-600">{{ overview.totalAssignments }}</span>
               </div>
             </div>
           </div>
 
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 Recent Activity</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 {{ 'analytics.recentActivity' | translate }}</h3>
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">New Submissions</span>
+                <span class="text-gray-600">{{ 'analytics.newSubmissions' | translate }}</span>
                 <span class="text-xl font-bold text-green-600">{{ overview.recentActivity.submissions }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Graded</span>
+                <span class="text-gray-600">{{ 'analytics.graded' | translate }}</span>
                 <span class="text-xl font-bold text-green-600">{{ overview.recentActivity.graded }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Attendance Marked</span>
+                <span class="text-gray-600">{{ 'analytics.attendanceMarked' | translate }}</span>
                 <span class="text-xl font-bold text-green-600">{{ overview.recentActivity.attendanceMarked }}</span>
               </div>
             </div>
           </div>
 
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">⚠️ Attention Needed</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">⚠️ {{ 'analytics.attentionNeeded' | translate }}</h3>
             <div class="space-y-3">
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Pending Grading</span>
+                <span class="text-gray-600">{{ 'analytics.pendingGrading' | translate }}</span>
                 <span class="text-xl font-bold text-orange-600">{{ overview.pendingGrading }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Late Submissions</span>
+                <span class="text-gray-600">{{ 'analytics.lateSubmissions' | translate }}</span>
                 <span class="text-xl font-bold text-red-600">{{ overview.lateSubmissionRate }}%</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-gray-600">Avg. Attendance</span>
+                <span class="text-gray-600">{{ 'analytics.avgAttendance' | translate }}</span>
                 <span class="text-xl font-bold" [class]="getAttendanceColorClass()">{{ overview.averageAttendanceRate }}%</span>
               </div>
             </div>
@@ -159,13 +160,13 @@ Chart.register(...registerables);
         <div *ngIf="!isLoading && overview" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Performance Overview Chart -->
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Performance Overview</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 {{ 'analytics.performanceOverview' | translate }}</h3>
             <canvas #performanceChart class="max-h-64"></canvas>
           </div>
 
           <!-- Grade Distribution Chart -->
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Grade Distribution</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 {{ 'analytics.gradeDistribution' | translate }}</h3>
             <canvas #gradeChart class="max-h-64"></canvas>
           </div>
         </div>
@@ -174,13 +175,13 @@ Chart.register(...registerables);
         <div *ngIf="!isLoading && overview" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Submission Status Chart -->
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 Submission Status</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 {{ 'analytics.submissionStatus' | translate }}</h3>
             <canvas #submissionChart class="max-h-64"></canvas>
           </div>
 
           <!-- Attendance Trends Chart -->
           <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">📅 Attendance Trends</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📅 {{ 'analytics.attendanceTrends' | translate }}</h3>
             <canvas #attendanceChart class="max-h-64"></canvas>
           </div>
         </div>
@@ -205,7 +206,8 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
   constructor(
     private analyticsService: AnalyticsService,
     private toastService: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private translate: TranslateService
   ) {
     this.currentUser = this.authService.currentUser;
   }
@@ -231,7 +233,7 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         console.error('Error loading analytics:', error);
-        this.toastService.error('Failed to load analytics data');
+        this.toastService.error(this.translate.instant('analytics.failedToLoad'));
         this.isLoading = false;
       }
     });
@@ -255,9 +257,15 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
     const config: ChartConfiguration = {
       type: 'radar',
       data: {
-        labels: ['Grade Average', 'Attendance', 'Submissions', 'On-Time Rate', 'Engagement'],
+        labels: [
+          this.translate.instant('analytics.gradeAverage'),
+          this.translate.instant('analytics.attendance'),
+          this.translate.instant('analytics.submissions'),
+          this.translate.instant('analytics.onTimeRate'),
+          this.translate.instant('analytics.engagement')
+        ],
         datasets: [{
-          label: 'Performance Metrics',
+          label: this.translate.instant('analytics.performanceMetrics'),
           data: [
             this.overview!.averageGrade,
             this.overview!.averageAttendanceRate,
@@ -314,7 +322,12 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
     const config: ChartConfiguration = {
       type: 'doughnut',
       data: {
-        labels: ['Excellent (90-100)', 'Good (75-89)', 'Average (60-74)', 'Needs Improvement (<60)'],
+        labels: [
+          this.translate.instant('analytics.excellentGrade'),
+          this.translate.instant('analytics.goodGrade'),
+          this.translate.instant('analytics.averageGrade2'),
+          this.translate.instant('analytics.needsImprovement')
+        ],
         datasets: [{
           data: [excellent, good, average, poor],
           backgroundColor: [
@@ -362,7 +375,11 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
     const config: ChartConfiguration = {
       type: 'pie',
       data: {
-        labels: ['Submitted', 'Pending', 'Graded'],
+        labels: [
+          this.translate.instant('analytics.submitted'),
+          this.translate.instant('analytics.pending'),
+          this.translate.instant('analytics.graded2')
+        ],
         datasets: [{
           data: [submitted - this.overview!.pendingGrading, pending, this.overview!.pendingGrading],
           backgroundColor: [
@@ -410,7 +427,7 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
       data: {
         labels: this.getLast7Days(),
         datasets: [{
-          label: 'Attendance Rate (%)',
+          label: this.translate.instant('analytics.attendanceRatePercent'),
           data: trendData,
           backgroundColor: 'rgba(168, 85, 247, 0.1)',
           borderColor: 'rgb(168, 85, 247)',
@@ -444,8 +461,8 @@ export class AnalyticsDashboardComponent implements OnInit, AfterViewInit {
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                return 'Attendance: ' + (context.parsed.y?.toFixed(1) || 0) + '%';
+              label: (context) => {
+                return this.translate.instant('analytics.attendanceLabel') + ': ' + (context.parsed.y?.toFixed(1) || 0) + '%';
               }
             }
           }

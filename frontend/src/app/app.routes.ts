@@ -365,7 +365,7 @@ export const routes: Routes = [
       {
         path: 'analytics',
         canActivate: [RoleGuard],
-        data: { roles: [] }, // Disabled - no one can access
+        data: { roles: ['admin', 'teacher', 'assistant'] }, // Analytics for teachers and admins
         loadComponent: () => import('./analytics/analytics-dashboard.component').then(m => m.AnalyticsDashboardComponent)
       },
       {
