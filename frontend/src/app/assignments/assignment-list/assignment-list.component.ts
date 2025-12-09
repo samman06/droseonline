@@ -126,23 +126,27 @@ import { PermissionService } from '../../services/permission.service';
               <span class="ml-2 text-sm text-gray-600">{{ 'common.selectAll' | translate }}</span>
             </label>
           </div>
-          <div class="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
+          <div class="inline-flex rounded-lg bg-gray-100 p-1">
             <button 
-              (click)="viewMode = 'grid'"
-              [class.bg-white]="viewMode === 'grid'"
-              [class.shadow-sm]="viewMode === 'grid'"
-              class="px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+              (click)="viewMode = 'card'"
+              [class]="viewMode === 'card' 
+                ? 'px-3 py-2 bg-white text-gray-900 rounded-md shadow-sm font-medium transition-all' 
+                : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+              [title]="'common.cardView' | translate"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
               </svg>
             </button>
             <button 
-              (click)="viewMode = 'list'"
-              [class.bg-white]="viewMode === 'list'"
-              [class.shadow-sm]="viewMode === 'list'"
-              class="px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+              (click)="viewMode = 'table'"
+              [class]="viewMode === 'table' 
+                ? 'px-3 py-2 bg-white text-gray-900 rounded-md shadow-sm font-medium transition-all' 
+                : 'px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-md transition-all'"
+              [title]="'common.tableView' | translate"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
               </svg>
             </button>
           </div>
@@ -208,8 +212,8 @@ import { PermissionService } from '../../services/permission.service';
         <p class="mt-4 text-gray-600 font-medium">{{ 'assignments.loadingAssignments' | translate }}</p>
       </div>
 
-      <!-- Grid View -->
-      <div *ngIf="!loading && assignments.length > 0 && viewMode === 'grid'" 
+      <!-- Card View -->
+      <div *ngIf="!loading && assignments.length > 0 && viewMode === 'card'" 
            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div *ngFor="let assignment of assignments" 
              class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group"
@@ -295,8 +299,8 @@ import { PermissionService } from '../../services/permission.service';
         </div>
       </div>
 
-      <!-- List View -->
-      <div *ngIf="!loading && assignments.length > 0 && viewMode === 'list'" class="space-y-4">
+      <!-- Table View -->
+      <div *ngIf="!loading && assignments.length > 0 && viewMode === 'table'" class="space-y-4">
         <div *ngFor="let assignment of assignments" 
              class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-300 overflow-hidden relative"
              [class.ring-2]="isSelected(assignment._id!)"
@@ -433,7 +437,7 @@ export class AssignmentListComponent implements OnInit {
   loading = false;
   currentUser: User | null = null;
   searchTimeout: any;
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: 'card' | 'table' = 'table';
 
   filters = {
     type: '',
