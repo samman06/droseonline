@@ -17,7 +17,7 @@ import { SubjectService } from '../../services/subject.service';
     <div class="space-y-6">
       <!-- Enhanced Header with Gradient -->
       <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-4">
           <div class="flex items-center space-x-4">
             <div class="p-4 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,15 +37,44 @@ import { SubjectService } from '../../services/subject.service';
               </div>
             </div>
           </div>
-          <button 
-            *ngIf="canCreateCourse"
-            [routerLink]="['/dashboard/courses/new']"
-            class="btn-create-course">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            {{ 'courses.createNewCourse' | translate }}
-          </button>
+          
+          <div class="flex items-center gap-3">
+            <!-- View Mode Toggle -->
+            <div class="inline-flex rounded-lg bg-white bg-opacity-20 backdrop-blur-sm p-1 border-2 border-white border-opacity-30">
+              <button 
+                (click)="viewMode = 'card'"
+                [class]="viewMode === 'card' 
+                  ? 'px-3 py-2 bg-white text-indigo-600 rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-white hover:bg-white hover:bg-opacity-10 rounded-md transition-all'"
+                [title]="'common.cardView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+                </svg>
+              </button>
+              <button 
+                (click)="viewMode = 'table'"
+                [class]="viewMode === 'table' 
+                  ? 'px-3 py-2 bg-white text-indigo-600 rounded-md shadow-sm font-medium transition-all' 
+                  : 'px-3 py-2 text-white hover:bg-white hover:bg-opacity-10 rounded-md transition-all'"
+                [title]="'common.tableView' | translate"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <button 
+              *ngIf="canCreateCourse"
+              [routerLink]="['/dashboard/courses/new']"
+              class="btn-create-course">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              {{ 'courses.createNewCourse' | translate }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -136,10 +165,116 @@ import { SubjectService } from '../../services/subject.service';
       </div>
 
       <div *ngIf="loading" class="flex justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600"></div>
       </div>
 
-      <div *ngIf="!loading && courses.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Table View -->
+      <div *ngIf="!loading && courses.length > 0 && viewMode === 'table'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gradient-to-r from-indigo-50 to-purple-50">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'courses.courseName' | translate }}
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'courses.subject' | translate }}
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'courses.teacher' | translate }}
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'courses.enrolled' | translate }}
+                </th>
+                <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  {{ 'common.actions' | translate }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let course of courses" class="hover:bg-indigo-50 transition-colors">
+                <!-- Course Name + Code -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                      </svg>
+                    </div>
+                    <div class="ml-4">
+                      <a [routerLink]="['/dashboard/courses', course._id]" class="text-sm font-bold text-gray-900 hover:text-indigo-600 transition-colors">
+                        {{ course.name }}
+                      </a>
+                      <div class="text-xs font-mono text-gray-500">{{ course.code }}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Subject -->
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
+                    </svg>
+                    {{ course.subject?.name || '—' }}
+                  </span>
+                </td>
+
+                <!-- Teacher -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                      </svg>
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-900">
+                      {{ course.teacher?.fullName || course.teacher?.firstName + ' ' + course.teacher?.lastName || '—' }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Students Count -->
+                <td class="px-6 py-4 text-center">
+                  <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-purple-100 text-purple-800 font-bold text-sm border border-purple-300">
+                    <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                    </svg>
+                    {{ course.studentCount || 0 }}
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-center gap-2">
+                    <button 
+                      [routerLink]="['/dashboard/courses', course._id]"
+                      class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                      {{ 'common.view' | translate }}
+                    </button>
+                    <button 
+                      *ngIf="canEdit(course)"
+                      [routerLink]="['/dashboard/courses', course._id, 'edit']"
+                      class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      </svg>
+                      {{ 'common.edit' | translate }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Card View -->
+      <div *ngIf="!loading && courses.length > 0 && viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div *ngFor="let course of courses" 
              class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-gray-100 hover:border-indigo-300 transform hover:-translate-y-1">
           
@@ -291,6 +426,7 @@ export class CourseListComponent implements OnInit {
   loading = false;
   currentUser: any;
   searchTimeout: any;
+  viewMode: 'card' | 'table' = 'table';
 
   filters = {
     search: '',
