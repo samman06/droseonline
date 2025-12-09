@@ -883,6 +883,8 @@
     "mostViewed": "Most Viewed",
     "noMaterialsFound": "No Materials Found",
     "tryAdjustingFilters": "Try adjusting your filters or search query",
+    "view": "View",
+    "delete": "Delete",
     "types": {
       "file": "File",
       "document": "Document",

@@ -23,14 +23,42 @@ import { ConfirmationService } from '../../services/confirmation.service';
               <h1 class="text-4xl font-bold text-white mb-2">📚 {{ 'materials.title' | translate }}</h1>
               <p class="text-blue-100 text-lg">{{ 'materials.accessResources' | translate }}</p>
             </div>
-            <button *ngIf="canUpload()"
-                    (click)="openUploadModal()"
-                    class="mt-4 md:mt-0 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
-              </svg>
-              {{ 'materials.uploadMaterials' | translate }}
-            </button>
+            <div class="flex items-center gap-3 mt-4 md:mt-0">
+              <!-- View Mode Toggle -->
+              <div class="inline-flex rounded-lg bg-white bg-opacity-20 p-1 border-2 border-white border-opacity-30">
+                <button 
+                  (click)="viewMode = 'card'"
+                  [class]="viewMode === 'card' 
+                    ? 'px-3 py-2 bg-white text-indigo-600 rounded-md shadow-sm font-medium transition-all' 
+                    : 'px-3 py-2 text-white hover:bg-white hover:bg-opacity-10 rounded-md transition-all'"
+                  [title]="'common.cardView' | translate"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"></path>
+                  </svg>
+                </button>
+                <button 
+                  (click)="viewMode = 'table'"
+                  [class]="viewMode === 'table' 
+                    ? 'px-3 py-2 bg-white text-indigo-600 rounded-md shadow-sm font-medium transition-all' 
+                    : 'px-3 py-2 text-white hover:bg-white hover:bg-opacity-10 rounded-md transition-all'"
+                  [title]="'common.tableView' | translate"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <button *ngIf="canUpload()"
+                      (click)="openUploadModal()"
+                      class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                </svg>
+                {{ 'materials.uploadMaterials' | translate }}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -118,8 +146,87 @@ import { ConfirmationService } from '../../services/confirmation.service';
           <p class="text-gray-500">{{ 'materials.tryAdjustingFilters' | translate }}</p>
         </div>
 
-        <!-- Materials Grid -->
-        <div *ngIf="!loading && materials.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Table View -->
+        <div *ngIf="!loading && materials.length > 0 && viewMode === 'table'" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gradient-to-r from-blue-50 to-indigo-50">
+                <tr>
+                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    {{ 'materials.title' | translate }}
+                  </th>
+                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    {{ 'materials.type' | translate }}
+                  </th>
+                  <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    {{ 'materials.category' | translate }}
+                  </th>
+                  <th class="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    {{ 'common.actions' | translate }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let material of materials" class="hover:bg-blue-50 transition-colors">
+                  <!-- Title -->
+                  <td class="px-6 py-4">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-bold text-gray-900">{{ material.title }}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Type -->
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                      {{ material.type }}
+                    </span>
+                  </td>
+
+                  <!-- Category -->
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-300">
+                      {{ material.category }}
+                    </span>
+                  </td>
+
+                  <!-- Actions -->
+                  <td class="px-6 py-4">
+                    <div class="flex items-center justify-center gap-2">
+                      <button 
+                        (click)="viewMaterial(material)"
+                        class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        {{ 'materials.view' | translate }}
+                      </button>
+                      <button 
+                        *ngIf="canDelete(material)"
+                        (click)="deleteMaterial(material)"
+                        class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all">
+                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        {{ 'materials.delete' | translate }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Card View (Materials Grid) -->
+        <div *ngIf="!loading && materials.length > 0 && viewMode === 'card'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div *ngFor="let material of materials" 
                class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group">
             
@@ -244,6 +351,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
 export class MaterialListComponent implements OnInit {
   materials: Material[] = [];
   loading = false;
+  viewMode: 'card' | 'table' = 'table';
   filters: MaterialQueryParams = {
     page: 1,
     limit: 12,

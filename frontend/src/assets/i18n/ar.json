@@ -882,6 +882,8 @@
     "mostViewed": "الأكثر مشاهدة",
     "noMaterialsFound": "لم يتم العثور على مواد",
     "tryAdjustingFilters": "حاول تعديل عوامل التصفية أو استعلام البحث",
+    "view": "عرض",
+    "delete": "حذف",
     "types": {
       "file": "ملف",
       "document": "مستند",
